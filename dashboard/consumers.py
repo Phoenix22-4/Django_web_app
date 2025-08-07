@@ -1,7 +1,8 @@
+# dashboard/consumers.py
 import json
 import paho.mqtt.client as mqtt
 import ssl
-import threading
+import threading # Import the threading library
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import async_to_sync, sync_to_async
 from channels.layers import get_channel_layer
@@ -17,9 +18,7 @@ MQTT_COMMAND_TOPIC_FORMAT = "devices/{}/commands"
 # --- Global variable to hold our single MQTT client instance ---
 mqtt_listener_client = None
 
-# =================================================================
-# --- This is the Web App's Brain (Your Dynamic Logic) ---
-# =================================================================
+# --- Database-driven MQTT Message Handling ---
 @sync_to_async
 def process_and_save_data(topic, payload_str):
     try:
@@ -38,15 +37,6 @@ def process_and_save_data(topic, payload_str):
             pump_current=payload.get('pump_current', 0.0),
             system_status=payload.get('system_status', 'Unknown')
         )
-        
-        DATA_LIMIT_PER_DEVICE = 150
-        reading_count = WaterReading.objects.filter(device=device).count()
-
-        if reading_count > DATA_LIMIT_PER_DEVICE:
-            oldest_reading = WaterReading.objects.filter(device=device).order_by('timestamp').first()
-            if oldest_reading:
-                oldest_reading.delete()
-                print(f"CLEANUP: Deleted oldest reading for device '{device_id}'.")
         
         if device.owner:
             print(f"SUCCESS: Saved data for device '{device_id}' owned by '{device.owner}'.")
@@ -70,8 +60,11 @@ def on_message(client, userdata, msg):
             {"type": "device.message", "message": payload}
         )
 
+# This function is called when the client tries to connect to AWS.
 def on_connect(client, userdata, flags, rc):
+    # Get the event object we passed in
     connection_event = userdata.get('connection_event')
+    
     if rc == 0:
         print("SUCCESS: Connected to MQTT Broker!")
         client.subscribe(MQTT_WILDCARD_DATA_TOPIC)
@@ -79,52 +72,38 @@ def on_connect(client, userdata, flags, rc):
     else:
         print(f"FAILED to connect to MQTT, return code {rc}")
     
+    # This sends the "I'm done" signal back to the main startup process
     if connection_event:
         connection_event.set()
 
-# --- This class defines the Web App's fixed identity ---
+# --- This class defines the Web App's identity ---
 class MqttClient:
     def __init__(self):
         self.client = mqtt.Client(client_id="AquaGuard_Backend")
         
+        # Create an event object that we can use to signal completion
         self.connection_event = threading.Event()
         self.client.user_data_set({'connection_event': self.connection_event})
 
         self.client.on_connect = on_connect
         self.client.on_message = on_message
         
-        # ==========================================================
-        # --- THIS IS THE FINAL CHANGE FOR DEPLOYMENT ---
-        # ==========================================================
-        # Check if the 'RENDER' environment variable exists. Render sets this automatically.
-        if 'RENDER' in os.environ:
-            # If we are on Render, the secret files are in a secure, fixed location.
-            certs_dir = "/etc/secrets"
-            # The filenames are the simple names you entered on the Render website.
-            certfile_name = "backend.pem"
-            keyfile_name = "backend.key"
-            print("Running on Render. Using secret file paths.")
-        else:
-            # If we are on your local computer, use the local 'certs' folder.
-            BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            certs_dir = os.path.join(BASE_DIR, "certs")
-            # Use the long, auto-generated filenames for local testing.
-            certfile_name = "1a5ab48e7acac2f748a8c8909a37455d8e5879f8500a32c119067bce43f67cc6-certificate.pem.crt"
-            keyfile_name = "1a5ab48e7acac2f748a8c8909a37455d8e5879f8500a32c119067bce43f67cc6-private.pem.key"
-            print("Running locally. Using local certs folder.")
+        BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        certs_dir = os.path.join(BASE_DIR, "certs")
 
         self.client.tls_set(
             ca_certs=os.path.join(certs_dir, "AmazonRootCA1.pem"),
-            certfile=os.path.join(certs_dir, certfile_name),
-            keyfile=os.path.join(certs_dir, keyfile_name),
+            certfile=os.path.join(certs_dir, "1a5ab48e7acac2f748a8c8909a37455d8e5879f8500a32c119067bce43f67cc6-certificate.pem.crt"),
+            keyfile=os.path.join(certs_dir, "1a5ab48e7acac2f748a8c8909a37455d8e5879f8500a32c119067bce43f67cc6-private.pem.key"),
             tls_version=ssl.PROTOCOL_TLSv1_2
         )
-        # ==========================================================
 
     def start(self):
         print("Web app is attempting to connect to AWS...")
+        # Use connect_async for better background handling
         self.client.connect_async(MQTT_SERVER, MQTT_PORT, 60)
         self.client.loop_start()
+        # Return the event object so the main thread can wait for it
         return self.connection_event
 
 # --- This function ensures we only ever have one connection to AWS ---
