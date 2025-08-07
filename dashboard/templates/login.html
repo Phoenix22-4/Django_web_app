@@ -12,7 +12,8 @@
     </div>
     <div class="login-container">
         <form method="post">
-            {% csrf_token %}
+            {% csrf_token %}  <!-- THIS LINE IS THE FIX -->
+            
             {{ form.as_p }}
             <button type="submit" class="control-button on">Login</button>
         </form>

@@ -1,7 +1,7 @@
-# dashboard/consumers.py
 import json
 import paho.mqtt.client as mqtt
 import ssl
+import threading
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import async_to_sync, sync_to_async
 from channels.layers import get_channel_layer
@@ -23,16 +23,13 @@ mqtt_listener_client = None
 @sync_to_async
 def process_and_save_data(topic, payload_str):
     try:
-        # Step 1: The web app reads the device_id from the topic.
         device_id = topic.split('/')[1]
         payload = json.loads(payload_str)
         
-        # YOUR LOGIC: The web app automatically creates a device record if it's new.
         device, created = Device.objects.get_or_create(device_id=device_id)
         if created:
-            print(f"AUTO-CREATED: New device '{device_id}' has connected and been added to the database.")
+            print(f"AUTO-CREATED: New device '{device_id}' has been added to the database.")
 
-        # The web app saves the data, linking it to the correct device.
         WaterReading.objects.create(
             device=device,
             overhead_level=payload.get('overhead_level', 0),
@@ -41,22 +38,16 @@ def process_and_save_data(topic, payload_str):
             pump_current=payload.get('pump_current', 0.0),
             system_status=payload.get('system_status', 'Unknown')
         )
-
-        # ==========================================================
-        # --- NEW: AUTOMATIC DATA DELETION LOGIC ---
-        # ==========================================================
+        
         DATA_LIMIT_PER_DEVICE = 150
         reading_count = WaterReading.objects.filter(device=device).count()
 
         if reading_count > DATA_LIMIT_PER_DEVICE:
-            # Find the oldest reading for this specific device
             oldest_reading = WaterReading.objects.filter(device=device).order_by('timestamp').first()
             if oldest_reading:
                 oldest_reading.delete()
-                print(f"CLEANUP: Deleted oldest reading for device '{device_id}' to stay within the {DATA_LIMIT_PER_DEVICE} limit.")
-        # ==========================================================
+                print(f"CLEANUP: Deleted oldest reading for device '{device_id}'.")
         
-        # Only forward the message if an admin has assigned a user to this device.
         if device.owner:
             print(f"SUCCESS: Saved data for device '{device_id}' owned by '{device.owner}'.")
             return device_id, payload
@@ -68,11 +59,9 @@ def process_and_save_data(topic, payload_str):
         print(f"ERROR: Could not process message. Reason: {e}")
     return None, None
 
-# This function runs when a message arrives from ANY device.
 def on_message(client, userdata, msg):
     device_id, payload = async_to_sync(process_and_save_data)(msg.topic, msg.payload.decode())
     
-    # If the device has an owner, the web app forwards the data to the correct user's browser.
     if device_id and payload:
         channel_layer = get_channel_layer()
         group_name = f"device_{device_id}"
@@ -81,37 +70,62 @@ def on_message(client, userdata, msg):
             {"type": "device.message", "message": payload}
         )
 
-# This function is called when the web app connects to AWS.
 def on_connect(client, userdata, flags, rc):
+    connection_event = userdata.get('connection_event')
     if rc == 0:
         print("SUCCESS: Connected to MQTT Broker!")
         client.subscribe(MQTT_WILDCARD_DATA_TOPIC)
         print(f"--> Web App is now listening for data from all devices.")
     else:
-        print(f"FAILED to connect Web App, return code {rc}")
+        print(f"FAILED to connect to MQTT, return code {rc}")
+    
+    if connection_event:
+        connection_event.set()
 
 # --- This class defines the Web App's fixed identity ---
 class MqttClient:
     def __init__(self):
-        # The web app has one, fixed ID ("the mail van").
         self.client = mqtt.Client(client_id="AquaGuard_Backend")
+        
+        self.connection_event = threading.Event()
+        self.client.user_data_set({'connection_event': self.connection_event})
+
         self.client.on_connect = on_connect
         self.client.on_message = on_message
         
-        BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        certs_dir = os.path.join(BASE_DIR, "certs")
+        # ==========================================================
+        # --- THIS IS THE FINAL CHANGE FOR DEPLOYMENT ---
+        # ==========================================================
+        # Check if the 'RENDER' environment variable exists. Render sets this automatically.
+        if 'RENDER' in os.environ:
+            # If we are on Render, the secret files are in a secure, fixed location.
+            certs_dir = "/etc/secrets"
+            # The filenames are the simple names you entered on the Render website.
+            certfile_name = "backend.pem"
+            keyfile_name = "backend.key"
+            print("Running on Render. Using secret file paths.")
+        else:
+            # If we are on your local computer, use the local 'certs' folder.
+            BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            certs_dir = os.path.join(BASE_DIR, "certs")
+            # Use the long, auto-generated filenames for local testing.
+            certfile_name = "1a5ab48e7acac2f748a8c8909a37455d8e5879f8500a32c119067bce43f67cc6-certificate.pem.crt"
+            keyfile_name = "1a5ab48e7acac2f748a8c8909a37455d8e5879f8500a32c119067bce43f67cc6-private.pem.key"
+            print("Running locally. Using local certs folder.")
 
         self.client.tls_set(
             ca_certs=os.path.join(certs_dir, "AmazonRootCA1.pem"),
-            certfile=os.path.join(certs_dir, "1a5ab48e7acac2f748a8c8909a37455d8e5879f8500a32c119067bce43f67cc6-certificate.pem.crt"),
-            keyfile=os.path.join(certs_dir, "1a5ab48e7acac2f748a8c8909a37455d8e5879f8500a32c119067bce43f67cc6-private.pem.key"),
+            certfile=os.path.join(certs_dir, certfile_name),
+            keyfile=os.path.join(certs_dir, keyfile_name),
             tls_version=ssl.PROTOCOL_TLSv1_2
         )
+        # ==========================================================
 
     def start(self):
         print("Web app is attempting to connect to AWS...")
-        self.client.connect(MQTT_SERVER, MQTT_PORT, 60)
+        self.client.connect_async(MQTT_SERVER, MQTT_PORT, 60)
         self.client.loop_start()
+        return self.connection_event
 
 # --- This function ensures we only ever have one connection to AWS ---
 def get_mqtt_client():
@@ -131,7 +145,6 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         self.device_id = self.scope['url_route']['kwargs']['device_id']
         self.group_name = f'device_{self.device_id}'
 
-        # Security Check: Does this user own this device?
         is_owner = await self.user_owns_device()
         if not is_owner:
             await self.close()

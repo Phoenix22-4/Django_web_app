@@ -3,15 +3,16 @@ import os
 import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = os.environ.get(
-    'SECRET_KEY', 
-    'django-insecure-1#i9#d$cpj^_=0_@b#is=7j*hc!f+p-b0_z%pfp&900b&b%5pr'
-)
+SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
+
 ALLOWED_HOSTS = []
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+# --- NEW: CSRF SECURITY SETTING FOR DEPLOYMENT ---
+CSRF_TRUSTED_ORIGINS = [f'https://{RENDER_EXTERNAL_HOSTNAME}'] if RENDER_EXTERNAL_HOSTNAME else []
 
 INSTALLED_APPS = [
     'daphne',
@@ -53,12 +54,8 @@ TEMPLATES = [
 ]
 WSGI_APPLICATION = 'AquaGuard.wsgi.application'
 
-# ==========================================================
-# --- THIS IS THE CORRECTED DATABASE CONFIGURATION ---
-# ==========================================================
 DATABASES = {
     'default': dj_database_url.config(
-        # The '#' in your password has been replaced with '%23'
         default='postgresql://postgres:mwamboa22%23@localhost:5432/AquaGuard_db',
         conn_max_age=600
     )
