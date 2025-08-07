@@ -1,0 +1,6 @@
+django
+channels
+daphne
+paho-mqtt
+whitenoise
+psycopg2-binary

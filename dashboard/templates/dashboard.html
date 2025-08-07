@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard for {{ device.name }}</title>
+    <meta name="device-id" id="device-id" content="{{ device.device_id }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'dashboard.css' %}">
+</head>
+<body>
+    <div class="header">
+        <h1>AquaGuard: {{ device.name }}</h1>
+        <div class="user-info">
+            <a href="{% url 'device_list' %}" class="nav-link">Back to Devices</a>
+            <a href="{% url 'logout' %}" class="logout-link">Logout</a>
+        </div>
+    </div>
+    
+    <div class="dashboard-container">
+        <!-- Status Indicators -->
+        <div class="status-row">
+            <div class="status-indicator">
+                <span>Connection:</span>
+                <span id="websocket-status">Connecting...</span>
+                <div id="websocket-light" class="status-light offline"></div>
+            </div>
+            <div class="status-indicator">
+                <span>Device:</span>
+                <span id="device-status">Offline</span>
+                <div id="device-light" class="status-light offline"></div>
+            </div>
+        </div>
+
+        <!-- Tanks Visualization -->
+        <div class="tanks-visualization">
+            <div class="tank-wrapper">
+                <div class="tank-title">Overhead Tank</div>
+                <div class="tank overhead">
+                    <div class="tank-frame">
+                        <div class="water-level" id="overhead-water"></div>
+                    </div>
+                    <div class="tank-info"><span id="overhead-level">--%</span></div>
+                </div>
+            </div>
+            
+            <div class="pipe-and-pump">
+                <div class="pipe-horizontal"></div>
+                <div class="pump" id="pump-motor"><i class="fas fa-water"></i></div>
+                <div class="pipe-horizontal"></div>
+            </div>
+            
+            <div class="tank-wrapper">
+                <div class="tank-title">Underground Tank</div>
+                <div class="tank underground">
+                    <div class="tank-frame">
+                        <div class="water-level" id="underground-water"></div>
+                    </div>
+                    <div class="tank-info"><span id="underground-level">--%</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Combined Controls and Status Row -->
+        <div class="controls-status-row">
+            <!-- Pump Controls (Left Side) -->
+            <div class="pump-controls-container">
+                <h2>Pump Controls</h2>
+                <div class="pump-buttons">
+                    <button id="pump-on" class="control-button on">ON</button>
+                    <button id="pump-off" class="control-button off">OFF</button>
+                </div>
+                <div class="pump-status">
+                    <p>Status: <span id="pump-status-text">--</span></p>
+                    <p>Current: <span id="pump-current-text">-- A</span></p>
+                </div>
+            </div>
+
+            <!-- Water Level Status (Right Side) -->
+            <div class="status-messages-container">
+                <div class="status-box">
+                    <h3>Water Levels</h3>
+                    <p id="overhead-status-msg">Overhead: --%</p>
+                    <p id="underground-status-msg">Underground: --%</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <p>AquaGuard Solutions | email: VisionTech22@gmail.com | WhatsApp: +254 115 665 458</p>
+    </footer>
+
+    <script src="{% static 'dashboard.js' %}"></script>
+</body>
+</html>

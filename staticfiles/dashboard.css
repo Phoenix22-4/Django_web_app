@@ -1,0 +1,187 @@
+/* ==================== BASE & LAYOUT ==================== */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-image: url('https://www.fuelminder.biz/Images/smart%20water%20wifi/smart%20water%20wifi%205.JPG');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    font-size: 16px;
+}
+
+body::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(255, 255, 255, 0.85); /* Slightly less transparent */
+    z-index: -1;
+}
+
+.dashboard-container, .device-list-container {
+    padding: 15px;
+    flex-grow: 1;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* ==================== HEADER ==================== */
+.header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: rgba(11, 210, 236, 0.95);
+    padding: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.heading { 
+    margin: 0 0 10px 0; 
+    color: #0f1ee7;
+    text-align: center;
+    font-size: 1.5rem;
+}
+
+.user-info { 
+    display: flex; 
+    align-items: center;
+    gap: 20px;
+}
+
+.logout-link, .nav-link { 
+    text-decoration: none; 
+    color: #007bff; 
+    font-weight: bold; 
+    font-size: 0.9rem;
+    transition: color 0.2s;
+}
+.logout-link:hover, .nav-link:hover { color: #0056b3; }
+
+/* ==================== DEVICE LIST PAGE ==================== */
+.device-list-container {
+    text-align: center;
+}
+
+.device-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.device-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 220px;
+    height: 160px;
+    background-color: #08f714;
+    color: #0402ff;
+    text-decoration: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-align: center;
+    padding: 15px;
+}
+
+.device-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+}
+
+.device-card h3 { margin: 0 0 10px 0; font-size: 1.3rem; }
+.device-card p { margin: 0; font-size: 0.8rem; opacity: 0.8; }
+
+
+/* ==================== DASHBOARD PAGE ==================== */
+.dashboard-container { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+.status-row { display: flex; justify-content: center; gap: 20px; margin: 15px 0; flex-wrap: wrap; }
+.status-indicator { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; background-color: rgba(199, 174, 174, 0.9); padding: 8px 12px; border-radius: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.status-light { width: 12px; height: 12px; border-radius: 50%; transition: all 0.3s; }
+.status-light.online { background-color: #28a745; box-shadow: 0 0 8px #28a745; }
+.status-light.offline { background-color: #dc3545; box-shadow: 0 0 8px #dc3545; }
+.status-light.connecting { background-color: #ff9800; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+.controls-status-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 30px;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.pump-controls-container, .status-messages-container {
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.pump-controls-container h2, .status-box h3 { margin: 0 0 10px 0; font-size: 1.2rem; color: #333; }
+.pump-buttons { display: flex; gap: 15px; width: 100%; justify-content: center; }
+.control-button { padding: 10px 20px; font-size: 1rem; font-weight: bold; color: #fff; border: none; border-radius: 5px; cursor: pointer; transition: all 0.2s; flex: 1; max-width: 120px; }
+.control-button.on { background-color: #28a745; }
+.control-button.off { background-color: #dc3545; }
+.control-button:hover { transform: translateY(-2px); opacity: 0.9; }
+.pump-status { display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 0.9rem; font-weight: bold; }
+.pump-status p { margin: 0; }
+
+.tanks-visualization { display: flex; flex-direction: column; align-items: center; width: 100%; position: relative; margin: 20px 0; }
+.tank-wrapper { display: flex; flex-direction: column; align-items: center; margin: 10px 0; }
+.tank-title, .tank-info { font-weight: bold; background-color: rgba(255, 255, 255, 0.9); padding: 5px 10px; border-radius: 5px; font-size: 0.9rem; }
+.tank-title { margin-bottom: 8px; }
+.tank-info { margin-top: 8px; }
+.tank { position: relative; }
+.tank.underground { height: 200px; width: 120px; }
+.tank.overhead { height: 150px; width: 100px; }
+.tank-frame { width: 100%; height: 100%; border: 3px solid #6c757d; border-radius: 5px; position: relative; overflow: hidden; background-color: #e9ecef; }
+.water-level { position: absolute; bottom: 0; left: 0; width: 100%; background-color: #23c5ee; transition: height 0.5s ease-in-out; }
+
+.pipe-and-pump { display: flex; align-items: center; justify-content: center; width: 100%; margin: 15px 0; }
+.pipe-horizontal { height: 15px; background-color: #44a7fd; border-radius: 5px; flex: 1; max-width: 80px; }
+.pump { position: relative; width: 60px; height: 60px; color: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.8rem; box-shadow: 0 0 8px rgba(0,0,0,0.5); border: 4px solid #34526d; margin: 0 10px; }
+.pump.online { background-color: #28a745; }
+.pump.offline { background-color: #6c757d; }
+.pump.active .fa-water { animation: pump-on 1s infinite; }
+@keyframes pump-on { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+.status-box { padding: 12px; background-color: #f8f9fa; border-radius: 5px; border: 1px solid #dee2e6; width: 100%; box-sizing: border-box; }
+.status-box p { margin: 4px 0; font-weight: bold; font-size: 0.9rem; }
+
+/* ==================== FOOTER ==================== */
+.site-footer { text-align: center; padding: 15px; background-color: rgba(11, 209, 209, 0.9); color: #0d14ec; font-size: 0.8rem; margin-top: auto; }
+
+/* ==================== RESPONSIVE DESIGN ==================== */
+@media (min-width: 768px) {
+    .header { flex-direction: row; justify-content: space-between; padding: 15px 30px; }
+    .heading { margin: 0; text-align: left; font-size: 1.8rem; }
+    .tanks-visualization { flex-direction: row; justify-content: center; align-items: flex-end; gap: 30px; margin: 40px 0; }
+    .tank.underground { height: 250px; width: 150px; }
+    .tank.overhead { height: 180px; width: 120px; }
+    .pipe-and-pump { position: relative; margin: 0; width: auto; }
+    .pipe-horizontal { width: 80px; height: 20px; }
+    .pump { width: 70px; height: 70px; font-size: 2rem; }
+}
+
+@media (min-width: 992px) {
+    .tank.underground { height: 300px; width: 180px; }
+    .tank.overhead { height: 220px; width: 140px; }
+    .pump { width: 80px; height: 80px; font-size: 2.5rem; }
+}

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your Devices</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'dashboard.css' %}">
+</head>
+<body>
+    <div class="header">
+        <h1>Your AquaGuard Devices</h1>
+        <div class="user-info">
+            <span>Welcome, {{ user.username }}!</span>
+            <a href="{% url 'logout' %}" class="logout-link">Logout</a>
+        </div>
+    </div>
+    <div class="device-list-container">
+        <h2>Select a Device to Monitor</h2>
+        
+        {% if devices %}
+            <div class="device-grid">
+                {% for device in devices %}
+                    <a href="{% url 'dashboard' device.device_id %}" class="device-card">
+                        <h3>{{ device.name }}</h3>
+                        <p>ID: {{ device.device_id }}</p>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>You have no devices registered to your account.</p>
+        {% endif %}
+    </div>
+
+    <footer class="site-footer">
+        <p>AquaGuard Solutions | contact@aquaguardsolutions.com | +254 700 123 456</p>
+    </footer>
+</body>
+</html>
