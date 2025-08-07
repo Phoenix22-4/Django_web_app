@@ -1,13 +1,33 @@
-# AquaGuard/settings.py
 from pathlib import Path
 import os
+import dj_database_url # We'll use this to read the database URL from Render
 
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = 'django-insecure-1#i9#d$cpj^_=0_@b#is=7j*hc!f+p-b0_z%pfp&900b&b%5pr'
-DEBUG = True
-ALLOWED_HOSTS = []
 
+# --- SECURITY CHANGE ---
+# In production, the SECRET_KEY will be read from an environment variable.
+# For local development, it will use your original key as a default.
+SECRET_KEY = os.environ.get(
+    'SECRET_KEY', 
+    'django-insecure-1#i9#d$cpj^_=0_@b#is=7j*hc!f+p-b0_z%pfp&900b&b%5pr'
+)
+
+# --- SECURITY CHANGE ---
+# DEBUG is set to False on the live server, but you can override it.
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
+
+# --- DEPLOYMENT CHANGE ---
+# This will be automatically set by Render to your website's URL.
+ALLOWED_HOSTS = []
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+
+# Application definition
 INSTALLED_APPS = [
+    'daphne', # Daphne must be the first app
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -46,20 +66,15 @@ TEMPLATES = [
 ]
 WSGI_APPLICATION = 'AquaGuard.wsgi.application'
 
-# ==========================================================
-# --- THIS IS THE CORRECTED DATABASE CONFIGURATION ---
-# ==========================================================
+# --- DEPLOYMENT CHANGE ---
+# This configuration will automatically use the Render PostgreSQL database when deployed,
+# but will fall back to your local PostgreSQL database when you run it on your computer.
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'AquaGuard_db',
-        'USER': 'postgres', # Use the default superuser
-        'PASSWORD': 'mwamboa22#', # <-- ENTER THE PASSWORD YOU CREATED
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
+    'default': dj_database_url.config(
+        default='postgresql://postgres:mwamboa22#@localhost:5432/AquaGuard_db',
+        conn_max_age=600
+    )
 }
-# ==========================================================
 
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -68,10 +83,12 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
 ]
+
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
+
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
@@ -79,6 +96,7 @@ STATICFILES_DIRS = [
 ]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 ASGI_APPLICATION = 'AquaGuard.asgi.application'
