@@ -2,7 +2,6 @@
 import json
 import paho.mqtt.client as mqtt
 import ssl
-import threading # Import the threading library
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import async_to_sync, sync_to_async
 from channels.layers import get_channel_layer
@@ -14,9 +13,6 @@ MQTT_SERVER = "a32641ary7fmuf-ats.iot.me-central-1.amazonaws.com"
 MQTT_PORT = 8883
 MQTT_WILDCARD_DATA_TOPIC = "devices/+/data"
 MQTT_COMMAND_TOPIC_FORMAT = "devices/{}/commands"
-
-# --- Global variable to hold our single MQTT client instance ---
-mqtt_listener_client = None
 
 # --- Database-driven MQTT Message Handling ---
 @sync_to_async
@@ -51,7 +47,6 @@ def process_and_save_data(topic, payload_str):
 
 def on_message(client, userdata, msg):
     device_id, payload = async_to_sync(process_and_save_data)(msg.topic, msg.payload.decode())
-    
     if device_id and payload:
         channel_layer = get_channel_layer()
         group_name = f"device_{device_id}"
@@ -60,31 +55,18 @@ def on_message(client, userdata, msg):
             {"type": "device.message", "message": payload}
         )
 
-# This function is called when the client tries to connect to AWS.
 def on_connect(client, userdata, flags, rc):
-    # Get the event object we passed in
-    connection_event = userdata.get('connection_event')
-    
     if rc == 0:
         print("SUCCESS: Connected to MQTT Broker!")
         client.subscribe(MQTT_WILDCARD_DATA_TOPIC)
         print(f"--> Web App is now listening for data from all devices.")
     else:
-        print(f"FAILED to connect to MQTT, return code {rc}")
-    
-    # This sends the "I'm done" signal back to the main startup process
-    if connection_event:
-        connection_event.set()
+        print(f"FAILED to connect Web App, return code {rc}")
 
-# --- This class defines the Web App's identity ---
+# --- This class defines the Web App's fixed identity ---
 class MqttClient:
     def __init__(self):
         self.client = mqtt.Client(client_id="AquaGuard_Backend")
-        
-        # Create an event object that we can use to signal completion
-        self.connection_event = threading.Event()
-        self.client.user_data_set({'connection_event': self.connection_event})
-
         self.client.on_connect = on_connect
         self.client.on_message = on_message
         
@@ -100,18 +82,11 @@ class MqttClient:
 
     def start(self):
         print("Web app is attempting to connect to AWS...")
-        # Use connect_async for better background handling
-        self.client.connect_async(MQTT_SERVER, MQTT_PORT, 60)
+        self.client.connect(MQTT_SERVER, MQTT_PORT, 60)
         self.client.loop_start()
-        # Return the event object so the main thread can wait for it
-        return self.connection_event
 
-# --- This function ensures we only ever have one connection to AWS ---
-def get_mqtt_client():
-    global mqtt_listener_client
-    if mqtt_listener_client is None:
-        mqtt_listener_client = MqttClient()
-    return mqtt_listener_client
+# --- Create one single instance of the MQTT client for the whole app ---
+mqtt_listener_client = MqttClient()
 
 # --- This class handles the connection to the user's browser ---
 class DashboardConsumer(AsyncWebsocketConsumer):
@@ -142,8 +117,8 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         if command in ["PUMP_ON", "PUMP_OFF"]:
             command_topic = MQTT_COMMAND_TOPIC_FORMAT.format(self.device_id)
             payload = json.dumps({"command": command})
-            client_instance = get_mqtt_client()
-            client_instance.client.publish(command_topic, payload)
+            # Use the global client instance to publish
+            mqtt_listener_client.client.publish(command_topic, payload)
             print(f"Web app sent command '{command}' to device '{self.device_id}'")
 
     async def device_message(self, event):
