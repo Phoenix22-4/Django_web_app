@@ -8,23 +8,31 @@ from channels.layers import get_channel_layer
 from .models import Device, WaterReading
 import os
 
-# --- MQTT Setup ---
-MQTT_SERVER = "a32641ary7fmuf-ats.iot.me-central-1.amazonaws.com"
+# --- MQTT Setup (WITH YOUR NEW ENDPOINT) ---
+MQTT_SERVER = "a2hspl06jd48n2-ats.iot.me-central-1.amazonaws.com" 
 MQTT_PORT = 8883
 MQTT_WILDCARD_DATA_TOPIC = "devices/+/data"
 MQTT_COMMAND_TOPIC_FORMAT = "devices/{}/commands"
 
-# --- Database-driven MQTT Message Handling ---
+# --- Global variable to hold our single MQTT client instance ---
+mqtt_listener_client = None
+
+# =================================================================
+# --- This is the Web App's Brain (Your Dynamic Logic) ---
+# =================================================================
 @sync_to_async
 def process_and_save_data(topic, payload_str):
     try:
+        # Step 1: The web app reads the device_id from the topic.
         device_id = topic.split('/')[1]
         payload = json.loads(payload_str)
         
+        # YOUR LOGIC: The web app automatically creates a device record if it's new.
         device, created = Device.objects.get_or_create(device_id=device_id)
         if created:
-            print(f"AUTO-CREATED: New device '{device_id}' has been added to the database.")
+            print(f"AUTO-CREATED: New device '{device_id}' has connected and been added to the database.")
 
+        # The web app saves the data, linking it to the correct device.
         WaterReading.objects.create(
             device=device,
             overhead_level=payload.get('overhead_level', 0),
@@ -33,7 +41,22 @@ def process_and_save_data(topic, payload_str):
             pump_current=payload.get('pump_current', 0.0),
             system_status=payload.get('system_status', 'Unknown')
         )
+
+        # ==========================================================
+        # --- NEW: AUTOMATIC DATA DELETION LOGIC ---
+        # ==========================================================
+        DATA_LIMIT_PER_DEVICE = 150
+        reading_count = WaterReading.objects.filter(device=device).count()
+
+        if reading_count > DATA_LIMIT_PER_DEVICE:
+            # Find the oldest reading for this specific device
+            oldest_reading = WaterReading.objects.filter(device=device).order_by('timestamp').first()
+            if oldest_reading:
+                oldest_reading.delete()
+                print(f"CLEANUP: Deleted oldest reading for device '{device_id}' to stay within the {DATA_LIMIT_PER_DEVICE} limit.")
+        # ==========================================================
         
+        # Only forward the message if an admin has assigned a user to this device.
         if device.owner:
             print(f"SUCCESS: Saved data for device '{device_id}' owned by '{device.owner}'.")
             return device_id, payload
@@ -45,8 +68,11 @@ def process_and_save_data(topic, payload_str):
         print(f"ERROR: Could not process message. Reason: {e}")
     return None, None
 
+# This function runs when a message arrives from ANY device.
 def on_message(client, userdata, msg):
     device_id, payload = async_to_sync(process_and_save_data)(msg.topic, msg.payload.decode())
+    
+    # If the device has an owner, the web app forwards the data to the correct user's browser.
     if device_id and payload:
         channel_layer = get_channel_layer()
         group_name = f"device_{device_id}"
@@ -55,6 +81,7 @@ def on_message(client, userdata, msg):
             {"type": "device.message", "message": payload}
         )
 
+# This function is called when the web app connects to AWS.
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         print("SUCCESS: Connected to MQTT Broker!")
@@ -66,6 +93,7 @@ def on_connect(client, userdata, flags, rc):
 # --- This class defines the Web App's fixed identity ---
 class MqttClient:
     def __init__(self):
+        # The web app has one, fixed ID ("the mail van").
         self.client = mqtt.Client(client_id="AquaGuard_Backend")
         self.client.on_connect = on_connect
         self.client.on_message = on_message
@@ -75,8 +103,9 @@ class MqttClient:
 
         self.client.tls_set(
             ca_certs=os.path.join(certs_dir, "AmazonRootCA1.pem"),
-            certfile=os.path.join(certs_dir, "1a5ab48e7acac2f748a8c8909a37455d8e5879f8500a32c119067bce43f67cc6-certificate.pem.crt"),
-            keyfile=os.path.join(certs_dir, "1a5ab48e7acac2f748a8c8909a37455d8e5879f8500a32c119067bce43f67cc6-private.pem.key"),
+            # --- UPDATED CERTIFICATE AND KEY FILES ---
+            certfile=os.path.join(certs_dir, "7355e09287fa3fab0fbd2c16eaee80bedd61b592e42dd5b6697f59c2de643149-certificate.pem.crt"),
+            keyfile=os.path.join(certs_dir, "7355e09287fa3fab0fbd2c16eaee80bedd61b592e42dd5b6697f59c2de643149-private.pem.key"),
             tls_version=ssl.PROTOCOL_TLSv1_2
         )
 
@@ -85,8 +114,12 @@ class MqttClient:
         self.client.connect(MQTT_SERVER, MQTT_PORT, 60)
         self.client.loop_start()
 
-# --- Create one single instance of the MQTT client for the whole app ---
-mqtt_listener_client = MqttClient()
+# --- This function ensures we only ever have one connection to AWS ---
+def get_mqtt_client():
+    global mqtt_listener_client
+    if mqtt_listener_client is None:
+        mqtt_listener_client = MqttClient()
+    return mqtt_listener_client
 
 # --- This class handles the connection to the user's browser ---
 class DashboardConsumer(AsyncWebsocketConsumer):
@@ -99,6 +132,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         self.device_id = self.scope['url_route']['kwargs']['device_id']
         self.group_name = f'device_{self.device_id}'
 
+        # Security Check: Does this user own this device?
         is_owner = await self.user_owns_device()
         if not is_owner:
             await self.close()
@@ -117,8 +151,8 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         if command in ["PUMP_ON", "PUMP_OFF"]:
             command_topic = MQTT_COMMAND_TOPIC_FORMAT.format(self.device_id)
             payload = json.dumps({"command": command})
-            # Use the global client instance to publish
-            mqtt_listener_client.client.publish(command_topic, payload)
+            client_instance = get_mqtt_client()
+            client_instance.client.publish(command_topic, payload)
             print(f"Web app sent command '{command}' to device '{self.device_id}'")
 
     async def device_message(self, event):

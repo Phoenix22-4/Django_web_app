@@ -5,7 +5,7 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    # This line must point to your new project name: 'AquaGuard'
+    # THIS IS THE CORRECTED LINE
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'AquaGuard.settings')
     try:
         from django.core.management import execute_from_command_line

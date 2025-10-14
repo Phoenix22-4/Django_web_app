@@ -1,15 +1,14 @@
-# dashboard/apps.py
+# dashboard/apps.py (RUN MODE - FINAL VERSION)
 from django.apps import AppConfig
+import os
 
 class DashboardConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'dashboard'
-    # We use a flag to make sure the startup code only runs once.
     mqtt_client_started = False
 
     def ready(self):
-        # The 'ready' method is called by Django when the app is initialized.
-        # This is the correct and safe place to start our background service.
+        # This code will now start the listener when you run the Daphne server.
         if not self.mqtt_client_started:
             from .consumers import get_mqtt_client
             
@@ -17,5 +16,4 @@ class DashboardConfig(AppConfig):
             mqtt_client = get_mqtt_client()
             mqtt_client.start()
             
-            # Set the flag to True so this code doesn't run again
             self.mqtt_client_started = True
