@@ -60,7 +60,7 @@ WSGI_APPLICATION = 'AquaGuard.wsgi.application'
 DATABASES = {
     'default': dj_database_url.config(
         # Fallback to your local Postgres database if DATABASE_URL is not set
-        default='postgresql://postgres:mwamboa22#@localhost:5432/AquaGuard_db',
+        default='postgresql://postgres:mwamboa22%23@localhost:5432/AquaGuard_db',
         conn_max_age=600
     )
 }
