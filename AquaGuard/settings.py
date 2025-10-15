@@ -1,12 +1,21 @@
 # AquaGuard/settings.py
 from pathlib import Path
 import os
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = 'django-insecure-1#i9#d$cpj^_=0_@b#is=7j*hc!f+p-b0_z%pfp&900b&b%5pr'
-DEBUG = True
-ALLOWED_HOSTS = []
 
+# --- PRODUCTION SETTINGS ---
+# Secret key is read from an environment variable
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-fallback-for-local-dev')
+
+# DEBUG is False in production, unless an env var says otherwise
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
+
+# Allow the domain Railway will assign to your app
+ALLOWED_HOSTS = [os.environ.get('RAILWAY_STATIC_URL', '.railway.app')]
+
+# Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -46,21 +55,15 @@ TEMPLATES = [
 ]
 WSGI_APPLICATION = 'AquaGuard.wsgi.application'
 
-# ==========================================================
-# --- THIS IS THE CORRECTED DATABASE CONFIGURATION ---
-# ==========================================================
+# --- PRODUCTION DATABASE CONFIGURATION ---
+# Railway provides a DATABASE_URL environment variable automatically
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'AquaGuard_db',
-        'USER': 'postgres', # Use the default superuser
-        'PASSWORD': 'mwamboa22#', # <-- ENTER THE PASSWORD YOU CREATED
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
+    'default': dj_database_url.config(
+        # Fallback to your local Postgres database if DATABASE_URL is not set
+        default='postgresql://postgres:mwamboa22#@localhost:5432/AquaGuard_db',
+        conn_max_age=600
+    )
 }
-# ==========================================================
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
@@ -68,6 +71,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
 ]
+
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
