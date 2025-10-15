@@ -18,6 +18,9 @@ ALLOWED_HOSTS = [os.environ.get('RAILWAY_STATIC_URL', '.railway.app')]
 # --- ADD THIS LINE FOR CSRF FIX ---
 CSRF_TRUSTED_ORIGINS = ['https://' + os.environ.get('RAILWAY_STATIC_URL', '.railway.app')]
 
+# --- ADD THIS COMMENT ---
+# Triggering a new deployment to run the release phase.
+
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
