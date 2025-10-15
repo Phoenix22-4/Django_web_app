@@ -15,6 +15,9 @@ DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 # Allow the domain Railway will assign to your app
 ALLOWED_HOSTS = [os.environ.get('RAILWAY_STATIC_URL', '.railway.app')]
 
+# --- ADD THIS LINE FOR CSRF FIX ---
+CSRF_TRUSTED_ORIGINS = ['https://' + os.environ.get('RAILWAY_STATIC_URL', '.railway.app')]
+
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -56,7 +59,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'AquaGuard.wsgi.application'
 
 # --- PRODUCTION DATABASE CONFIGURATION ---
-# Railway provides a DATABASE_URL environment variable automatically
 DATABASES = {
     'default': dj_database_url.config(
         # Fallback to your local Postgres database if DATABASE_URL is not set
