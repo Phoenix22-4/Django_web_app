@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AquaGuard - Smart Water Management System</title>
+    <meta name="description" content="AquaGuard offers real-time monitoring of water tank levels, pump status, and more. Manage your water supply intelligently and efficiently from anywhere in the world.">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'dashboard.css' %}">
+</head>
+<body>
+    <div class="header">
+        <h1>Welcome to AquaGuard</h1>
+        <div class="user-info">
+            <a href="{% url 'login' %}" class="nav-link">Login to Your Dashboard</a>
+        </div>
+    </div>
+    <div class="device-list-container">
+        <h2>Monitor Your Water Levels Remotely</h2>
+        <p>AquaGuard provides real-time monitoring of your water tanks, pump status, and more, right from your phone or computer. Never worry about your water supply again!</p>
+        </div>
+
+    <footer class="site-footer">
+        <p>AquaGuard Solutions | contact:vision072025@gmail.com | +254 702 715070</p>
+    </footer>
+</body>
+</html>

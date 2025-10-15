@@ -6,11 +6,22 @@ from django.contrib.auth import logout
 from django.views import View
 from .models import Device
 
-# --- NEW: VIEW TO FORCE REDIRECT TO LOGIN ---
+# --- NEW: VIEW FOR THE PUBLIC HOMEPAGE ---
+def public_home_view(request):
+    """
+    This is the new public-facing homepage that Google will see.
+    """
+    return render(request, 'public_home.html')
+
+# --- MODIFIED: THIS VIEW NOW REDIRECTS USERS ---
 def home_view(request):
-    # This view is for the root URL ('/').
-    # It always redirects to the login page.
-    return redirect('login')
+    """
+    This view now redirects logged-in users to their device list,
+    and logged-out users to the new public homepage.
+    """
+    if request.user.is_authenticated:
+        return redirect('device_list')
+    return redirect('public_home') # Redirect to the new public page
 
 @login_required
 def device_list_view(request):
