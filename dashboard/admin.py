@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Device, WaterReading, DailyWaterUsage, Profile, AutomationRule
+from .models import Device, WaterReading, DailyWaterUsage, Profile, AutomationRule, FCMToken
 from django.urls import path
 from django.shortcuts import render
 from django.utils import timezone
@@ -64,11 +64,23 @@ class DailyWaterUsageAdmin(admin.ModelAdmin):
     date_hierarchy = 'day'
 
 
+class FCMTokenAdmin(admin.ModelAdmin):
+    list_display = ('user', 'device_type', 'is_active', 'created_at', 'last_used', 'token_preview')
+    list_filter = ('is_active', 'device_type')
+    search_fields = ('user__username', 'token')
+    readonly_fields = ('created_at', 'last_used', 'token')
+    
+    def token_preview(self, obj):
+        return f"{obj.token[:30]}..." if len(obj.token) > 30 else obj.token
+    token_preview.short_description = "Token Preview"
+
+
 admin.site.register(Device, DeviceAdmin)
 admin.site.register(WaterReading, WaterReadingAdmin)
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(AutomationRule, AutomationRuleAdmin)
 admin.site.register(DailyWaterUsage, DailyWaterUsageAdmin)
+admin.site.register(FCMToken, FCMTokenAdmin)
 
 
 # ==================== CUSTOM ADMIN ANALYTICS DASHBOARD ====================

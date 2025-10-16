@@ -6,4 +6,4 @@ whitenoise
 psycopg2-binary
 dj-database-url
 requests>=2.32
-django-push-notifications>=3.0.0
+firebase-admin>=6.0.0

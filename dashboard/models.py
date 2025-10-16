@@ -48,6 +48,26 @@ class Profile(models.Model):
         return f"Profile for {self.user.username}"
 
 
+class FCMToken(models.Model):
+    """Store Firebase Cloud Messaging tokens for push notifications"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fcm_tokens')
+    token = models.CharField(max_length=255, unique=True)
+    device_type = models.CharField(max_length=20, default='web', choices=[('web', 'Web'), ('android', 'Android'), ('ios', 'iOS')])
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_used = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "FCM Token"
+        verbose_name_plural = "FCM Tokens"
+        indexes = [
+            models.Index(fields=['user', 'is_active']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.device_type} ({self.token[:20]}...)"
+
+
 class AutomationRule(models.Model):
     """User-defined automation rules for pump control based on time slots"""
     device = models.ForeignKey(Device, on_delete=models.CASCADE, related_name='automation_rules')
