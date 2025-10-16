@@ -8,6 +8,7 @@
     <title>{% block title %}AquaSavvy Solution{% endblock %}</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'dashboard.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
     <!-- Firebase SDK (Compat for messaging) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -33,21 +34,74 @@
 <body>
     {% block content %}{% endblock %}
 
-    <!-- Floating Chat FAB and Panel -->
-    <button id="fab-chat" class="fab-chat" aria-label="Open AquaSavvy Chat">💬</button>
-    <div class="chat-label">AquaSavvy Chat</div>
-    <div id="chat-window" class="chat-window" aria-live="polite" aria-label="AquaGuard AI Assistant">
-        <div class="chat-header">
-            <span>AquaGuard AI Assistant</span>
-            <button id="chat-close-x" class="chat-close" aria-label="Close chat">×</button>
-        </div>
-        <div id="chat-body" class="chat-body"></div>
-        <div class="chat-input-row">
-            {% csrf_token %}
-            <input id="chat-text" type="text" class="chat-input" placeholder="Type your message..." />
-            <button id="chat-send" class="chat-send" aria-label="Send message">Send</button>
+    <!-- FLOATING AI CHAT WIDGET -->
+    <div id="aquasavvy-chat-container">
+        <!-- Floating Chat Icon (Draggable) -->
+        <button id="chat-fab" class="chat-fab" aria-label="Open AquaSavvy AI Assistant" title="Chat with AquaSavvy AI">
+            <i class="fas fa-comments"></i>
+        </button>
+        <div class="chat-fab-label">AquaSavvy Chat</div>
+        
+        <!-- Chat Panel (Slides in from right) -->
+        <div id="chat-panel" class="chat-panel-container">
+            <div class="chat-panel-header">
+                <div class="chat-header-left">
+                    <i class="fas fa-robot"></i>
+                    <span>AquaSavvy AI Assistant</span>
+                </div>
+                <div class="chat-header-right">
+                    <button id="chat-minimize" class="chat-header-btn" aria-label="Minimize chat" title="Minimize">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <button id="chat-close" class="chat-header-btn" aria-label="Close chat" title="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="chat-messages" class="chat-panel-messages">
+                <!-- Welcome message -->
+                <div class="chat-message bot-message">
+                    <div class="message-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="message-content">
+                        <p>👋 Hi! I'm your AquaSavvy AI Assistant. Ask me about:</p>
+                        <ul>
+                            <li>Water tank levels & management</li>
+                            <li>Pump control & automation</li>
+                            <li>System troubleshooting</li>
+                            <li>Power consumption & analytics</li>
+                        </ul>
+                        <p style="font-size: 0.85em; color: #666; margin-top: 8px;">
+                            💡 For technical issues, contact: <strong>contact:vision072025@gmail.com</strong> or WhatsApp: <strong>+254 702 715070</strong>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-panel-input">
+                {% csrf_token %}
+                <form id="chat-form" class="chat-input-form">
+                    <input 
+                        type="text" 
+                        id="chat-input" 
+                        class="chat-text-input" 
+                        placeholder="Ask me anything about your water system..." 
+                        autocomplete="off"
+                        required
+                    />
+                    <button type="submit" id="chat-send" class="chat-send-btn" aria-label="Send message">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+                <div class="chat-typing-indicator" id="typing-indicator" style="display: none;">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
         </div>
     </div>
+
     <script src="{% static 'chat.js' %}"></script>
 </body>
 </html>

@@ -104,3 +104,45 @@ SESSION_SAVE_EVERY_REQUEST = True
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'device_list'
 LOGOUT_REDIRECT_URL = 'login'
+
+# ==================== ENHANCED SECURITY SETTINGS ====================
+# Prevent session hijacking
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = not DEBUG  # True in production (HTTPS only)
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+# CSRF Protection
+CSRF_COOKIE_HTTPONLY = False  # Must be False for AJAX to read it
+CSRF_COOKIE_SECURE = not DEBUG  # True in production
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+# Security headers
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+
+# Force HTTPS in production
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+# Password validation (already present, but ensure it's strong)
+AUTH_PASSWORD_VALIDATORS = [
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', 'OPTIONS': {'min_length': 8}},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+]
+
+# ==================== FIREBASE CLOUD MESSAGING (FCM) SETTINGS ====================
+# For django-push-notifications
+PUSH_NOTIFICATIONS_SETTINGS = {
+    "FCM_API_KEY": os.environ.get('FCM_SERVER_KEY', ''),  # Firebase Cloud Messaging Server Key
+    "WP_PRIVATE_KEY": os.environ.get('VAPID_PRIVATE_KEY', ''),
+    "WP_CLAIMS": {"sub": "mailto:contact:vision072025@gmail.com"}
+}
+
+# Web Push VAPID keys (for push_handler.js)
+# Public key is in push_handler.js: BMLnBIiNgOMINbDOGA24NWnufsGSMP9GF-Z12V8dbEXA8NwBy-UFPOrF8kDpGdVjeIQsMRE-oxf-y60W1p4DEcY
