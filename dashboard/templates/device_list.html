@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Devices • AquaSavvy SOLUTION</title>
+    <title>Your Devices • AquaSavvy Solution</title>
     {% load static %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{% static 'dashboard.css' %}">
 </head>
 <body>
     <div class="header">
-        <h1>Your AquaSavvy SOLUTION Devices</h1>
+        <h1>Your AquaSavvy Solution Devices</h1>
         <div class="user-info">
             <span>Welcome, {{ user.username }}!</span>
-            <a href="{% url 'logout' %}" class="logout-link">Logout</a>
-            <a href="{% static 'docs/index.html' %}" class="nav-link" target="_blank" rel="noopener">Docs</a>
+            <a href="{% static 'docs/index.html' %}" class="btn btn-outline" target="_blank" rel="noopener">Docs</a>
+            <a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
         </div>
     </div>
     <div class="device-list-container">
@@ -37,7 +37,7 @@
     </div>
 
     <footer class="site-footer">
-        <p>Vision Technology — AquaSavvy SOLUTION | Email: contact:vision072025@gmail.com | WhatsApp: +254 702 715070</p>
+        <p>Vision Technology — AquaSavvy Solution | Email: contact:vision072025@gmail.com | WhatsApp: +254 702 715070</p>
     </footer>
 </body>
 </html>

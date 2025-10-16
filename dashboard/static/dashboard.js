@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
         chatLauncher: document.getElementById('chat-launcher'),
         chatPanel: document.getElementById('chat-panel'),
         chatClose: document.getElementById('chat-close'),
+        chatMin: document.getElementById('chat-min'),
         chatMessages: document.getElementById('chat-messages'),
         chatForm: document.getElementById('chat-form'),
         chatInput: document.getElementById('chat-input')
@@ -173,6 +174,12 @@ document.addEventListener('DOMContentLoaded', function() {
             elements.chatPanel.style.display = 'flex';
         });
         elements.chatClose.addEventListener('click', () => {
+            elements.chatPanel.style.display = 'none';
+        });
+    }
+
+    if (elements.chatMin && elements.chatPanel) {
+        elements.chatMin.addEventListener('click', () => {
             elements.chatPanel.style.display = 'none';
         });
     }

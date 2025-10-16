@@ -1,14 +1,32 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}AquaSavvy SOLUTION - Smart Water Management System{% endblock %}
+{% block title %}AquaSavvy Solution - Smart Water Management System{% endblock %}
 
 {% block content %}
+    <!-- Public Chat Launcher -->
+    <button id="chat-launcher" class="chat-launcher" aria-label="Open AquaSavvy Assistant"><i class="fas fa-comments"></i></button>
+    <div class="chat-label">AquaSavvy Chat</div>
+    <div id="chat-panel" class="chat-panel" aria-live="polite" aria-label="AquaSavvy Assistant">
+        <div class="chat-header">
+            <span>AquaSavvy Assistant</span>
+            <div>
+                <button id="chat-min" class="chat-min" aria-label="Minimize chat">–</button>
+                <button id="chat-close" class="chat-close" aria-label="Close chat">×</button>
+            </div>
+        </div>
+        <div id="chat-messages" class="chat-messages"></div>
+        <form id="chat-form" class="chat-form">
+            <input type="text" id="chat-input" class="chat-input" placeholder="Ask about AquaSavvy SOLUTION..." required />
+            <button type="submit" class="chat-send" aria-label="Send message"><i class="fas fa-paper-plane"></i></button>
+        </form>
+        <div class="chat-footnote">For technical assistance: contact:vision072025@gmail.com · WhatsApp: +254 702 715070</div>
+    </div>
     <!-- Hero Section -->
     <section class="hero">
         <div class="hero-content">
             <h1 class="hero-title">Never Worry About Water Again</h1>
-            <p class="hero-subtitle">AquaSavvy SOLUTION by Vision Technology gives you real-time tank insights, automated pump protection, and smart alerts — all in one place.</p>
+            <p class="hero-subtitle">AquaSavvy Solution by Vision Technology gives you real-time tank insights, automated pump protection, and smart alerts — all in one place.</p>
             <div>
                 <a href="{% url 'login' %}" class="primary-button">Login</a>
                 <a href="{% static 'docs/index.html' %}" class="secondary-button" target="_blank" rel="noopener">View Documentation</a>
@@ -41,7 +59,7 @@
     <!-- AI Explanation Section -->
     <section class="section ai-explain">
         <h2 class="section-title">What AquaSavvy Does</h2>
-        <p class="lead-text">AquaSavvy SOLUTION connects smart level sensors and pump controls to a secure cloud dashboard. Our system continuously reads water levels, analyzes trends, and triggers safe pump actions when needed. You get instant visibility, alerts when tanks are low or full, and simple controls to manage your pump remotely.</p>
+        <p class="lead-text">AquaSavvy Solution connects smart level sensors and pump controls to a secure cloud dashboard. Our system continuously reads water levels, analyzes trends, and triggers safe pump actions when needed. You get instant visibility, alerts when tanks are low or full, and simple controls to manage your pump remotely.</p>
         <div class="ai-callout">
             <h3 class="ai-title">Ask AquaSavvy AI</h3>
             <p class="ai-text">Use our built-in assistant to explain readings in plain language, suggest optimal fill schedules, and summarize usage patterns. It’s like having a water systems expert on call 24/7.</p>
@@ -72,6 +90,39 @@
     </section>
 
     <footer class="site-footer">
-        <p>Vision Technology — AquaSavvy SOLUTION | Email: contact:vision072025@gmail.com | WhatsApp: +254 702 715070</p>
+        <p>Vision Technology — AquaSavvy Solution | Email: contact:vision072025@gmail.com | WhatsApp: +254 702 715070</p>
     </footer>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
+    <script>
+    (function(){
+        const launcher = document.getElementById('chat-launcher');
+        const panel = document.getElementById('chat-panel');
+        const closeBtn = document.getElementById('chat-close');
+        const minBtn = document.getElementById('chat-min');
+        const form = document.getElementById('chat-form');
+        const input = document.getElementById('chat-input');
+        const messages = document.getElementById('chat-messages');
+        function append(role, text){
+            const div = document.createElement('div');
+            div.className = 'chat-msg ' + role;
+            div.textContent = text;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+        function getCsrf(){
+            const name='csrftoken='; const parts=document.cookie.split(';');
+            for(let p of parts){p=p.trim(); if(p.startsWith(name)) return p.substring(name.length);} return '';
+        }
+        if(launcher){ launcher.addEventListener('click',()=>{ panel.style.display='flex'; }); }
+        if(closeBtn){ closeBtn.addEventListener('click',()=>{ panel.style.display='none'; }); }
+        if(minBtn){ minBtn.addEventListener('click',()=>{ panel.style.display='none'; }); }
+        if(form){ form.addEventListener('submit', async (e)=>{
+            e.preventDefault(); const msg=input.value.trim(); if(!msg) return; append('user', msg); input.value='';
+            try{
+                const resp = await fetch('/api/ai_chat/', { method:'POST', headers:{ 'Content-Type':'application/json', 'X-CSRFToken': getCsrf() }, body: JSON.stringify({message: msg}) });
+                const data = await resp.json(); append('bot', data.reply || 'No response');
+            }catch(err){ append('bot', 'Network error. Please try again.'); }
+        }); }
+    })();
+    </script>
 {% endblock %}

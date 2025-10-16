@@ -7,6 +7,7 @@ from django.views import View
 from .models import Device
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
 from django.conf import settings
 import os
 import json
@@ -30,11 +31,13 @@ def home_view(request):
     return redirect('public_home') # Redirect to the new public page
 
 @login_required
+@never_cache
 def device_list_view(request):
     devices = Device.objects.filter(owner=request.user)
     return render(request, 'device_list.html', {'devices': devices})
 
 @login_required
+@never_cache
 def dashboard_view(request, device_id):
     device = get_object_or_404(Device, device_id=device_id, owner=request.user)
     last_reading = device.readings.order_by('-timestamp').first()
@@ -58,7 +61,7 @@ def ai_chat_view(request):
         # Guard: Only respond about AquaSavvy system topics
         system_preamble = (
             "You are AquaSavvy Assistant for Vision Technology. "
-            "Answer only AquaSavvy SOLUTION topics: water level monitoring, pump control, alerts, setup, troubleshooting, usage. "
+            "Answer only AquaSavvy Solution topics: water level monitoring, pump control, alerts, setup, troubleshooting, usage. "
             "If unrelated, redirect to AquaSavvy topics. If a technical fault is suspected or you cannot help, provide support: "
             "Email contact:vision072025@gmail.com and WhatsApp +254 702 715070. "
         )
