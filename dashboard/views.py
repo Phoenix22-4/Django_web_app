@@ -6,6 +6,7 @@ from django.contrib.auth import logout
 from django.views import View
 from .models import Device
 from django.http import JsonResponse
+from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.conf import settings
@@ -205,3 +206,10 @@ def save_push_subscription(request):
         return JsonResponse({'error': 'Missing token'}, status=400)
     device, _ = FCMDevice.objects.get_or_create(user=request.user, registration_id=token, type='web')
     return JsonResponse({'ok': True})
+
+
+def service_worker(request):
+    # Serve the service worker at the root with correct content type
+    from django.template.loader import render_to_string
+    content = render_to_string('sw.js')
+    return HttpResponse(content, content_type='application/javascript')

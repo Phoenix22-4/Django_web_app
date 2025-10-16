@@ -12,6 +12,7 @@ urlpatterns = [
     path('api/ai_chat/', views.ai_chat_view, name='ai_chat'),
     path('api/ai_chat_public/', views.ai_chat_public_view, name='ai_chat_public'),
     path('api/save_push_subscription/', views.save_push_subscription, name='save_push_subscription'),
+    path('save-push-subscription/', views.save_push_subscription, name='save_push_subscription_alias'),
     
     # The root path still points to the view that redirects users
     path('', views.home_view, name='home'), 
