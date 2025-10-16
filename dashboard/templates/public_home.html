@@ -1,20 +1,76 @@
 {% extends 'base.html' %}
 
-{% block title %}AquaGuard - Smart Water Management System{% endblock %}
+{% block title %}AquaSavvy SOLUTION - Smart Water Management System{% endblock %}
 
 {% block content %}
-    <div class="header">
-        <h1>Welcome to AquaGuard</h1>
-        <div class="user-info">
-            <a href="{% url 'login' %}" class="nav-link">Login to Your Dashboard</a>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">Never Worry About Water Again</h1>
+            <p class="hero-subtitle">AquaSavvy SOLUTION by Vision Technology gives you real-time tank insights, automated pump protection, and smart alerts — all in one place.</p>
+            <div>
+                <a href="{% url 'login' %}" class="primary-button">Login</a>
+                <a href="{% static 'docs/index.html' %}" class="secondary-button" target="_blank" rel="noopener">View Documentation</a>
+            </div>
         </div>
-    </div>
-    <div class="device-list-container">
-        <h2>Monitor Your Water Levels Remotely</h2>
-        <p>AquaGuard provides real-time monitoring of your water tanks, pump status, and more, right from your phone or computer. Never worry about your water supply again!</p>
-    </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="section features">
+        <h2 class="section-title">Why AquaSavvy</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon" aria-hidden="true">💧</div>
+                <h3 class="feature-title">Real-Time Monitoring</h3>
+                <p class="feature-text">Track underground and overhead tank levels from anywhere, on any device.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" aria-hidden="true">🛡️</div>
+                <h3 class="feature-title">Pump Protection</h3>
+                <p class="feature-text">Automatic safeguards to prevent dry-run and overfill, extending pump life.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" aria-hidden="true">💸</div>
+                <h3 class="feature-title">Cost Savings</h3>
+                <p class="feature-text">Reduce water waste and electricity use with data-driven automation.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Explanation Section -->
+    <section class="section ai-explain">
+        <h2 class="section-title">What AquaSavvy Does</h2>
+        <p class="lead-text">AquaSavvy SOLUTION connects smart level sensors and pump controls to a secure cloud dashboard. Our system continuously reads water levels, analyzes trends, and triggers safe pump actions when needed. You get instant visibility, alerts when tanks are low or full, and simple controls to manage your pump remotely.</p>
+        <div class="ai-callout">
+            <h3 class="ai-title">Ask AquaSavvy AI</h3>
+            <p class="ai-text">Use our built-in assistant to explain readings in plain language, suggest optimal fill schedules, and summarize usage patterns. It’s like having a water systems expert on call 24/7.</p>
+            <p class="ai-text"><strong>Setup note</strong>: To enable AI chat, add your Google AI (Gemini) API key on the server as an environment variable and configure the integration in settings. If chat is unavailable or you need urgent help, contact support below.</p>
+        </div>
+    </section>
+
+    <!-- Contact & Contributors (Owner-editable placeholder) -->
+    <section class="section contact">
+        <h2 class="section-title">Contact & Contributors</h2>
+        <!-- NOTE: Only the project owner should edit the details below. -->
+        <div class="contact-grid">
+            <div class="contact-card">
+                <h3 class="contact-title">Contact</h3>
+                <p class="contact-text">Email: contact:vision072025@gmail.com</p>
+                <p class="contact-text">Phone: +254 702 715070</p>
+            </div>
+            <div class="contact-card">
+                <h3 class="contact-title">Contributors</h3>
+                <ul class="contributors-list">
+                    <!-- Replace the placeholders below with your team members and roles -->
+                    <li class="contributor">Your Name — Lead Developer</li>
+                    <li class="contributor">Add Contributor — Role/Profession</li>
+                    <li class="contributor">Add Contributor — Role/Profession</li>
+                </ul>
+            </div>
+        </div>
+    </section>
 
     <footer class="site-footer">
-        <p>AquaGuard Solutions | contact:vision072025@gmail.com | +254 702 715070</p>
+        <p>Vision Technology — AquaSavvy SOLUTION | Email: contact:vision072025@gmail.com | WhatsApp: +254 702 715070</p>
     </footer>
 {% endblock %}

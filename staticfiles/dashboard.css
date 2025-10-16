@@ -14,6 +14,198 @@ body {
     font-size: 16px;
 }
 
+/* ==================== PUBLIC HOME: HERO ==================== */
+.hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    padding: 40px 20px;
+    background: linear-gradient(180deg, rgba(0,123,255,0.15), rgba(0,198,255,0.25));
+}
+
+.hero-content {
+    max-width: 900px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.85);
+    padding: 24px 20px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+.hero-title {
+    margin: 0 0 10px 0;
+    font-size: 2rem;
+    color: #0b5fa5;
+}
+
+.hero-subtitle {
+    margin: 0 0 18px 0;
+    font-size: 1rem;
+    color: #245b6e;
+}
+
+.primary-button {
+    display: inline-block;
+    padding: 12px 20px;
+    background-color: #0ea5e9;
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 8px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.2s ease;
+    box-shadow: 0 6px 14px rgba(14,165,233,0.35);
+}
+
+.primary-button:hover {
+    background-color: #0b8fc9;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(14,165,233,0.45);
+}
+
+/* Buttons: Secondary */
+.secondary-button {
+    display: inline-block;
+    padding: 12px 16px;
+    background-color: #ffffff;
+    color: #0b5fa5;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 8px;
+    margin-left: 10px;
+    border: 2px solid #0ea5e9;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+.secondary-button:hover {
+    background-color: #e6f7ff;
+    color: #094c85;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(14,165,233,0.25);
+}
+/* ==================== PUBLIC HOME: GENERIC SECTIONS ==================== */
+.section {
+    padding: 30px 15px;
+}
+
+.section-title {
+    text-align: center;
+    margin: 0 0 18px 0;
+    color: #0b5fa5;
+    font-size: 1.4rem;
+}
+
+.lead-text {
+    max-width: 900px;
+    margin: 0 auto 16px auto;
+    text-align: center;
+    color: #2a4050;
+}
+
+/* ==================== PUBLIC HOME: FEATURES ==================== */
+.features {
+    background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(219,244,255,0.7));
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.feature-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+    text-align: center;
+}
+
+.feature-icon {
+    font-size: 2rem;
+    margin-bottom: 8px;
+}
+
+.feature-title {
+    margin: 0 0 6px 0;
+    color: #0b5fa5;
+}
+
+.feature-text {
+    margin: 0;
+    color: #2a4050;
+    font-size: 0.95rem;
+}
+
+/* ==================== PUBLIC HOME: AI EXPLAIN ==================== */
+.ai-explain {
+    background: #f0fbff;
+}
+
+.ai-callout {
+    max-width: 900px;
+    margin: 14px auto 0 auto;
+    background: linear-gradient(180deg, #e6f7ff, #eaf8ff);
+    border: 1px solid #bfeaff;
+    border-radius: 12px;
+    padding: 14px;
+    box-shadow: 0 6px 14px rgba(11, 95, 165, 0.08);
+}
+
+.ai-title {
+    margin: 0 0 6px 0;
+    color: #0b5fa5;
+}
+
+.ai-text {
+    margin: 0;
+    color: #2a4050;
+}
+
+/* ==================== PUBLIC HOME: CONTACT ==================== */
+.contact-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.contact-card {
+    background: #ffffff;
+    border: 1px solid #d9eefb;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+}
+
+.contact-title {
+    margin: 0 0 8px 0;
+    color: #0b5fa5;
+}
+
+.contact-text {
+    margin: 4px 0;
+    color: #2a4050;
+}
+
+.contributors-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.contributor {
+    padding: 6px 0;
+    border-bottom: 1px dashed #d9eefb;
+}
+
+.contributor:last-child {
+    border-bottom: none;
+}
 body::before {
     content: '';
     position: absolute;

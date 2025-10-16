@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard for {{ device.name }}</title>
+    <title>AquaSavvy SOLUTION • {{ device.name }}</title>
     <meta name="device-id" id="device-id" content="{{ device.device_id }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     {% load static %}
@@ -11,10 +11,11 @@
 </head>
 <body>
     <div class="header">
-        <h1>AquaGuard: {{ device.name }}</h1>
+        <h1>AquaSavvy SOLUTION: {{ device.name }}</h1>
         <div class="user-info">
             <a href="{% url 'device_list' %}" class="nav-link">Back to Devices</a>
             <a href="{% url 'logout' %}" class="logout-link">Logout</a>
+            <a href="{% static 'docs/index.html' %}" class="nav-link" target="_blank" rel="noopener">Docs</a>
         </div>
     </div>
     
@@ -89,7 +90,7 @@
     </div>
 
     <footer class="site-footer">
-        <p>AquaGuard Solutions | email: VisionTech22@gmail.com | WhatsApp: +254 115 665 458</p>
+        <p>Vision Technology — AquaSavvy SOLUTION | Email: contact:vision072025@gmail.com | WhatsApp: +254 702 715070</p>
     </footer>
 
     <script src="{% static 'dashboard.js' %}"></script>

@@ -2,16 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Your Devices</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Devices • AquaSavvy SOLUTION</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'dashboard.css' %}">
 </head>
 <body>
     <div class="header">
-        <h1>Your AquaGuard Devices</h1>
+        <h1>Your AquaSavvy SOLUTION Devices</h1>
         <div class="user-info">
             <span>Welcome, {{ user.username }}!</span>
             <a href="{% url 'logout' %}" class="logout-link">Logout</a>
+            <a href="{% static 'docs/index.html' %}" class="nav-link" target="_blank" rel="noopener">Docs</a>
         </div>
     </div>
     <div class="device-list-container">
@@ -32,7 +34,7 @@
     </div>
 
     <footer class="site-footer">
-        <p>AquaGuard Solutions | contact:vision072025@gmail.com | +254 702 715070</p>
+        <p>Vision Technology — AquaSavvy SOLUTION | Email: contact:vision072025@gmail.com | WhatsApp: +254 702 715070</p>
     </footer>
 </body>
 </html>
