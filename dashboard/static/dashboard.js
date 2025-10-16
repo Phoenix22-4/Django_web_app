@@ -30,7 +30,13 @@ document.addEventListener('DOMContentLoaded', function() {
         pumpOnBtn: document.getElementById('pump-on'),
         pumpOffBtn: document.getElementById('pump-off'),
         overheadStatusMsg: document.getElementById('overhead-status-msg'),
-        undergroundStatusMsg: document.getElementById('underground-status-msg')
+        undergroundStatusMsg: document.getElementById('underground-status-msg'),
+        chatLauncher: document.getElementById('chat-launcher'),
+        chatPanel: document.getElementById('chat-panel'),
+        chatClose: document.getElementById('chat-close'),
+        chatMessages: document.getElementById('chat-messages'),
+        chatForm: document.getElementById('chat-form'),
+        chatInput: document.getElementById('chat-input')
     };
 
     Object.entries(elements).forEach(([key, element]) => {
@@ -65,6 +71,18 @@ document.addEventListener('DOMContentLoaded', function() {
             
             safeClassToggle(elements.pumpMotor, 'online', pumpIsOn);
             safeClassToggle(elements.pumpMotor, 'offline', !pumpIsOn);
+
+            // Toggle pump LED indicator
+            const pumpLedEl = document.getElementById('pump-led');
+            if (pumpLedEl) {
+                if (pumpIsOn === true) {
+                    pumpLedEl.classList.add('led-on');
+                    pumpLedEl.classList.remove('led-off');
+                } else {
+                    pumpLedEl.classList.add('led-off');
+                    pumpLedEl.classList.remove('led-on');
+                }
+            }
 
             safeUpdate(elements.pumpCurrentText, `${data.pump_current?.toFixed(1) || '0.0'} A`);
             updateStatusMessages(data.overhead_level, data.underground_level);
@@ -146,6 +164,60 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.pumpOffBtn.addEventListener('click', () => {
             socket.send(JSON.stringify({command: 'PUMP_OFF'}));
             console.log("PUMP_OFF command sent");
+        });
+    }
+
+    // ==================== CHAT WIDGET LOGIC ====================
+    if (elements.chatLauncher && elements.chatPanel && elements.chatClose) {
+        elements.chatLauncher.addEventListener('click', () => {
+            elements.chatPanel.style.display = 'flex';
+        });
+        elements.chatClose.addEventListener('click', () => {
+            elements.chatPanel.style.display = 'none';
+        });
+    }
+
+    function appendChatMessage(role, text) {
+        if (!elements.chatMessages) return;
+        const div = document.createElement('div');
+        div.className = `chat-msg ${role}`;
+        div.textContent = text;
+        elements.chatMessages.appendChild(div);
+        elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+    }
+
+    function getCsrfToken() {
+        const name = 'csrftoken=';
+        const decoded = decodeURIComponent(document.cookie);
+        const parts = decoded.split(';');
+        for (let p of parts) {
+            const part = p.trim();
+            if (part.startsWith(name)) return part.substring(name.length);
+        }
+        return '';
+    }
+
+    if (elements.chatForm && elements.chatInput) {
+        elements.chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const msg = elements.chatInput.value.trim();
+            if (!msg) return;
+            appendChatMessage('user', msg);
+            elements.chatInput.value = '';
+            try {
+                const resp = await fetch('/api/ai_chat/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken()
+                    },
+                    body: JSON.stringify({ message: msg })
+                });
+                const data = await resp.json();
+                appendChatMessage('bot', data.reply || 'No response');
+            } catch (err) {
+                appendChatMessage('bot', 'Network error. Please try again later.');
+            }
         });
     }
 });

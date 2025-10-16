@@ -20,78 +20,97 @@
     </div>
     
     <div class="dashboard-container">
-        <!-- Status Indicators -->
-        <div class="status-row">
-            <div class="status-indicator">
-                <span>Connection:</span>
-                <span id="websocket-status">Connecting...</span>
-                <div id="websocket-light" class="status-light offline"></div>
-            </div>
-            <div class="status-indicator">
-                <span>Device:</span>
-                <span id="device-status">Offline</span>
-                <div id="device-light" class="status-light offline"></div>
-            </div>
-        </div>
-
-        <!-- Tanks Visualization -->
-        <div class="tanks-visualization">
-            <div class="tank-wrapper">
-                <div class="tank-title">Overhead Tank</div>
-                <div class="tank overhead">
-                    <div class="tank-frame">
-                        <div class="water-level" id="overhead-water"></div>
+        <div class="dashboard-grid">
+            <!-- TL: Tank Visualizations -->
+            <section class="card" aria-label="Tank Visualizations">
+                <h2 class="card-title">Tank Levels</h2>
+                <div class="tanks-visualization">
+                    <div class="tank-wrapper">
+                        <div class="tank-title">Overhead Tank</div>
+                        <div class="tank overhead">
+                            <div class="tank-frame">
+                                <div class="water-level" id="overhead-water"></div>
+                            </div>
+                            <div class="tank-info"><span id="overhead-level">--%</span></div>
+                        </div>
                     </div>
-                    <div class="tank-info"><span id="overhead-level">--%</span></div>
-                </div>
-            </div>
-            
-            <div class="pipe-and-pump">
-                <div class="pipe-horizontal"></div>
-                <div class="pump" id="pump-motor"><i class="fas fa-water"></i></div>
-                <div class="pipe-horizontal"></div>
-            </div>
-            
-            <div class="tank-wrapper">
-                <div class="tank-title">Underground Tank</div>
-                <div class="tank underground">
-                    <div class="tank-frame">
-                        <div class="water-level" id="underground-water"></div>
+                    <div class="pipe-and-pump">
+                        <div class="pipe-horizontal"></div>
+                        <div class="pump" id="pump-motor" aria-label="Pump Motor"><i class="fas fa-water"></i></div>
+                        <div class="led-light led-off" id="pump-led" aria-label="Pump LED Indicator"></div>
+                        <div class="pipe-horizontal"></div>
                     </div>
-                    <div class="tank-info"><span id="underground-level">--%</span></div>
+                    <div class="tank-wrapper">
+                        <div class="tank-title">Underground Tank</div>
+                        <div class="tank underground">
+                            <div class="tank-frame">
+                                <div class="water-level" id="underground-water"></div>
+                            </div>
+                            <div class="tank-info"><span id="underground-level">--%</span></div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
+            </section>
 
-        <!-- Combined Controls and Status Row -->
-        <div class="controls-status-row">
-            <!-- Pump Controls (Left Side) -->
-            <div class="pump-controls-container">
-                <h2>Pump Controls</h2>
+            <!-- TR: Pump Control & Status -->
+            <section class="card" aria-label="Pump Controls and Status">
+                <h2 class="card-title">Pump Control</h2>
                 <div class="pump-buttons">
-                    <button id="pump-on" class="control-button on">ON</button>
-                    <button id="pump-off" class="control-button off">OFF</button>
+                    <button id="pump-on" class="control-button on"><i class="fas fa-power-off"></i> ON</button>
+                    <button id="pump-off" class="control-button off"><i class="fas fa-power-off"></i> OFF</button>
                 </div>
                 <div class="pump-status">
                     <p>Status: <span id="pump-status-text">--</span></p>
                     <p>Current: <span id="pump-current-text">-- A</span></p>
                 </div>
-            </div>
+            </section>
 
-            <!-- Water Level Status (Right Side) -->
-            <div class="status-messages-container">
+            <!-- BL: Status Messages -->
+            <section class="card" aria-label="Status Messages">
+                <h2 class="card-title">Status Messages</h2>
                 <div class="status-box">
-                    <h3>Water Levels</h3>
                     <p id="overhead-status-msg">Overhead: --%</p>
                     <p id="underground-status-msg">Underground: --%</p>
                 </div>
-            </div>
+            </section>
+
+            <!-- BR: Connection Status -->
+            <section class="card" aria-label="Connection Status">
+                <h2 class="card-title">Connection Status</h2>
+                <div class="status-row">
+                    <div class="status-indicator">
+                        <span>WebSocket:</span>
+                        <span id="websocket-status">Connecting...</span>
+                        <div id="websocket-light" class="status-light offline"></div>
+                    </div>
+                    <div class="status-indicator">
+                        <span>Device:</span>
+                        <span id="device-status">Offline</span>
+                        <div id="device-light" class="status-light offline"></div>
+                    </div>
+                </div>
+            </section>
         </div>
     </div>
 
     <footer class="site-footer">
         <p>Vision Technology — AquaSavvy SOLUTION | Email: contact:vision072025@gmail.com | WhatsApp: +254 702 715070</p>
     </footer>
+
+    <!-- Chat Widget -->
+    <button id="chat-launcher" class="chat-launcher" aria-label="Open AquaSavvy Assistant">💬</button>
+    <div id="chat-panel" class="chat-panel" aria-live="polite" aria-label="AquaSavvy Assistant">
+        <div class="chat-header">
+            <span>AquaSavvy Assistant</span>
+            <button id="chat-close" class="chat-close" aria-label="Close chat">×</button>
+        </div>
+        <div id="chat-messages" class="chat-messages"></div>
+        <form id="chat-form" class="chat-form">
+            <input type="text" id="chat-input" class="chat-input" placeholder="Ask about your tanks, pump, or system..." required />
+            <button type="submit" class="chat-send">Send</button>
+        </form>
+        <div class="chat-footnote">If a technical issue occurs, contact: contact:vision072025@gmail.com · WhatsApp: +254 702 715070</div>
+    </div>
 
     <script src="{% static 'dashboard.js' %}"></script>
 </body>

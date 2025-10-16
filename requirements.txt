@@ -5,3 +5,4 @@ paho-mqtt
 whitenoise
 psycopg2-binary
 dj-database-url
+requests>=2.32
