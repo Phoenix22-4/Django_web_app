@@ -13,9 +13,10 @@
     <div class="header">
         <h1>AquaSavvy Solution: {{ device.name }}</h1>
         <div class="user-info">
-            <a href="{% url 'device_list' %}" class="btn btn-outline">Back to devices</a>
-            <a href="{% static 'docs/index.html' %}" class="btn btn-outline" target="_blank" rel="noopener">Docs</a>
-            <a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
+            <a href="{% url 'device_list' %}" class="nav-button">Back to devices</a>
+            <a href="{% url 'public_home' %}" class="nav-button" rel="noopener">Docs</a>
+            <a href="{% url 'logout' %}" class="nav-button danger">Logout</a>
+            <button id="enable-push" class="nav-button" type="button">Enable notifications</button>
         </div>
     </div>
     

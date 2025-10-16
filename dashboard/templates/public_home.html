@@ -119,7 +119,7 @@
         if(form){ form.addEventListener('submit', async (e)=>{
             e.preventDefault(); const msg=input.value.trim(); if(!msg) return; append('user', msg); input.value='';
             try{
-                const resp = await fetch('/api/ai_chat/', { method:'POST', headers:{ 'Content-Type':'application/json', 'X-CSRFToken': getCsrf() }, body: JSON.stringify({message: msg}) });
+                const resp = await fetch('/api/ai_chat_public/', { method:'POST', headers:{ 'Content-Type':'application/json', 'X-CSRFToken': getCsrf() }, body: JSON.stringify({message: msg}) });
                 const data = await resp.json(); append('bot', data.reply || 'No response');
             }catch(err){ append('bot', 'Network error. Please try again.'); }
         }); }

@@ -13,8 +13,8 @@
         <h1>Your AquaSavvy Solution Devices</h1>
         <div class="user-info">
             <span>Welcome, {{ user.username }}!</span>
-            <a href="{% static 'docs/index.html' %}" class="btn btn-outline" target="_blank" rel="noopener">Docs</a>
-            <a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
+            <a href="{% url 'public_home' %}" class="nav-button" rel="noopener">Docs</a>
+            <a href="{% url 'logout' %}" class="nav-button danger">Logout</a>
         </div>
     </div>
     <div class="device-list-container">

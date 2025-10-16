@@ -5,11 +5,48 @@
     
     <meta name="google-site-verification" content="gozFYv5nyWjXLad_h2RbQmBXExLGXbRUvxqDMgDW4Es" />
     
-    <title>{% block title %}AquaGuard{% endblock %}</title>
+    <title>{% block title %}AquaSavvy Solution{% endblock %}</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'dashboard.css' %}">
+
+    <!-- Firebase SDK (Compat for messaging) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
+    <script>
+      // Firebase config (provided by user)
+      const firebaseConfig = {
+        apiKey: "AIzaSyCuorzrk2791U7GwqK0EziVFUlWI0NUMKc",
+        authDomain: "aquasavvy-solution.firebaseapp.com",
+        projectId: "aquasavvy-solution",
+        storageBucket: "aquasavvy-solution.firebasestorage.app",
+        messagingSenderId: "106611964149",
+        appId: "1:106611964149:web:7beee215e4dedc406eedbc",
+        measurementId: "G-TYENWVXT5R"
+      };
+      if (window.firebase && !window.__firebaseInitialized) {
+        firebase.initializeApp(firebaseConfig);
+        window.__firebaseInitialized = true;
+      }
+    </script>
+    <script src="{% static 'push_handler.js' %}"></script>
 </head>
 <body>
     {% block content %}{% endblock %}
+
+    <!-- Floating Chat FAB and Panel -->
+    <button id="fab-chat" class="fab-chat" aria-label="Open AquaGuard AI Assistant">✳️</button>
+    <div id="chat-window" class="chat-window" aria-live="polite" aria-label="AquaGuard AI Assistant">
+        <div class="chat-header">
+            <span>AquaGuard AI Assistant</span>
+            <button id="chat-close-x" class="chat-close" aria-label="Close chat">×</button>
+        </div>
+        <div id="chat-body" class="chat-body"></div>
+        <div class="chat-input-row">
+            {% csrf_token %}
+            <input id="chat-text" type="text" class="chat-input" placeholder="Type your message..." />
+            <button id="chat-send" class="chat-send" aria-label="Send message">Send</button>
+        </div>
+    </div>
+    <script src="{% static 'chat.js' %}"></script>
 </body>
 </html>

@@ -12,6 +12,10 @@ from django.conf import settings
 import os
 import json
 import re
+try:
+    from push_notifications.models import FCMDevice
+except Exception:
+    FCMDevice = None
 
 # --- NEW: VIEW FOR THE PUBLIC HOMEPAGE ---
 def public_home_view(request):
@@ -116,7 +120,88 @@ def ai_chat_view(request):
     except Exception as exc:
         return JsonResponse({'reply': 'AI error. Please contact support.'}, status=200)
 
+# Public chat endpoint for the homepage (no login required)
+def ai_chat_public_view(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    try:
+        payload = json.loads(request.body.decode('utf-8'))
+        user_message = (payload.get('message') or '').strip()
+        if not user_message:
+            return JsonResponse({'error': 'Empty message'}, status=400)
+
+        # Simple session-based rate limit: 1 req per 5 seconds
+        last_ts = request.session.get('ai_last_ts')
+        now_ts = int(os.times().elapsed) if hasattr(os, 'times') else None
+        if last_ts and now_ts and (now_ts - last_ts) < 5:
+            return JsonResponse({'reply': 'Please wait a moment before asking another question.'}, status=200)
+        if now_ts:
+            request.session['ai_last_ts'] = now_ts
+
+        system_preamble = (
+            "You are AquaSavvy Assistant for Vision Technology. "
+            "Answer only AquaSavvy Solution topics: water level monitoring, pump control, alerts, setup, troubleshooting, usage. "
+            "If unrelated, redirect to AquaSavvy topics. If a technical fault is suspected or you cannot help, provide support: "
+            "Email contact:vision072025@gmail.com and WhatsApp +254 702 715070. "
+        )
+
+        try:
+            docs_path = os.path.join(settings.BASE_DIR, 'staticfiles', 'docs', 'index.html')
+            with open(docs_path, 'r', encoding='utf-8') as f:
+                docs_html = f.read()
+            docs_text = re.sub(r'<[^>]+>', ' ', docs_html)
+            docs_text = re.sub(r'\s+', ' ', docs_text).strip()
+            grounded_excerpt = docs_text[:2000]
+            system_preamble += f"Use this project context when answering: {grounded_excerpt} "
+        except Exception:
+            pass
+
+        api_key = os.environ.get('GEMINI_API_KEY')
+        if not api_key:
+            return JsonResponse({
+                'reply': (
+                    "AI assistant is not configured yet. For assistance, email contact:vision072025@gmail.com "
+                    "or WhatsApp +254 702 715070."
+                )
+            })
+
+        import requests
+        endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent'
+        headers = {'Content-Type': 'application/json'}
+        body = {
+            'contents': [
+                {'parts': [{'text': system_preamble}]},
+                {'parts': [{'text': user_message}]}
+            ]
+        }
+        resp = requests.post(f"{endpoint}?key={api_key}", headers=headers, json=body, timeout=15)
+        if resp.status_code != 200:
+            return JsonResponse({'reply': 'Temporary AI error. Please try again or contact support.'}, status=200)
+        data = resp.json()
+        reply = (
+            data.get('candidates', [{}])[0]
+                .get('content', {})
+                .get('parts', [{}])[0]
+                .get('text')
+        ) or 'I could not generate a response. Please contact support.'
+        return JsonResponse({'reply': reply})
+    except Exception:
+        return JsonResponse({'reply': 'AI error. Please contact support.'}, status=200)
+
 class CustomLogoutView(View):
     def get(self, request, *args, **kwargs):
         logout(request)
         return redirect('login')
+
+
+@login_required
+def save_push_subscription(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    if FCMDevice is None:
+        return JsonResponse({'error': 'Push not configured'}, status=400)
+    token = request.POST.get('token') or request.headers.get('X-Device-Token')
+    if not token:
+        return JsonResponse({'error': 'Missing token'}, status=400)
+    device, _ = FCMDevice.objects.get_or_create(user=request.user, registration_id=token, type='web')
+    return JsonResponse({'ok': True})

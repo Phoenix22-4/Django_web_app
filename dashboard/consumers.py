@@ -6,6 +6,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import async_to_sync, sync_to_async
 from channels.layers import get_channel_layer
 from .models import Device, WaterReading
+from .notifications import check_and_send_alerts
 import os
 
 # --- MQTT Setup (WITH YOUR NEW ENDPOINT) ---
@@ -33,7 +34,7 @@ def process_and_save_data(topic, payload_str):
             print(f"AUTO-CREATED: New device '{device_id}' has connected and been added to the database.")
 
         # The web app saves the data, linking it to the correct device.
-        WaterReading.objects.create(
+        reading = WaterReading.objects.create(
             device=device,
             overhead_level=payload.get('overhead_level', 0),
             underground_level=payload.get('underground_level', 0),
@@ -41,6 +42,12 @@ def process_and_save_data(topic, payload_str):
             pump_current=payload.get('pump_current', 0.0),
             system_status=payload.get('system_status', 'Unknown')
         )
+
+        # Notifications: evaluate critical alerts
+        try:
+            check_and_send_alerts(device, reading)
+        except Exception as _:
+            pass
 
         # ==========================================================
         # --- NEW: AUTOMATIC DATA DELETION LOGIC ---
