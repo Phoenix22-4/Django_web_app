@@ -6,6 +6,7 @@
     <title>AquaSavvy Solution • {{ device.name }}</title>
     <meta name="device-id" id="device-id" content="{{ device.device_id }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     {% load static %}
     <link rel="stylesheet" href="{% static 'dashboard.css' %}">
 </head>
@@ -13,42 +14,60 @@
     <div class="header">
         <h1>AquaSavvy Solution: {{ device.name }}</h1>
         <div class="user-info">
-            <a href="{% url 'device_list' %}" class="nav-button">Back to devices</a>
-            <a href="{% url 'public_home' %}" class="nav-button" rel="noopener">Docs</a>
-            <a href="{% url 'logout' %}" class="nav-button danger">Logout</a>
-            <button id="enable-push" class="nav-button" type="button">Enable notifications</button>
+            <a href="{% url 'device_list' %}" class="nav-button icon-btn" title="Back to Devices"><i class="fas fa-arrow-left"></i></a>
+            <a href="{% url 'public_home' %}" class="nav-button icon-btn" title="Documentation" rel="noopener"><i class="fas fa-book"></i></a>
+            <a href="{% url 'logout' %}" class="nav-button icon-btn danger" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
+            <button id="enable-push" class="nav-button" type="button"><i class="fas fa-bell"></i></button>
+            <span class="device-wifi" id="device-wifi-icon" title="Device Connectivity"><i class="fas fa-wifi"></i></span>
         </div>
     </div>
     
     <div class="dashboard-container">
         <div class="dashboard-grid">
-            <!-- TL: Tank Visualizations -->
+            <!-- TL: Tank Visualizations (DYNAMIC) -->
             <section class="card" aria-label="Tank Visualizations">
                 <h2 class="card-title">Tank Levels</h2>
-                <div class="tanks-visualization">
-                    <div class="tank-wrapper">
-                        <div class="tank-title">Overhead Tank</div>
-                        <div class="tank overhead">
-                            <div class="tank-frame">
-                                <div class="water-level" id="overhead-water"></div>
+                <div class="tanks-visualization" id="tanks-container">
+                    {% if last_reading and last_reading.tank_data %}
+                        {% for tank in last_reading.tank_data %}
+                            <div class="tank-wrapper" data-tank-name="{{ tank.name }}">
+                                <div class="tank-title">{{ tank.name }}</div>
+                                <div class="tank">
+                                    <div class="tank-frame">
+                                        <div class="water-level" data-tank-level="{{ tank.name }}" style="height: {{ tank.level }}%;"></div>
+                                    </div>
+                                    <div class="tank-info"><span data-tank-text="{{ tank.name }}">{{ tank.level }}%</span></div>
+                                </div>
                             </div>
-                            <div class="tank-info"><span id="overhead-level">--%</span></div>
+                        {% endfor %}
+                    {% else %}
+                        <!-- Fallback for old format or no data -->
+                        <div class="tank-wrapper" data-tank-name="Overhead">
+                            <div class="tank-title">Overhead Tank</div>
+                            <div class="tank overhead">
+                                <div class="tank-frame">
+                                    <div class="water-level" id="overhead-water" data-tank-level="Overhead"></div>
+                                </div>
+                                <div class="tank-info"><span id="overhead-level" data-tank-text="Overhead">--%</span></div>
+                            </div>
                         </div>
-                    </div>
+                        <div class="tank-wrapper" data-tank-name="Underground">
+                            <div class="tank-title">Underground Tank</div>
+                            <div class="tank underground">
+                                <div class="tank-frame">
+                                    <div class="water-level" id="underground-water" data-tank-level="Underground"></div>
+                                </div>
+                                <div class="tank-info"><span id="underground-level" data-tank-text="Underground">--%</span></div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Pump visualization in the middle -->
                     <div class="pipe-and-pump">
                         <div class="pipe-horizontal"></div>
                         <div class="pump" id="pump-motor" aria-label="Pump Motor"><i class="fas fa-water"></i></div>
                         <div class="led-light led-off" id="pump-led" aria-label="Pump LED Indicator"></div>
                         <div class="pipe-horizontal"></div>
-                    </div>
-                    <div class="tank-wrapper">
-                        <div class="tank-title">Underground Tank</div>
-                        <div class="tank underground">
-                            <div class="tank-frame">
-                                <div class="water-level" id="underground-water"></div>
-                            </div>
-                            <div class="tank-info"><span id="underground-level">--%</span></div>
-                        </div>
                     </div>
                 </div>
             </section>
@@ -61,15 +80,44 @@
                     <button id="pump-off" class="control-button off"><i class="fas fa-power-off"></i> OFF</button>
                 </div>
                 <div class="pump-status">
-                    <p>Status: <span id="pump-status-text">--</span></p>
-                    <p>Current: <span id="pump-current-text">-- A</span></p>
+                    <p><strong>Pump Status:</strong> <span id="pump-status-bool">--</span></p>
+                    <p><strong>Mode:</strong> <span id="pump-mode-text">--</span></p>
+                    <p><strong>Current:</strong> <span id="pump-current-text">-- A</span></p>
                 </div>
+            </section>
+
+            <!-- NEW: Automation Rules Card -->
+            <section class="card" aria-label="Automation Rules">
+                <h2 class="card-title">Automation Rules</h2>
+                <div class="automation-rules-list" id="automation-rules-list">
+                    {% if device.automation_rules.all %}
+                        {% for rule in device.automation_rules.all|slice:":4" %}
+                            <div class="rule-item {% if not rule.enabled %}disabled{% endif %}">
+                                <div class="rule-info">
+                                    <strong>{{ rule.name }}</strong>
+                                    <span class="rule-time">{{ rule.start_time|time:"H:i" }} - {{ rule.end_time|time:"H:i" }}</span>
+                                    <span class="rule-levels">ON: {{ rule.min_level }}%, OFF: {{ rule.max_level }}%</span>
+                                </div>
+                                <div class="rule-actions">
+                                    <button class="rule-btn edit" data-rule-id="{{ rule.id }}"><i class="fas fa-edit"></i></button>
+                                    <button class="rule-btn delete" data-rule-id="{{ rule.id }}"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="no-rules">No automation rules set. Create one to override system behavior!</p>
+                    {% endif %}
+                </div>
+                <button id="create-rule-btn" class="secondary-button"><i class="fas fa-plus"></i> Create New Rule</button>
             </section>
 
             <!-- BL: Status Messages -->
             <section class="card" aria-label="Status Messages">
                 <h2 class="card-title">Status Messages</h2>
                 <div class="status-box">
+                    <p id="automation-status" style="background: #e9f7ff; padding: 8px; border-radius: 6px; margin-bottom: 8px;">
+                        <strong>Mode:</strong> {{ automation_status }}
+                    </p>
                     <p id="overhead-status-msg">Overhead: --%</p>
                     <p id="underground-status-msg">Underground: --%</p>
                 </div>
@@ -90,6 +138,17 @@
                         <div id="device-light" class="status-light offline"></div>
                     </div>
                 </div>
+            </section>
+
+            <!-- NEW: Analytics Charts -->
+            <section class="card chart-card" aria-label="Pump Runtime (24h)">
+                <h2 class="card-title">Pump Runtime (24h)</h2>
+                <canvas id="pumpRuntimeChart"></canvas>
+            </section>
+
+            <section class="card chart-card" aria-label="Power Usage (24h)">
+                <h2 class="card-title">Power Usage (24h)</h2>
+                <canvas id="powerUsageChart"></canvas>
             </section>
         </div>
     </div>

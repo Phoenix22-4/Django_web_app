@@ -13,8 +13,8 @@
         <h1>Your AquaSavvy Solution Devices</h1>
         <div class="user-info">
             <span>Welcome, {{ user.username }}!</span>
-            <a href="{% url 'public_home' %}" class="nav-button" rel="noopener">Docs</a>
-            <a href="{% url 'logout' %}" class="nav-button danger">Logout</a>
+            <a href="{% url 'public_home' %}" class="nav-button icon-btn" title="Documentation" rel="noopener"><i class="fas fa-book"></i></a>
+            <a href="{% url 'logout' %}" class="nav-button icon-btn danger" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
         </div>
     </div>
     <div class="device-list-container">
@@ -23,8 +23,11 @@
         {% if devices %}
             <div class="device-grid">
                 {% for device in devices %}
-                    <a href="{% url 'dashboard' device.device_id %}" class="device-card" aria-label="View dashboard for {{ device.name }}">
-                        <div class="device-card-icon"><i class="fas fa-tachometer-alt"></i></div>
+                    <a href="{% url 'dashboard' device.device_id %}" class="device-card" aria-label="View dashboard for {{ device.name }}" data-device-id="{{ device.device_id }}">
+                        <div class="device-card-header">
+                            <div class="device-card-icon"><i class="fas fa-tachometer-alt"></i></div>
+                            <span class="device-wifi-status" data-device-wifi="{{ device.device_id }}" title="Device Status"><i class="fas fa-wifi"></i></span>
+                        </div>
                         <h3 class="device-card-title">{{ device.name }}</h3>
                         <p class="device-card-sub">ID: {{ device.device_id }}</p>
                         <div class="device-card-cta">View Dashboard →</div>

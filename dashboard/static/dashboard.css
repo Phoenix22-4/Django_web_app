@@ -229,3 +229,183 @@ body::before {
     .tank.overhead { height: 220px; width: 140px; }
     .pump { width: 80px; height: 80px; font-size: 2.5rem; }
 }
+
+/* ==================== ICON BUTTONS ==================== */
+.nav-button.icon-btn {
+    padding: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+}
+
+/* ==================== DEVICE WIFI STATUS ==================== */
+.device-wifi-status {
+    font-size: 1.2rem;
+    transition: color 0.3s;
+}
+
+.device-wifi-status.online,
+.device-wifi.online {
+    color: #28a745;
+}
+
+.device-wifi-status.offline,
+.device-wifi.offline {
+    color: #dc3545;
+}
+
+.device-wifi-status.connecting,
+.device-wifi.connecting {
+    color: #ffc107;
+}
+
+.device-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.device-wifi {
+    font-size: 1.3rem;
+    transition: color 0.3s;
+}
+
+/* ==================== AUTOMATION RULES ==================== */
+.automation-rules-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.rule-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: #f8f9fa;
+    border: 1px solid #e3eef7;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.rule-item:hover {
+    background: #e9f7ff;
+    border-color: #0ea5e9;
+}
+
+.rule-item.disabled {
+    opacity: 0.5;
+}
+
+.rule-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.rule-time {
+    font-size: 0.85rem;
+    color: #0b5fa5;
+    font-weight: bold;
+}
+
+.rule-levels {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.rule-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.rule-btn {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.rule-btn.edit {
+    background: #0ea5e9;
+    color: #fff;
+}
+
+.rule-btn.delete {
+    background: #dc3545;
+    color: #fff;
+}
+
+.rule-btn:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
+}
+
+.no-rules {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 20px;
+}
+
+.secondary-button {
+    padding: 10px 16px;
+    background: #0ea5e9;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+}
+
+.secondary-button:hover {
+    background: #0b5fa5;
+    transform: translateY(-2px);
+}
+
+/* ==================== CHARTS ==================== */
+.chart-card {
+    min-height: 300px;
+}
+
+.chart-card canvas {
+    max-height: 250px;
+}
+
+/* ==================== DRAGGABLE CHAT FAB ==================== */
+.fab-chat {
+    cursor: move;
+    user-select: none;
+    touch-action: none;
+}
+
+.fab-chat.dragging {
+    opacity: 0.8;
+    cursor: grabbing;
+}
+
+/* ==================== RESPONSIVE CHAT ==================== */
+@media (max-width: 768px) {
+    .chat-panel, .chat-window {
+        width: 100%;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1200px) {
+    .chat-panel, .chat-window {
+        width: 60%;
+    }
+}

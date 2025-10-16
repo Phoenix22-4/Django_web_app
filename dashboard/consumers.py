@@ -33,14 +33,27 @@ def process_and_save_data(topic, payload_str):
         if created:
             print(f"AUTO-CREATED: New device '{device_id}' has connected and been added to the database.")
 
+        # NEW: Support dynamic tank_data structure
+        tank_data = payload.get('tank_data', [])
+        
+        # Backward compatibility: if ESP32 sends old format, convert to new format
+        if not tank_data and ('overhead_level' in payload or 'underground_level' in payload):
+            tank_data = [
+                {"name": "Overhead", "level": payload.get('overhead_level', 0)},
+                {"name": "Underground", "level": payload.get('underground_level', 0)}
+            ]
+        
         # The web app saves the data, linking it to the correct device.
         reading = WaterReading.objects.create(
             device=device,
+            tank_data=tank_data,
+            # Legacy fields for backward compat
             overhead_level=payload.get('overhead_level', 0),
             underground_level=payload.get('underground_level', 0),
             pump_status=payload.get('pump_status', False),
-            pump_current=payload.get('pump_current', 0.0),
-            system_status=payload.get('system_status', 'Unknown')
+            pump_current_amps=payload.get('pump_current_amps', payload.get('pump_current', 0.0)),
+            pump_mode=payload.get('pump_mode', 'AUTO'),
+            system_status=payload.get('system_status', 'OK')
         )
 
         # Notifications: evaluate critical alerts
@@ -50,7 +63,7 @@ def process_and_save_data(topic, payload_str):
             pass
 
         # ==========================================================
-        # --- NEW: AUTOMATIC DATA DELETION LOGIC ---
+        # --- AUTOMATIC DATA DELETION LOGIC ---
         # ==========================================================
         DATA_LIMIT_PER_DEVICE = 150
         reading_count = WaterReading.objects.filter(device=device).count()
@@ -63,10 +76,23 @@ def process_and_save_data(topic, payload_str):
                 print(f"CLEANUP: Deleted oldest reading for device '{device_id}' to stay within the {DATA_LIMIT_PER_DEVICE} limit.")
         # ==========================================================
         
+        # Prepare payload for WebSocket (include both formats for compatibility)
+        ws_payload = {
+            'tank_data': tank_data,
+            'pump_status': reading.pump_status,
+            'pump_current_amps': reading.pump_current_amps,
+            'pump_mode': reading.pump_mode,
+            'system_status': reading.system_status,
+            # Legacy fields
+            'overhead_level': reading.overhead_level or 0,
+            'underground_level': reading.underground_level or 0,
+            'pump_current': reading.pump_current_amps
+        }
+        
         # Only forward the message if an admin has assigned a user to this device.
         if device.owner:
             print(f"SUCCESS: Saved data for device '{device_id}' owned by '{device.owner}'.")
-            return device_id, payload
+            return device_id, ws_payload
         else:
             print(f"Data received for unassigned device '{device_id}'. Stored, but not forwarded.")
             return None, None

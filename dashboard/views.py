@@ -44,9 +44,21 @@ def device_list_view(request):
 @login_required
 @never_cache
 def dashboard_view(request, device_id):
+    from .automation import get_pump_status_message
+    
     device = get_object_or_404(Device, device_id=device_id, owner=request.user)
     last_reading = device.readings.order_by('-timestamp').first()
-    return render(request, 'dashboard.html', {'device': device, 'last_reading': last_reading})
+    
+    # Get automation status message
+    status_message = "No data available"
+    if last_reading:
+        status_message = get_pump_status_message(device, last_reading)
+    
+    return render(request, 'dashboard.html', {
+        'device': device,
+        'last_reading': last_reading,
+        'automation_status': status_message
+    })
 
 class CustomLoginView(LoginView):
     template_name = 'login.html'

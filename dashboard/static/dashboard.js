@@ -57,19 +57,42 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log("Parsed data:", data);
 
             updateConnectionStatus('device', 'Online', 'online');
+            updateDeviceWifiIcon('online');
 
-            safeStyleUpdate(elements.overheadWater, 'height', `${data.overhead_level}%`);
-            safeUpdate(elements.overheadLevelText, `${data.overhead_level}%`);
-            safeStyleUpdate(elements.undergroundWater, 'height', `${data.underground_level}%`);
-            safeUpdate(elements.undergroundLevelText, `${data.underground_level}%`);
+            // NEW: Dynamic Tank Updates
+            if (data.tank_data && Array.isArray(data.tank_data)) {
+                data.tank_data.forEach(tank => {
+                    const tankName = tank.name;
+                    const tankLevel = tank.level;
+                    
+                    // Find water level element
+                    const waterEl = document.querySelector(`[data-tank-level="${tankName}"]`);
+                    const textEl = document.querySelector(`[data-tank-text="${tankName}"]`);
+                    
+                    if (waterEl) waterEl.style.height = `${tankLevel}%`;
+                    if (textEl) textEl.textContent = `${tankLevel}%`;
+                });
+            } else {
+                // Fallback for old format
+                safeStyleUpdate(elements.overheadWater, 'height', `${data.overhead_level}%`);
+                safeUpdate(elements.overheadLevelText, `${data.overhead_level}%`);
+                safeStyleUpdate(elements.undergroundWater, 'height', `${data.underground_level}%`);
+                safeUpdate(elements.undergroundLevelText, `${data.underground_level}%`);
+            }
 
             const pumpIsOn = data.pump_status;
+            
+            // Update pump status elements
+            const pumpStatusBool = document.getElementById('pump-status-bool');
+            if (pumpStatusBool) pumpStatusBool.textContent = pumpIsOn ? "ON (True)" : "OFF (False)";
+            
+            const pumpModeText = document.getElementById('pump-mode-text');
+            if (pumpModeText) pumpModeText.textContent = data.pump_mode || 'AUTO';
+            
             safeUpdate(elements.pumpStatusText, pumpIsOn ? "ON" : "OFF");
             
-            // --- THIS IS THE KEY FOR THE ANIMATION ---
-            // This line adds the 'active' class when the pump is on.
+            // Pump animation
             safeClassToggle(elements.pumpMotor, 'active', pumpIsOn);
-            
             safeClassToggle(elements.pumpMotor, 'online', pumpIsOn);
             safeClassToggle(elements.pumpMotor, 'offline', !pumpIsOn);
 
@@ -85,8 +108,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-            safeUpdate(elements.pumpCurrentText, `${data.pump_current?.toFixed(1) || '0.0'} A`);
-            updateStatusMessages(data.overhead_level, data.underground_level);
+            safeUpdate(elements.pumpCurrentText, `${data.pump_current_amps?.toFixed(1) || data.pump_current?.toFixed(1) || '0.0'} A`);
+            
+            // Update status messages (use first two tanks or legacy)
+            const overhead = data.overhead_level || (data.tank_data && data.tank_data[0]?.level) || 0;
+            const underground = data.underground_level || (data.tank_data && data.tank_data[1]?.level) || 0;
+            updateStatusMessages(overhead, underground);
 
         } catch (error) {
             console.error("Error processing message:", error);
@@ -129,6 +156,13 @@ document.addEventListener('DOMContentLoaded', function() {
         safeClassUpdate(lightElement, `status-light ${state}`);
     }
 
+    function updateDeviceWifiIcon(state) {
+        const wifiIcon = document.getElementById('device-wifi-icon');
+        if (wifiIcon) {
+            wifiIcon.className = 'device-wifi ' + state;
+        }
+    }
+
     function updateStatusMessages(overhead, underground) {
         if (elements.overheadStatusMsg) {
             if (overhead >= 95) {
@@ -165,6 +199,55 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.pumpOffBtn.addEventListener('click', () => {
             socket.send(JSON.stringify({command: 'PUMP_OFF'}));
             console.log("PUMP_OFF command sent");
+        });
+    }
+
+    // ==================== CHART.JS ANALYTICS ====================
+    // Initialize Pump Runtime Chart (Pie)
+    const pumpRuntimeCtx = document.getElementById('pumpRuntimeChart');
+    if (pumpRuntimeCtx && typeof Chart !== 'undefined') {
+        new Chart(pumpRuntimeCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Pump ON', 'Pump OFF'],
+                datasets: [{
+                    data: [0, 100], // Will be updated with real data
+                    backgroundColor: ['#4CAF50', '#F44336']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    title: { display: false }
+                }
+            }
+        });
+    }
+
+    // Initialize Power Usage Chart (Bar)
+    const powerUsageCtx = document.getElementById('powerUsageChart');
+    if (powerUsageCtx && typeof Chart !== 'undefined') {
+        new Chart(powerUsageCtx, {
+            type: 'bar',
+            data: {
+                labels: Array.from({length: 24}, (_, i) => `${i}:00`),
+                datasets: [{
+                    label: 'Current (A)',
+                    data: Array(24).fill(0), // Will be updated with real data
+                    backgroundColor: '#2196F3'
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Amps' } },
+                    x: { title: { display: true, text: 'Hour' } }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
         });
     }
 
