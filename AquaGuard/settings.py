@@ -136,13 +136,14 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# ==================== FIREBASE CLOUD MESSAGING (FCM) SETTINGS ====================
-# For django-push-notifications
-PUSH_NOTIFICATIONS_SETTINGS = {
-    "FCM_API_KEY": os.environ.get('FCM_SERVER_KEY', ''),  # Firebase Cloud Messaging Server Key
-    "WP_PRIVATE_KEY": os.environ.get('VAPID_PRIVATE_KEY', ''),
-    "WP_CLAIMS": {"sub": "mailto:contact:vision072025@gmail.com"}
-}
+# ==================== FIREBASE ADMIN SDK (V1 API - Recommended) ====================
+# Firebase Admin SDK will be initialized in notifications.py using service account JSON
+# The JSON content should be stored as an environment variable
+FIREBASE_CREDENTIALS = os.environ.get('FIREBASE_SERVICE_ACCOUNT_JSON', '')
+
+# Alternative: Store the JSON file path (if using file storage on Railway)
+FIREBASE_CREDENTIALS_PATH = os.path.join(BASE_DIR, 'firebase-service-account.json')
 
 # Web Push VAPID keys (for push_handler.js)
 # Public key is in push_handler.js: BMLnBIiNgOMINbDOGA24NWnufsGSMP9GF-Z12V8dbEXA8NwBy-UFPOrF8kDpGdVjeIQsMRE-oxf-y60W1p4DEcY
+VAPID_PUBLIC_KEY = 'BMLnBIiNgOMINbDOGA24NWnufsGSMP9GF-Z12V8dbEXA8NwBy-UFPOrF8kDpGdVjeIQsMRE-oxf-y60W1p4DEcY'

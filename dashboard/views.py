@@ -209,15 +209,41 @@ class CustomLogoutView(View):
 
 @login_required
 def save_push_subscription(request):
+    """Save Firebase Cloud Messaging token for the current user"""
     if request.method != 'POST':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
-    if FCMDevice is None:
-        return JsonResponse({'error': 'Push not configured'}, status=400)
+    
     token = request.POST.get('token') or request.headers.get('X-Device-Token')
     if not token:
         return JsonResponse({'error': 'Missing token'}, status=400)
-    device, _ = FCMDevice.objects.get_or_create(user=request.user, registration_id=token, type='web')
-    return JsonResponse({'ok': True})
+    
+    try:
+        from .models import FCMToken
+        
+        # Create or update the FCM token
+        fcm_token, created = FCMToken.objects.get_or_create(
+            token=token,
+            defaults={
+                'user': request.user,
+                'device_type': 'web',
+                'is_active': True
+            }
+        )
+        
+        if not created:
+            # Token exists, update user and last_used
+            fcm_token.user = request.user
+            fcm_token.is_active = True
+            fcm_token.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Push notifications enabled successfully!',
+            'created': created
+        })
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 def service_worker(request):
