@@ -30,7 +30,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'channels',
-    'push_notifications',
     'dashboard.apps.DashboardConfig',
 ]
 
