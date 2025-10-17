@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import LoginView, LogoutView
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -62,6 +63,14 @@ Support Information:
 - WhatsApp: +254 702 715070
 - System Documentation: Available in dashboard
 """
+
+# Custom Login/Logout Views
+class CustomLoginView(LoginView):
+    template_name = 'login.html'
+    redirect_authenticated_user = True
+
+class CustomLogoutView(LogoutView):
+    next_page = 'public_home'
 
 def home_view(request):
     return render(request, 'public_home.html')
