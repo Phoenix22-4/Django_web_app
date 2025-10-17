@@ -131,7 +131,7 @@
     <div class="chart-container">
         <div class="chart-title">Daily Summary Data</div>
         <table class="data-table">
-            <thead>
+  <thead>
                 <tr>
                     <th>Date</th>
                     <th>Total Usage (L)</th>
@@ -139,8 +139,8 @@
                     <th>Total Power (kWh)</th>
                     <th>Total Runtime (h)</th>
                 </tr>
-            </thead>
-            <tbody>
+  </thead>
+  <tbody>
                 {% for data in daily_data %}
                 <tr>
                     <td>{{ data.day }}</td>
@@ -149,17 +149,17 @@
                     <td>{{ data.total_power|floatformat:2 }}</td>
                     <td>{{ data.total_runtime|floatformat:1 }}</td>
                 </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
+    {% endfor %}
+  </tbody>
+  </table>
+  </div>
+  </div>
 
 <script>
 // Device Usage Pie Chart
 const deviceUsageCtx = document.getElementById('deviceUsageChart').getContext('2d');
 new Chart(deviceUsageCtx, {
-    type: 'pie',
+  type: 'pie',
     data: {
         labels: {{ device_labels|safe }},
         datasets: [{
@@ -183,7 +183,7 @@ new Chart(deviceUsageCtx, {
 // Daily Usage Line Chart
 const dailyUsageCtx = document.getElementById('dailyUsageChart').getContext('2d');
 new Chart(dailyUsageCtx, {
-    type: 'line',
+  type: 'line',
     data: {
         labels: {{ daily_dates|safe }},
         datasets: [{
