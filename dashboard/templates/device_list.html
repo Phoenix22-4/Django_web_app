@@ -19,29 +19,43 @@
         </div>
     </div>
     <div class="device-list-container">
-        <h2>Select a Device to Monitor</h2>
-        
+        <h2>Your Devices</h2>
+
         {% if devices %}
-            <div class="device-grid">
-                {% for device in devices %}
-                    <a href="{% url 'dashboard' device.device_id %}" class="device-card" aria-label="View dashboard for {{ device.name }}" data-device-id="{{ device.device_id }}">
-                        <div class="device-card-header">
-                            <div class="device-card-icon"><i class="fas fa-tachometer-alt"></i></div>
-                            <span class="device-wifi-status" data-device-wifi="{{ device.device_id }}" title="Device Status"><i class="fas fa-wifi"></i></span>
+        <ul class="device-list-table">
+            {% for device in devices %}
+            <li class="device-row">
+                <a class="device-row-main" href="{% url 'dashboard' device.device_id %}" aria-label="Open {{ device.name }} dashboard">
+                    <div class="device-row-left">
+                        <div class="device-type-icon"><i class="fas fa-water"></i></div>
+                        <div class="device-meta">
+                            <div class="device-name">{{ device.name }}</div>
+                            <div class="device-sub">ID: {{ device.device_id }}</div>
                         </div>
-                        <h3 class="device-card-title">{{ device.name }}</h3>
-                        <p class="device-card-sub">ID: {{ device.device_id }}</p>
-                        <div class="device-card-cta">View Dashboard →</div>
-                    </a>
-                {% endfor %}
-            </div>
+                    </div>
+                    <div class="device-row-stats">
+                        <span class="device-signal" title="Signal"><i class="fas fa-signal"></i></span>
+                        <span class="device-battery" title="Battery"><i class="fas fa-battery-three-quarters"></i></span>
+                        <span class="device-status-ok" title="OK"><i class="fas fa-check"></i></span>
+                    </div>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
         {% else %}
-            <p>You have no devices registered to your account.</p>
+        <p>You have no devices registered to your account.</p>
         {% endif %}
     </div>
 
     <footer class="site-footer">
         <p>Vision Technology — AquaSavvy Solution | Email: contact:vision072025@gmail.com | WhatsApp: +254 702 715070</p>
     </footer>
+    <script>
+    document.addEventListener('DOMContentLoaded', function(){
+        if (typeof registerPush === 'function') {
+            try { registerPush(); } catch(e) { console.log('Push skipped', e); }
+        }
+    });
+    </script>
 </body>
 </html>
