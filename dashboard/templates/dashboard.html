@@ -1,43 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="google-site-verification" content="gozFYv5nyWjXLad_h2RbQmBXExLGXbRUvxqDMgDW4Es" />
-    
-    <title>{% block title %}AquaSavvy Solution{% endblock %}</title>
-    {% load static %}
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'dashboard.css' %}">
-</head>
-<body>
-    <form style="display:none;">{% csrf_token %}</form>
-
-    {% block content %}{% endblock %}
-
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
-    <script>
-      // Your Firebase config
-      const firebaseConfig = {
-        apiKey: "AIzaSyCuorzrk2791U7GwqK0EziVFUlWI0NUMKc",
-        authDomain: "aquasavvy-solution.firebaseapp.com",
-        projectId: "aquasavvy-solution",
-        storageBucket: "aquasavvy-solution.firebasestorage.app",
-        messagingSenderId: "106611964149",
-        appId: "1:106611964149:web:7beee215e4dedc406eedbc",
-        measurementId: "G-TYENWVXT5R"
-      };
-      if (window.firebase && !window.__firebaseInitialized) {
-        firebase.initializeApp(firebaseConfig);
-        window.__firebaseInitialized = true;
-      }
-    </script>
-    
-    <script src="{% static 'push_handler.js' %}"></script>
-    <script async src="{% static 'chat-widget.js' %}"></script>
-</body>
-</html>{% extends 'base.html' %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block title %}Dashboard for {{ device.name }}{% endblock %}
