@@ -16,7 +16,7 @@ class AquaSavvyChat {
         const chatButton = document.createElement('div');
         chatButton.className = 'aquasavvy-chat-button';
         chatButton.innerHTML = `
-            <img src="{% static 'images/chat-icon.png' %}" alt="AquaSavvy AI Chat" onerror="this.style.display='none'">
+            <img src="/static/images/chat-icon.png" alt="AquaSavvy AI Chat" onerror="this.style.display='none'">
             <span>💬</span>
         `;
 
@@ -43,7 +43,7 @@ class AquaSavvyChat {
             <div class="chat-input-area">
                 <input type="text" placeholder="Ask me about your water system..." id="chat-input">
                 <button id="send-message">
-                    <img src="{% static 'images/send-icon.png' %}" alt="Send" onerror="this.style.display='none'">
+                    <img src="/static/images/send-icon.png" alt="Send" onerror="this.style.display='none'">
                     <span>Send</span>
                 </button>
             </div>

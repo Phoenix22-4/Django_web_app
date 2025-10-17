@@ -1157,15 +1157,53 @@ body::before {
     font-weight: 600;
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
-    flex-shrink: 0;
 }
-#ai-chat-send:hover:not(:disabled) {
-    transform: scale(1.1);
-    box-shadow: 0 4px 16px rgba(0, 123, 255, 0.4);
-}
-#ai-chat-send:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+
+/* Enhanced Mobile Responsiveness */
+@media (max-width: 480px) {
+    .header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .chart-title, .control-title {
+        font-size: 1rem;
+    }
+    
+    .tank-card {
+        padding: 10px;
+    }
+    
+    .pump-buttons {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .control-btn {
+        width: 100%;
+        padding: 8px;
+    }
+    
+    .device-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .device-card {
+        padding: 15px;
+    }
+    
+    .aquasavvy-chat-window {
+        width: calc(100vw - 20px);
+        height: 400px;
+        right: 10px;
+        left: 10px;
+    }
+    
+    .aquasavvy-chat-button {
+        bottom: 15px;
+        right: 15px;
+        width: 50px;
+        height: 50px;
+    }
 }
 
 /* ====================
