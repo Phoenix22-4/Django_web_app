@@ -70,7 +70,7 @@ class AutomationRule(models.Model):
     name = models.CharField(max_length=100, default="My Rule")
     start_time = models.TimeField()
     end_time = models.TimeField()
-    monitor_tank_name = models.CharField(max_length=100, help_text="The 'name' of the tank to monitor (e.g., 'Overhead')") 
+    monitor_tank_name = models.CharField(max_length=100, default="Overhead", blank=True, help_text="The 'name' of the tank to monitor (e.g., 'Overhead')") 
     min_level = models.PositiveIntegerField(default=20, help_text="Pump ON when level is BELOW this %")
     max_level = models.PositiveIntegerField(default=95, help_text="Pump OFF when level is ABOVE this %")
     enabled = models.BooleanField(default=True)
