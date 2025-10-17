@@ -16,7 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from dashboard.views import service_worker
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+
+def service_worker(request):
+    content = render_to_string('sw.js')
+    return HttpResponse(content, content_type='application/javascript')
 
 urlpatterns = [
     path('sw.js', service_worker, name='service_worker'),
