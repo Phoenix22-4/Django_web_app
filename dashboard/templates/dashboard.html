@@ -86,7 +86,7 @@
                                 <div class="pipe-junction complex-pipe">
                                     <div class="pipe-horizontal main-pipe"></div>
                                     {% for tank in last_reading.tank_data %}
-                                        <div class="junction-point" style="left: {{ forloop.counter0|floatformat:0|add:1|mul:100|div:last_reading.tank_data|length|floatformat:0 }}%;">
+                                        <div class="junction-point" style="left: {% widthratio forloop.counter last_reading.tank_data|length 100 %}%;">
                                             <div class="junction-circle"></div>
                                         </div>
                                     {% endfor %}

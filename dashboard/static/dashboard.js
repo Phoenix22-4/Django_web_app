@@ -114,6 +114,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const overhead = data.overhead_level || (data.tank_data && data.tank_data[0]?.level) || 0;
             const underground = data.underground_level || (data.tank_data && data.tank_data[1]?.level) || 0;
             updateStatusMessages(overhead, underground);
+            
+            // Update automation status
+            const automationStatusEl = document.getElementById('automation-status');
+            if (automationStatusEl && data.automation_status) {
+                automationStatusEl.innerHTML = `<strong>Mode:</strong> ${data.automation_status}`;
+                
+                // Add rule details if active
+                if (data.active_rule && data.active_rule.name) {
+                    const ruleDetails = ` (On: ${data.active_rule.min_level}%, Off: ${data.active_rule.max_level}%)`;
+                    automationStatusEl.innerHTML += ruleDetails;
+                }
+            }
 
         } catch (error) {
             console.error("Error processing message:", error);
