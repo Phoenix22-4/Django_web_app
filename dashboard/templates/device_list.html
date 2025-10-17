@@ -22,26 +22,24 @@
         <h2>Your Devices</h2>
 
         {% if devices %}
-        <ul class="device-list-table">
+        <div class="device-grid">
             {% for device in devices %}
-            <li class="device-row">
-                <a class="device-row-main" href="{% url 'dashboard' device.device_id %}" aria-label="Open {{ device.name }} dashboard">
-                    <div class="device-row-left">
-                        <div class="device-type-icon"><i class="fas fa-water"></i></div>
-                        <div class="device-meta">
-                            <div class="device-name">{{ device.name }}</div>
-                            <div class="device-sub">ID: {{ device.device_id }}</div>
-                        </div>
+            <div class="device-card">
+                <a class="device-card-link" href="{% url 'dashboard' device.device_id %}" aria-label="Open {{ device.name }} dashboard">
+                    <div class="device-card-icon"><i class="fas fa-water"></i></div>
+                    <div class="device-card-meta">
+                        <div class="device-card-name">{{ device.name }}</div>
+                        <div class="device-card-sub">ID: {{ device.device_id }}</div>
                     </div>
-                    <div class="device-row-stats">
-                        <span class="device-signal" title="Signal"><i class="fas fa-signal"></i></span>
-                        <span class="device-battery" title="Battery"><i class="fas fa-battery-three-quarters"></i></span>
-                        <span class="device-status-ok" title="OK"><i class="fas fa-check"></i></span>
+                    <div class="device-card-actions">
+                        <span class="device-chip" title="Signal"><i class="fas fa-signal"></i></span>
+                        <span class="device-chip" title="Battery"><i class="fas fa-battery-three-quarters"></i></span>
+                        <span class="device-chip ok" title="OK"><i class="fas fa-check"></i></span>
                     </div>
                 </a>
-            </li>
+            </div>
             {% endfor %}
-        </ul>
+        </div>
         {% else %}
         <p>You have no devices registered to your account.</p>
         {% endif %}

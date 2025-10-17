@@ -114,6 +114,54 @@ body::before {
 .device-sub { font-size: 12px; color: #6b7280; }
 .device-row-stats { display: flex; align-items: center; gap: 10px; color: #0b5fa5; font-size: 14px; }
 
+/* New responsive device grid */
+.device-grid { 
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 16px;
+}
+.device-card { 
+    background: #e6ffed; /* light green */
+    border: 2px solid #34c759; /* iOS green */
+    border-radius: 14px;
+    box-shadow: 0 6px 14px rgba(52, 199, 89, 0.15);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.device-card:hover { 
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(52, 199, 89, 0.25);
+}
+.device-card-link { 
+    display: grid; 
+    grid-template-columns: auto 1fr auto; 
+    gap: 12px; 
+    align-items: center; 
+    padding: 16px; 
+    text-decoration: none; 
+    color: inherit; 
+}
+.device-card-icon { 
+    width: 42px; height: 42px; 
+    border-radius: 10px; 
+    background: #b7f7c8; 
+    color: #0a7a2a; 
+    display: flex; align-items: center; justify-content: center; 
+    font-size: 20px; 
+}
+.device-card-meta { display: flex; flex-direction: column; }
+.device-card-name { font-weight: 800; color: #065f46; }
+.device-card-sub { font-size: 12px; color: #065f46cc; }
+.device-card-actions { display: flex; gap: 8px; }
+.device-chip { 
+    display: inline-flex; align-items: center; justify-content: center; 
+    width: 34px; height: 28px; 
+    border-radius: 8px; 
+    background: #cbf7d9; 
+    color: #0a7a2a; 
+    border: 1px solid #9be6b3; 
+}
+.device-chip.ok { background: #d4edda; color: #155724; border-color: #c3e6cb; }
+
 /* ====================
    DASHBOARD PAGE
    ==================== */
@@ -764,6 +812,7 @@ body::before {
 }
 
 @media (min-width: 992px) {
+    .device-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
     .tank.underground { height: 300px; width: 180px; }
     .tank.overhead { height: 220px; width: 140px; }
     .pump { width: 80px; height: 80px; font-size: 2.5rem; }
