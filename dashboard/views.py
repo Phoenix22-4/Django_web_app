@@ -8,7 +8,8 @@ from .models import Device
 import os
 import json
 import google.generativeai as genai
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
+from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 
 # --- MODIFIED: This view now points to your new public homepage ---
@@ -44,6 +45,11 @@ class CustomLogoutView(View):
     def get(self, request, *args, **kwargs):
         logout(request)
         return redirect('login')
+
+# Service worker at /sw.js
+def service_worker(request):
+    content = render_to_string('sw.js')
+    return HttpResponse(content, content_type='application/javascript')
 
 # --- NEW: PUBLIC CHAT VIEW (for homepage) ---
 @csrf_exempt # We use the X-CSRFToken header
