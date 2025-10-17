@@ -243,5 +243,142 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Dynamic tank grid setup
+document.addEventListener('DOMContentLoaded', function() {
+    const tanksGrid = document.getElementById('tanks-grid');
+    const tankCards = tanksGrid.querySelectorAll('.tank-card');
+    const tankCount = tankCards.length;
+    
+    // Set data attribute for dynamic CSS
+    tanksGrid.setAttribute('data-tank-count', tankCount);
+    
+    // Initialize timeslot functionality
+    initializeTimeslots();
+});
+
+function initializeTimeslots() {
+    const timeslotToggles = document.querySelectorAll('.timeslot-toggle');
+    
+    timeslotToggles.forEach(toggle => {
+        toggle.addEventListener('click', function() {
+            const slot = this.getAttribute('data-slot');
+            const form = document.querySelector(`.timeslot-form[data-slot="${slot}"]`);
+            const isHidden = form.classList.contains('hidden');
+            
+            if (isHidden) {
+                // Show form
+                form.classList.remove('hidden');
+                this.textContent = '-';
+                this.style.background = '#dc3545';
+            } else {
+                // Hide form
+                form.classList.add('hidden');
+                this.textContent = '+';
+                this.style.background = '#007bff';
+            }
+        });
+    });
+    
+    // Handle timeslot actions
+    document.querySelectorAll('.save-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const slot = this.closest('.timeslot').getAttribute('data-slot');
+            saveTimeslotRule(slot);
+        });
+    });
+    
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const slot = this.closest('.timeslot').getAttribute('data-slot');
+            deleteTimeslotRule(slot);
+        });
+    });
+    
+    document.querySelectorAll('.activate-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const slot = this.closest('.timeslot').getAttribute('data-slot');
+            activateTimeslotRule(slot);
+        });
+    });
+}
+
+function saveTimeslotRule(slot) {
+    const form = document.querySelector(`.timeslot-form[data-slot="${slot}"]`);
+    const ruleName = form.querySelector('.rule-name').value;
+    const startTime = form.querySelector('.start-time').value;
+    const endTime = form.querySelector('.end-time').value;
+    const tankSelect = form.querySelector('.tank-select').value;
+    const minLevel = form.querySelector('.min-level').value;
+    const maxLevel = form.querySelector('.max-level').value;
+    
+    // Send to backend
+    fetch('/api/save_rule/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            slot: slot,
+            rule_name: ruleName,
+            start_time: startTime,
+            end_time: endTime,
+            tank: tankSelect,
+            min_level: minLevel,
+            max_level: maxLevel
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Rule saved successfully!');
+        } else {
+            alert('Error saving rule: ' + data.message);
+        }
+    });
+}
+
+function deleteTimeslotRule(slot) {
+    if (confirm('Are you sure you want to delete this rule?')) {
+        fetch('/api/delete_rule/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({ slot: slot })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Clear form
+                const form = document.querySelector(`.timeslot-form[data-slot="${slot}"]`);
+                form.querySelectorAll('input, select').forEach(input => input.value = '');
+                alert('Rule deleted successfully!');
+            }
+        });
+    }
+}
+
+function activateTimeslotRule(slot) {
+    // Deactivate all other timeslots first
+    document.querySelectorAll('.activate-btn').forEach(btn => {
+        btn.style.background = '#007bff';
+        btn.textContent = 'Activate';
+    });
+    
+    // Activate current slot
+    const currentBtn = document.querySelector(`.timeslot[data-slot="${slot}"] .activate-btn`);
+    currentBtn.style.background = '#28a745';
+    currentBtn.textContent = 'Active';
+    
+    alert(`Timeslot ${slot} activated!`);
+}
+</script>
 <script src="{% static 'dashboard.js' %}"></script>
+
+<!-- AquaSavvy AI Chat Widget -->
+<link rel="stylesheet" href="{% static 'aquasavvy-chat.css' %}">
+<script src="{% static 'aquasavvy-chat.js' %}"></script>
 {% endblock %}

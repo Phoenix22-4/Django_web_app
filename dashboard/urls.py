@@ -13,8 +13,7 @@ urlpatterns = [
     path('home/', views.home_view, name='public_home_alias'), # Alias for 'home'
 
     # --- NEW: API URLs FOR CHAT AND AUTOMATION ---
-    path('api/ai_chat/', views.gemini_chat_proxy, name='gemini_chat_proxy'),
-    path('api/ai_chat_public/', views.gemini_public_chat, name='gemini_public_chat'),
-    path('api/save_rule/', views.save_automation_rule, name='save_automation_rule'),
-    path('api/delete_rule/', views.delete_automation_rule, name='delete_automation_rule'),
+    path('api/ai_chat/', views.ai_chat_view, name='ai_chat'),
+    path('api/save_rule/', views.save_rule_view, name='save_rule'),
+    path('api/delete_rule/', views.delete_rule_view, name='delete_rule'),
 ]
