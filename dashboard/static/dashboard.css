@@ -154,6 +154,10 @@ body::before {
     flex-wrap: wrap;
 }
 
+/* Layout modifiers for odd/even tank counts */
+.tanks-row.even-layout { flex-direction: row; }
+.tanks-row.odd-layout { flex-direction: column; }
+
 .tank-wrapper { 
     display: flex; 
     flex-direction: column; 
@@ -218,6 +222,23 @@ body::before {
     margin: 10px 0;
 }
 
+/* New connectors for dynamic layouts */
+.pipe-connector-horizontal {
+    width: 80px;
+    height: 12px;
+    background: linear-gradient(90deg, #44a7fd 0%, #0b5fa5 100%);
+    margin: 0 10px;
+    border-radius: 6px;
+}
+
+.pipe-connector-vertical {
+    width: 8px;
+    height: 30px;
+    background: linear-gradient(180deg, #44a7fd 0%, #0b5fa5 100%);
+    margin-top: 6px;
+    border-radius: 4px;
+}
+
 /* Simple pipe for 2 tanks */
 .pipe-junction.simple-pipe .main-pipe {
     height: 12px;
@@ -226,6 +247,14 @@ body::before {
     max-width: 400px;
     border-radius: 6px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Multiple horizontal connectors container */
+.pipe-junction.multi-horizontal {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
 }
 
 /* Complex pipe for 3+ tanks */

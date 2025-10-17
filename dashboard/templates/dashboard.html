@@ -30,24 +30,33 @@
                 <div class="tanks-visualization" id="tanks-container">
                     <div class="tank-system-layout">
                         <!-- Dynamic Tanks Row -->
-                        <div class="tanks-row">
-                            {% if last_reading and last_reading.tank_data %}
+                        {% if last_reading and last_reading.tank_data %}
+                        {% with tank_count=last_reading.tank_data|length %}
+                        <div class="tanks-row {% if tank_count|divisibleby:2 %}even-layout{% else %}odd-layout{% endif %}">
                                 {% for tank in last_reading.tank_data %}
                                     <div class="tank-wrapper" data-tank-name="{{ tank.name }}">
                                         <div class="tank-title">{{ tank.name }}</div>
                                         <div class="tank {% if forloop.first %}underground{% elif forloop.counter == 2 %}overhead{% endif %}">
                                             <div class="tank-frame">
-                                                <div class="water-level" data-tank-level="{{ tank.name }}" style="height: {{ tank.level }}%;"></div>
+                                                <div class="water-level" data-tank-level="{{ tank.name }}"></div>
                                             </div>
                                             <div class="tank-info"><span data-tank-text="{{ tank.name }}">{{ tank.level }}%</span></div>
                                         </div>
-                                        <!-- Vertical Pipe from tank (only if multiple tanks) -->
-                                        {% if last_reading.tank_data|length > 1 %}
-                                            <div class="pipe-vertical"></div>
+                                        {% if tank_count > 1 %}
+                                            {% if tank_count|divisibleby:2 %}
+                                                <!-- Even count: connectors shown horizontally between adjacent tanks below -->
+                                            {% else %}
+                                                <!-- Odd count: vertical connector between stacked tanks -->
+                                                {% if not forloop.last %}
+                                                    <div class="pipe-connector-vertical"></div>
+                                                {% endif %}
+                                            {% endif %}
                                         {% endif %}
                                     </div>
                                 {% endfor %}
-                            {% else %}
+                        </div>
+                        {% endwith %}
+                        {% else %}
                                 <!-- Fallback for old format -->
                                 <div class="tank-wrapper" data-tank-name="Underground">
                                     <div class="tank-title">Underground Tank</div>
@@ -74,24 +83,27 @@
                         
                         <!-- Dynamic Pipe System (adapts to number of tanks) -->
                         {% if last_reading and last_reading.tank_data %}
-                            {% if last_reading.tank_data|length == 1 %}
-                                <!-- 1 tank: No pipes needed -->
-                            {% elif last_reading.tank_data|length == 2 %}
-                                <!-- 2 tanks: Simple horizontal pipe -->
-                                <div class="pipe-junction simple-pipe">
-                                    <div class="pipe-horizontal main-pipe"></div>
-                                </div>
-                            {% else %}
-                                <!-- 3+ tanks: T-junction with multiple connection points -->
-                                <div class="pipe-junction complex-pipe">
-                                    <div class="pipe-horizontal main-pipe"></div>
-                                    {% for tank in last_reading.tank_data %}
-                                        <div class="junction-point" style="left: {% widthratio forloop.counter last_reading.tank_data|length 100 %}%;">
-                                            <div class="junction-circle"></div>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
+                            {% with tank_count=last_reading.tank_data|length %}
+                                {% if tank_count == 1 %}
+                                    <!-- 1 tank: No pipes needed -->
+                                {% elif tank_count == 2 %}
+                                    <!-- 2 tanks: Simple horizontal pipe between tanks -->
+                                    <div class="pipe-junction simple-pipe">
+                                        <div class="pipe-horizontal main-pipe"></div>
+                                    </div>
+                                {% elif tank_count|divisibleby:2 %}
+                                    <!-- Even 3+: Horizontal connectors between adjacent tanks in same row -->
+                                    <div class="pipe-junction multi-horizontal">
+                                        {% for tank in last_reading.tank_data %}
+                                            {% if not forloop.last %}
+                                                <div class="pipe-connector-horizontal"></div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <!-- Odd 3+: Vertical chain connectors already placed between stacked tanks above -->
+                                {% endif %}
+                            {% endwith %}
                         {% else %}
                             <!-- Fallback: 2 tanks (Underground + Overhead) -->
                             <div class="pipe-junction simple-pipe">
