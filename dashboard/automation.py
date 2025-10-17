@@ -11,7 +11,7 @@ def get_active_rule(device: Device) -> AutomationRule | None:
     Check if any automation rule is currently active for this device.
     Returns the first active rule found, or None if no rules are active.
     """
-    active_rules = device.automation_rules.filter(enabled=True)
+    active_rules = device.rules.filter(enabled=True)
     for rule in active_rules:
         if rule.is_active_now():
             return rule
