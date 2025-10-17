@@ -17,11 +17,7 @@ class Profile(models.Model):
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        Profile.objects.create(user=instance)
-
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    instance.profile.save()
+        Profile.objects.get_or_create(user=instance)
 
 
 class Device(models.Model):
@@ -94,3 +90,14 @@ class DailyWaterUsage(models.Model):
 
     def __str__(self):
         return f"Usage for {self.device.device_id} on {self.date}"
+
+# Add a property to User model to safely access profile
+from django.contrib.auth.models import User
+
+def get_user_profile(self):
+    try:
+        return self.profile
+    except Profile.DoesNotExist:
+        return Profile.objects.create(user=self)
+
+User.add_to_class('get_profile', get_user_profile)
