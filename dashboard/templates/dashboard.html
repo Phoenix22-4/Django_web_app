@@ -3,261 +3,226 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AquaSavvy Solution • {{ device.name }}</title>
-    <meta name="device-id" id="device-id" content="{{ device.device_id }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <meta name="google-site-verification" content="gozFYv5nyWjXLad_h2RbQmBXExLGXbRUvxqDMgDW4Es" />
+    
+    <title>{% block title %}AquaSavvy Solution{% endblock %}</title>
     {% load static %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{% static 'dashboard.css' %}">
 </head>
 <body>
-    <div class="header">
-        <h1>AquaSavvy Solution: {{ device.name }}</h1>
-        <div class="user-info">
-            <a href="{% url 'device_list' %}" class="nav-button icon-btn" title="Back to Devices"><i class="fas fa-arrow-left"></i></a>
-            <a href="{% url 'public_home' %}" class="nav-button icon-btn" title="Documentation" rel="noopener"><i class="fas fa-book"></i></a>
-            <a href="{% url 'logout' %}" class="nav-button icon-btn danger" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
-            <button id="enable-push" class="nav-button" type="button"><i class="fas fa-bell"></i></button>
-            <span class="device-wifi" id="device-wifi-icon" title="Device Connectivity"><i class="fas fa-wifi"></i></span>
+    <form style="display:none;">{% csrf_token %}</form>
+
+    {% block content %}{% endblock %}
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
+    <script>
+      // Your Firebase config
+      const firebaseConfig = {
+        apiKey: "AIzaSyCuorzrk2791U7GwqK0EziVFUlWI0NUMKc",
+        authDomain: "aquasavvy-solution.firebaseapp.com",
+        projectId: "aquasavvy-solution",
+        storageBucket: "aquasavvy-solution.firebasestorage.app",
+        messagingSenderId: "106611964149",
+        appId: "1:106611964149:web:7beee215e4dedc406eedbc",
+        measurementId: "G-TYENWVXT5R"
+      };
+      if (window.firebase && !window.__firebaseInitialized) {
+        firebase.initializeApp(firebaseConfig);
+        window.__firebaseInitialized = true;
+      }
+    </script>
+    
+    <script src="{% static 'push_handler.js' %}"></script>
+    <script async src="{% static 'chat-widget.js' %}"></script>
+</body>
+</html>{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard for {{ device.name }}{% endblock %}
+
+{% block content %}
+<meta name="device-id" id="device-id" content="{{ device.device_id }}">
+
+<div class="header">
+    <h1 class="heading">AquaSavvy: {{ device.name }}</h1>
+    <div class="user-info">
+        <span>Welcome, {{ user.username }}!</span>
+        <a href="{% url 'device_list' %}" class="icon-nav-button" title="Back to Devices"><i class="fas fa-arrow-left"></i></a>
+        <a href="{% static 'docs/index.html' %}" class="icon-nav-button" title="Docs"><i class="fas fa-book"></i></a>
+        <a href="{% url 'logout' %}" class="logout-link icon-nav-button danger" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
+    </div>
+</div>
+
+<div class="dashboard-container">
+
+    {% if device.pump_present %}
+    <div class="dashboard-grid charts-row">
+        <div class="card chart-card">
+            <h2 class="card-title">Pump Runtime (Last 24h)</h2>
+            <div class="chart-container-pie">
+                <canvas id="pumpRuntimeChart"></canvas>
+            </div>
+        </div>
+        <div class="card chart-card">
+            <h2 class="card-title">Power Usage (Last 24h)</h2>
+            <div class="chart-container-bar">
+                <canvas id="powerUsageChart"></canvas>
+            </div>
         </div>
     </div>
-    
-    <div class="dashboard-container">
-        <div class="dashboard-grid">
-            <!-- TL: Tank Visualizations (DYNAMIC) -->
-            <section class="card" aria-label="Tank Visualizations">
-                <h2 class="card-title">Tank Levels</h2>
-                <div class="tanks-visualization" id="tanks-container">
-                    <div class="tank-system-layout">
-                        <!-- Dynamic Tanks Row -->
-                        {% if last_reading and last_reading.tank_data %}
-                        {% with tank_count=last_reading.tank_data|length %}
-                        <div class="tanks-row {% if tank_count|divisibleby:2 %}even-layout{% else %}odd-layout{% endif %}">
-                                {% for tank in last_reading.tank_data %}
-                                    <div class="tank-wrapper" data-tank-name="{{ tank.name }}">
-                                        <div class="tank-title">{{ tank.name }}</div>
-                                        <div class="tank {% if forloop.first %}underground{% elif forloop.counter == 2 %}overhead{% endif %}">
-                                            <div class="tank-frame">
-                                                <div class="water-level" data-tank-level="{{ tank.name }}"></div>
-                                            </div>
-                                            <div class="tank-info"><span data-tank-text="{{ tank.name }}">{{ tank.level }}%</span></div>
-                                        </div>
-                                        {% if tank_count > 1 %}
-                                            {% if tank_count|divisibleby:2 %}
-                                                <!-- Even count: connectors shown horizontally between adjacent tanks below -->
-                                            {% else %}
-                                                <!-- Odd count: vertical connector between stacked tanks -->
-                                                {% if not forloop.last %}
-                                                    <div class="pipe-connector-vertical"></div>
-                                                {% endif %}
-                                            {% endif %}
-                                        {% endif %}
-                                    </div>
-                                {% endfor %}
-                        </div>
-                        {% endwith %}
-                        {% else %}
-                                <!-- Fallback for old format -->
-                                <div class="tank-wrapper" data-tank-name="Underground">
-                                    <div class="tank-title">Underground Tank</div>
-                                    <div class="tank underground">
-                                        <div class="tank-frame">
-                                            <div class="water-level" id="underground-water" data-tank-level="Underground"></div>
-                                        </div>
-                                        <div class="tank-info"><span id="underground-level" data-tank-text="Underground">--%</span></div>
-                                    </div>
-                                    <div class="pipe-vertical"></div>
-                                </div>
-                                <div class="tank-wrapper" data-tank-name="Overhead">
-                                    <div class="tank-title">Overhead Tank</div>
-                                    <div class="tank overhead">
-                                        <div class="tank-frame">
-                                            <div class="water-level" id="overhead-water" data-tank-level="Overhead"></div>
-                                        </div>
-                                        <div class="tank-info"><span id="overhead-level" data-tank-text="Overhead">--%</span></div>
-                                    </div>
-                                    <div class="pipe-vertical"></div>
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <!-- Dynamic Pipe System (adapts to number of tanks) -->
-                        {% if last_reading and last_reading.tank_data %}
-                            {% with tank_count=last_reading.tank_data|length %}
-                                {% if tank_count == 1 %}
-                                    <!-- 1 tank: No pipes needed -->
-                                {% elif tank_count == 2 %}
-                                    <!-- 2 tanks: Simple horizontal pipe between tanks -->
-                                    <div class="pipe-junction simple-pipe">
-                                        <div class="pipe-horizontal main-pipe"></div>
-                                    </div>
-                                {% elif tank_count|divisibleby:2 %}
-                                    <!-- Even 3+: Horizontal connectors between adjacent tanks in same row -->
-                                    <div class="pipe-junction multi-horizontal">
-                                        {% for tank in last_reading.tank_data %}
-                                            {% if not forloop.last %}
-                                                <div class="pipe-connector-horizontal"></div>
-                                            {% endif %}
-                                        {% endfor %}
-                                    </div>
-                                {% else %}
-                                    <!-- Odd 3+: Vertical chain connectors already placed between stacked tanks above -->
-                                {% endif %}
-                            {% endwith %}
-                        {% else %}
-                            <!-- Fallback: 2 tanks (Underground + Overhead) -->
-                            <div class="pipe-junction simple-pipe">
-                                <div class="pipe-horizontal main-pipe"></div>
-                            </div>
-                        {% endif %}
-                        
-                        <!-- Pump with Connections -->
-                        <div class="pump-section">
-                            <div class="pipe-to-pump"></div>
-                            <div class="pump-container">
-                                <div class="pump" id="pump-motor" aria-label="Pump Motor">
-                                    <i class="fas fa-water"></i>
-                                </div>
-                                <div class="led-light led-off" id="pump-led" aria-label="Pump LED Indicator"></div>
-                            </div>
-                            <div class="pipe-from-pump"></div>
-                        </div>
+    {% endif %}
+
+    <div class="card">
+        <div class="tanks-container">
+            {% for tank in last_reading.tank_data %}
+            <div class="tank-wrapper">
+                <div class="tank-title">{{ tank.name }}</div>
+                <div class="tank {% if 'underground' in tank.name|lower %}underground{% else %}overhead{% endif %}">
+                    <div class="tank-frame">
+                        <div class="water-level" id="tank-level-{{ tank.name|slugify }}" style="height: {{ tank.level }}%;"></div>
                     </div>
+                    <div class="tank-info"><span id="tank-percent-{{ tank.name|slugify }}">{{ tank.level }}%</span></div>
                 </div>
-            </section>
+            </div>
+            {% empty %}
+            <p>Waiting for device data... no tanks found.</p>
+            {% endfor %}
+        </div>
+    </div>
 
-            <!-- TR: Pump Control & Status -->
-            <section class="card" aria-label="Pump Controls and Status">
-                <h2 class="card-title">Pump Control</h2>
-                <div class="pump-buttons">
-                    <button id="pump-on" class="control-button on"><i class="fas fa-power-off"></i> ON</button>
-                    <button id="pump-off" class="control-button off"><i class="fas fa-power-off"></i> OFF</button>
-                </div>
-                <div class="pump-status">
-                    <p><strong>Pump Status:</strong> <span id="pump-status-bool">--</span></p>
-                    <p><strong>Mode:</strong> <span id="pump-mode-text">--</span></p>
-                    <p><strong>Current:</strong> <span id="pump-current-text">-- A</span></p>
-                </div>
-            </section>
-
-            <!-- NEW: Automation Timeslots (4 Slots with Rectangle Boxes) -->
-            <section class="card" aria-label="Automation Timeslots">
-                <h2 class="card-title">⏰ Automation Timeslots</h2>
-                <div class="timeslots-grid">
-                    {% for i in "1234" %}
-                        {% with rules=device.automation_rules.all %}
-                        {% with rule=rules|slice:forloop.counter0|first %}
-                        {% if rule and forloop.counter0 < rules|length %}
-                            <!-- Filled Slot -->
-                            <div class="timeslot-box filled" data-slot="{{ forloop.counter }}">
-                                <div class="slot-header">
-                                    <span class="slot-number">Slot {{ forloop.counter }}</span>
-                                    {% if rule.enabled %}
-                                        <span class="slot-badge active">Active</span>
-                                    {% else %}
-                                        <span class="slot-badge">Disabled</span>
-                                    {% endif %}
-                                </div>
-                                <div class="slot-name">{{ rule.name }}</div>
-                                <div class="slot-time">
-                                    <i class="fas fa-clock"></i> {{ rule.start_time|time:"H:i" }} - {{ rule.end_time|time:"H:i" }}
-                                </div>
-                                <div class="slot-levels">
-                                    <span><i class="fas fa-arrow-up"></i> ON: {{ rule.min_level }}%</span>
-                                    <span><i class="fas fa-arrow-down"></i> OFF: {{ rule.max_level }}%</span>
-                                </div>
-                                <div class="slot-actions">
-                                    <button class="slot-btn edit-btn" onclick="editRule({{ rule.id }})" title="Edit">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="slot-btn delete-btn" onclick="deleteRule({{ rule.id }})" title="Delete">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        {% else %}
-                            <!-- Empty Slot with Plus Button -->
-                            <div class="timeslot-box empty" data-slot="{{ forloop.counter }}">
-                                <div class="slot-empty-content">
-                                    <button class="add-slot-btn" onclick="addNewRule({{ forloop.counter }})" title="Add Automation Rule">
-                                        <i class="fas fa-plus"></i>
-                                    </button>
-                                    <span class="slot-label">Slot {{ forloop.counter }}</span>
-                                    <span class="slot-hint">Click + to create</span>
-                                </div>
-                            </div>
-                        {% endif %}
-                        {% endwith %}
-                        {% endwith %}
-                    {% endfor %}
-                </div>
-            </section>
-
-            <!-- BL: Status Messages -->
-            <section class="card" aria-label="Status Messages">
-                <h2 class="card-title">Status Messages</h2>
-                <div class="status-box">
-                    <p id="automation-status" style="background: #e9f7ff; padding: 8px; border-radius: 6px; margin-bottom: 8px;">
-                        <strong>Mode:</strong> {{ automation_status }}
-                    </p>
+    <div class="status-grid-container">
+        <div class="status-grid">
+            
+            <div class="status-grid-item">
+                <h3 class="status-grid-title">Status Messages</h3>
+                <div id="status-messages-box">
                     <p id="overhead-status-msg">Overhead: --%</p>
                     <p id="underground-status-msg">Underground: --%</p>
                 </div>
-            </section>
-
-            <!-- BR: Connection Status -->
-            <section class="card" aria-label="Connection Status">
-                <h2 class="card-title">Connection Status</h2>
-                <div class="status-row">
-                    <div class="status-indicator">
-                        <span>WebSocket:</span>
-                        <span id="websocket-status">Connecting...</span>
-                        <div id="websocket-light" class="status-light offline"></div>
-                    </div>
-                    <div class="status-indicator">
-                        <span>Device:</span>
-                        <span id="device-status">Offline</span>
-                        <div id="device-light" class="status-light offline"></div>
+            </div>
+            
+            <div class="status-grid-item">
+                <h3 class="status-grid-title">Automation</h3>
+                <div class="status-box">
+                    Status: <span id="auto-mode-status">--</span>
+                </div>
+                <ul class="automation-rules-list">
+                    {% for rule in automation_rules %}
+                        <li class="rule-item" data-rule-id="{{ rule.id }}">
+                            <div class="rule-info">
+                                <span class="slot-name">{{ rule.name }}</span>
+                                <span class="rule-time"><i class="fas fa-clock"></i> {{ rule.start_time }} - {{ rule.end_time }}</span>
+                                <span class="rule-levels">
+                                    <span><i class="fas fa-arrow-down" style="color:red;"></i> {{ rule.min_level }}%</span>
+                                    <span><i class="fas fa-arrow-up" style="color:green;"></i> {{ rule.max_level }}%</span>
+                                </span>
+                            </div>
+                            <div class="rule-actions">
+                                <button class="rule-btn edit-btn"><i class="fas fa-pencil-alt"></i></button>
+                                <button class="rule-btn delete-btn"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </li>
+                    {% endfor %}
+                    {% if automation_rules.count < 4 %}
+                    <li class="timeslot-box empty">
+                        <div class="slot-empty-content">
+                            <button class="add-slot-btn" id="add-rule-btn">+</button>
+                            <span class="slot-label">Add Rule</span>
+                        </div>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+            
+            {% if device.pump_present %}
+            <div class="status-grid-item">
+                <h3 class="status-grid-title">Pump Control</h3>
+                <div class="pump-icon-container">
+                    <p>Pump</p>
+                    <div class="pump" id="pump-motor">
+                        <i class="fas fa-water"></i>
+                        <div id="pump-led" class="led-light led-off"></div>
                     </div>
                 </div>
-            </section>
-
-            <!-- NEW: Analytics Charts -->
-            <section class="card chart-card" aria-label="Pump Runtime (24h)">
-                <h2 class="card-title">Pump Runtime (24h)</h2>
-                <canvas id="pumpRuntimeChart"></canvas>
-            </section>
-
-            <section class="card chart-card" aria-label="Power Usage (24h)">
-                <h2 class="card-title">Power Usage (24h)</h2>
-                <canvas id="powerUsageChart"></canvas>
-            </section>
-        </div>
-    </div>
-
-    <footer class="site-footer">
-        <p>Vision Technology — AquaSavvy Solution | Email: contact:vision072025@gmail.com | WhatsApp: +254 702 715070</p>
-    </footer>
-
-    <!-- Chat Widget -->
-    <button id="chat-launcher" class="chat-launcher" aria-label="Open AquaSavvy Assistant"><i class="fas fa-comments"></i></button>
-    <div class="chat-label">AquaSavvy Chat</div>
-    <div id="chat-panel" class="chat-panel" aria-live="polite" aria-label="AquaSavvy Assistant">
-        <div class="chat-header">
-            <span>AquaSavvy Assistant</span>
-            <div>
-                <button id="chat-min" class="chat-min" aria-label="Minimize chat">–</button>
-                <button id="chat-close" class="chat-close" aria-label="Close chat">×</button>
+                <div class="pump-buttons">
+                    <button id="pump-on" class="control-button on">ON</button>
+                    <button id="pump-off" class="control-button off">OFF</button>
+                </div>
+                <div class="pump-status">
+                    <p>Status: <span id="pump-status-text">--</span></p>
+                    <p>Current: <span id="pump-current-text">-- A</span></p>
+                </div>
             </div>
+            {% else %}
+            <div class="status-grid-item">
+                <h3 class="status-grid-title">Pump Control</h3>
+                <p>No pump registered for this device.</p>
+            </div>
+            {% endif %}
+            
+            <div class="status-grid-item">
+                <h3 class="status-grid-title">Connection</h3>
+                <div class="status-indicator">
+                    <span>WebSocket:</span>
+                    <span id="websocket-status">Connecting...</span>
+                    <div id="websocket-light" class="status-light offline"></div>
+                </div>
+                <div class="status-indicator">
+                    <span>Device:</span>
+                    <span id="device-status">Offline</span>
+                    <div id="device-light" class="status-light offline"></div>
+                </div>
+            </div>
+
         </div>
-        <div id="chat-messages" class="chat-messages"></div>
-        <form id="chat-form" class="chat-form">
-            <input type="text" id="chat-input" class="chat-input" placeholder="Ask about your tanks, pump, or system..." required />
-            <button type="submit" class="chat-send" aria-label="Send message"><i class="fas fa-paper-plane"></i></button>
-        </form>
-        <div class="chat-footnote">If a technical issue occurs, contact: contact:vision072025@gmail.com · WhatsApp: +254 702 715070</div>
     </div>
 
-    <script src="{% static 'dashboard.js' %}"></script>
-</body>
-</html>
+</div>
+
+<div id="rule-modal" class="modal-backdrop hidden">
+    <div class="modal-content">
+        <h2 id="modal-title">Create New Automation Rule</h2>
+        <form id="rule-form">
+            <input type="hidden" id="rule-id">
+            <div>
+                <label for="rule-name">Rule Name:</label>
+                <input type="text" id="rule-name" placeholder="e.g., Night Refill">
+            </div>
+            <div>
+                <label for="rule-start-time">Start Time:</label>
+                <input type="time" id="rule-start-time">
+            </div>
+            <div>
+                <label for="rule-end-time">End Time:</label>
+                <input type="time" id="rule-end-time">
+            </div>
+            <div>
+                <label for="rule-monitor-tank">Tank to Monitor:</label>
+                <select id="rule-monitor-tank">
+                    </select>
+            </div>
+            <div>
+                <label for="rule-min-level">Turn ON Below (%):</label>
+                <input type="number" id="rule-min-level" min="0" max="100">
+            </div>
+            <div>
+                <label for="rule-max-level">Turn OFF Above (%):</label>
+                <input type="number" id="rule-max-level" min="0" max="100">
+            </div>
+            <div class="modal-actions">
+                <button type="button" id="modal-cancel" class="control-button off">Cancel</button>
+                <button type="submit" id="modal-save" class="control-button on">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<footer class="site-footer">
+    <p>AquaSavvy Solutions | email: contact:vision072025@gmail.com | WhatsApp: +254 702 715070</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'dashboard.js' %}"></script>
+{% endblock %}

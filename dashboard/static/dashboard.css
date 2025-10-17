@@ -1449,3 +1449,177 @@ body::before {
         min-height: 160px;
     }
 }
+/* ==================================
+   NEW STYLES TO ADD TO dashboard.css
+   ================================== */
+
+/* --- Icon Nav Buttons --- */
+.icon-nav-button {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 40px;
+    height: 40px;
+    background: #ffffff;
+    color: #007bff;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    text-decoration: none;
+    font-size: 16px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+    margin-left: 10px;
+}
+.icon-nav-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    color: #0056b3;
+}
+.icon-nav-button.danger {
+    color: #dc3545;
+}
+.icon-nav-button.danger:hover {
+    background: #dc3545;
+    color: #fff;
+}
+
+/* --- New Dashboard Layout --- */
+.charts-row {
+    background-color: rgba(220, 220, 220, 0.7); /* Greyish background */
+    border-radius: 12px;
+    padding: 16px;
+}
+.tanks-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 30px;
+}
+.status-grid-container {
+    background-color: rgba(212, 237, 218, 0.8); /* Greenish background */
+    border-radius: 12px;
+    padding: 16px;
+}
+.status-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 16px;
+}
+.status-grid-item {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.status-grid-title {
+    margin: 0 0 10px 0;
+    color: #0056b3;
+    font-weight: bold;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 8px;
+}
+.pump-icon-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+.pump-icon-container p {
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+}
+#pump-led {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 16px;
+    height: 16px;
+}
+.chart-container-pie, .chart-container-bar {
+    position: relative;
+    height: 250px;
+    width: 100%;
+}
+
+/* --- Automation Timeslot UI --- */
+.automation-rules-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+    max-height: 200px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+.rule-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: #f8f9fa;
+    border: 1px solid #e3eef7;
+    border-radius: 8px;
+}
+.rule-info { display: flex; flex-direction: column; gap: 4px; }
+.slot-name { font-size: 1.05rem; font-weight: 700; color: #007bff; }
+.rule-time { font-size: 0.85rem; color: #495057; }
+.rule-levels { font-size: 0.85rem; color: #666; }
+.rule-actions { display: flex; gap: 8px; }
+.rule-btn {
+    padding: 6px 10px; border: none; border-radius: 6px;
+    cursor: pointer; font-size: 0.9rem;
+}
+.edit-btn { background: #007bff; color: white; }
+.delete-btn { background: #dc3545; color: white; }
+.timeslot-box.empty {
+    border: 2px dashed #ccc; background: #fafbfc; cursor: pointer;
+    padding: 20px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+}
+.timeslot-box.empty:hover { border-color: #007bff; background: #f0f8ff; }
+.add-slot-btn {
+    border: none; background: none; color: #999;
+    font-size: 2rem; cursor: pointer;
+}
+.slot-label { font-size: 0.95rem; font-weight: 600; color: #999; }
+
+/* --- Automation Modal --- */
+.modal-backdrop {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.modal-backdrop.hidden {
+    display: none;
+}
+.modal-content {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+}
+.modal-content h2 { margin-top: 0; }
+#rule-form { display: flex; flex-direction: column; gap: 15px; }
+#rule-form div { display: flex; flex-direction: column; }
+#rule-form label { font-weight: bold; margin-bottom: 5px; }
+#rule-form input, #rule-form select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 15px;
+}

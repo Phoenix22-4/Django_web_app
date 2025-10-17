@@ -7,41 +7,21 @@
     
     <title>{% block title %}AquaSavvy Solution{% endblock %}</title>
     {% load static %}
-    <link rel="stylesheet" href="{% static 'dashboard.css' %}">
+    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'dashboard.css' %}">
 </head>
 <body>
+    <!-- This hidden form makes the CSRF token available to all JS scripts -->
+    <form style="display:none;">{% csrf_token %}</form>
+
     {% block content %}{% endblock %}
-
-    <!-- FLOATING AI CHAT WIDGET (Like Amazon/Redmi) -->
-    <button id="ai-chat-icon" class="chat-icon" aria-label="Open AquaSavvy AI Assistant">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
-    </button>
-
-    <div id="ai-chat-panel" class="chat-panel">
-        <div class="chat-panel-header">
-            <h3>AquaSavvy AI Assistant</h3>
-            <button id="ai-chat-close" class="chat-close-btn" aria-label="Close chat">×</button>
-        </div>
-        <div id="ai-chat-messages" class="chat-panel-body">
-            <div class="chat-message ai-message">
-                Hello! 👋 I'm your AquaSavvy AI Assistant. How can I help you understand your water system today?
-            </div>
-        </div>
-        <div class="chat-panel-footer">
-            {% csrf_token %}
-            <input type="text" id="ai-chat-input" placeholder="Ask a question..." autocomplete="off" />
-            <button id="ai-chat-send" aria-label="Send message">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z"/></svg>
-            </button>
-        </div>
-    </div>
 
     <!-- Firebase SDK for Push Notifications -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
     <script>
-      // Firebase config
+      // Your Firebase config
       const firebaseConfig = {
         apiKey: "AIzaSyCuorzrk2791U7GwqK0EziVFUlWI0NUMKc",
         authDomain: "aquasavvy-solution.firebaseapp.com",
@@ -56,7 +36,10 @@
         window.__firebaseInitialized = true;
       }
     </script>
+    
+    <!-- Load our custom scripts -->
     <script src="{% static 'push_handler.js' %}"></script>
-    <script src="{% static 'chat.js' %}"></script>
+    <!-- This is the NEW chat widget script -->
+    <script async src="{% static 'chat-widget.js' %}"></script>
 </body>
 </html>

@@ -2,48 +2,58 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log("DOM fully loaded and parsed");
 
+    // --- 1. Get Elements ---
     const deviceIdElement = document.getElementById('device-id');
     if (!deviceIdElement) {
         console.error("ERROR: Device ID meta tag not found!");
         return;
     }
     const deviceId = deviceIdElement.getAttribute('content');
-    console.log(`Device ID: ${deviceId}`);
-
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    // --- Sockets ---
     const socketProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const socketURL = `${socketProtocol}//${window.location.host}/ws/dashboard/${deviceId}/`;
     console.log(`Connecting to WebSocket: ${socketURL}`);
     const socket = new WebSocket(socketURL);
 
+    // --- Element Selectors ---
     const elements = {
         websocketStatus: document.getElementById('websocket-status'),
         websocketLight: document.getElementById('websocket-light'),
         deviceStatus: document.getElementById('device-status'),
         deviceLight: document.getElementById('device-light'),
-        overheadWater: document.getElementById('overhead-water'),
-        overheadLevelText: document.getElementById('overhead-level'),
-        undergroundWater: document.getElementById('underground-water'),
-        undergroundLevelText: document.getElementById('underground-level'),
         pumpStatusText: document.getElementById('pump-status-text'),
         pumpCurrentText: document.getElementById('pump-current-text'),
         pumpMotor: document.getElementById('pump-motor'),
+        pumpLed: document.getElementById('pump-led'),
         pumpOnBtn: document.getElementById('pump-on'),
         pumpOffBtn: document.getElementById('pump-off'),
-        overheadStatusMsg: document.getElementById('overhead-status-msg'),
-        undergroundStatusMsg: document.getElementById('underground-status-msg'),
-        chatLauncher: document.getElementById('chat-launcher'),
-        chatPanel: document.getElementById('chat-panel'),
-        chatClose: document.getElementById('chat-close'),
-        chatMin: document.getElementById('chat-min'),
-        chatMessages: document.getElementById('chat-messages'),
-        chatForm: document.getElementById('chat-form'),
-        chatInput: document.getElementById('chat-input')
+        autoModeStatus: document.getElementById('auto-mode-status'),
+        statusMessageBox: document.getElementById('status-messages-box'),
+        tanksContainer: document.querySelector('.tanks-container'),
+        // Automation Modal
+        modal: document.getElementById('rule-modal'),
+        modalTitle: document.getElementById('modal-title'),
+        modalForm: document.getElementById('rule-form'),
+        modalCancel: document.getElementById('modal-cancel'),
+        addRuleBtn: document.getElementById('add-rule-btn'),
+        rulesList: document.getElementById('automation-rules-list'),
+        // Modal Form Fields
+        ruleId: document.getElementById('rule-id'),
+        ruleName: document.getElementById('rule-name'),
+        ruleStartTime: document.getElementById('rule-start-time'),
+        ruleEndTime: document.getElementById('rule-end-time'),
+        ruleMonitorTank: document.getElementById('rule-monitor-tank'),
+        ruleMinLevel: document.getElementById('rule-min-level'),
+        ruleMaxLevel: document.getElementById('rule-max-level')
     };
+    
+    // --- Chart Context ---
+    let pumpChart = null;
+    let powerChart = null;
 
-    Object.entries(elements).forEach(([key, element]) => {
-        if (!element) console.error(`Missing element: ${key}`);
-    });
-
+    // --- 2. WebSocket Handlers ---
     socket.onopen = function(e) {
         console.log("WebSocket connection established");
         updateConnectionStatus('websocket', 'Online', 'online');
@@ -57,75 +67,32 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log("Parsed data:", data);
 
             updateConnectionStatus('device', 'Online', 'online');
-            updateDeviceWifiIcon('online');
 
-            // NEW: Dynamic Tank Updates
-            if (data.tank_data && Array.isArray(data.tank_data)) {
-                data.tank_data.forEach(tank => {
-                    const tankName = tank.name;
-                    const tankLevel = tank.level;
-                    
-                    // Find water level element
-                    const waterEl = document.querySelector(`[data-tank-level="${tankName}"]`);
-                    const textEl = document.querySelector(`[data-tank-text="${tankName}"]`);
-                    
-                    if (waterEl) waterEl.style.height = `${tankLevel}%`;
-                    if (textEl) textEl.textContent = `${tankLevel}%`;
-                });
-            } else {
-                // Fallback for old format
-                safeStyleUpdate(elements.overheadWater, 'height', `${data.overhead_level}%`);
-                safeUpdate(elements.overheadLevelText, `${data.overhead_level}%`);
-                safeStyleUpdate(elements.undergroundWater, 'height', `${data.underground_level}%`);
-                safeUpdate(elements.undergroundLevelText, `${data.underground_level}%`);
+            // --- 1. DYNAMIC TANK UPDATE ---
+            if (data.tanks && Array.isArray(data.tanks)) {
+                updateDynamicTanks(data.tanks);
             }
 
-            const pumpIsOn = data.pump_status;
-            
-            // Update pump status elements
-            const pumpStatusBool = document.getElementById('pump-status-bool');
-            if (pumpStatusBool) pumpStatusBool.textContent = pumpIsOn ? "ON (True)" : "OFF (False)";
-            
-            const pumpModeText = document.getElementById('pump-mode-text');
-            if (pumpModeText) pumpModeText.textContent = data.pump_mode || 'AUTO';
-            
-            safeUpdate(elements.pumpStatusText, pumpIsOn ? "ON" : "OFF");
-            
-            // Pump animation
-            safeClassToggle(elements.pumpMotor, 'active', pumpIsOn);
-            safeClassToggle(elements.pumpMotor, 'online', pumpIsOn);
-            safeClassToggle(elements.pumpMotor, 'offline', !pumpIsOn);
-
-            // Toggle pump LED indicator
-            const pumpLedEl = document.getElementById('pump-led');
-            if (pumpLedEl) {
-                if (pumpIsOn === true) {
-                    pumpLedEl.classList.add('led-on');
-                    pumpLedEl.classList.remove('led-off');
-                } else {
-                    pumpLedEl.classList.add('led-off');
-                    pumpLedEl.classList.remove('led-on');
-                }
+            // --- 2. PUMP STATUS (if pump exists) ---
+            if (elements.pumpMotor) {
+                const pumpIsOn = data.pump_status;
+                safeUpdate(elements.pumpStatusText, pumpIsOn ? "ON" : "OFF");
+                safeClassToggle(elements.pumpMotor, 'active', pumpIsOn);
+                safeClassToggle(elements.pumpMotor, 'online', pumpIsOn);
+                safeClassToggle(elements.pumpMotor, 'offline', !pumpIsOn);
+                safeClassToggle(elements.pumpLed, 'led-on', pumpIsOn);
+                safeClassToggle(elements.pumpLed, 'led-off', !pumpIsOn);
+                safeUpdate(elements.pumpCurrentText, `${data.pump_current_amps?.toFixed(1) || '0.0'} A`);
             }
 
-            safeUpdate(elements.pumpCurrentText, `${data.pump_current_amps?.toFixed(1) || data.pump_current?.toFixed(1) || '0.0'} A`);
-            
-            // Update status messages (use first two tanks or legacy)
-            const overhead = data.overhead_level || (data.tank_data && data.tank_data[0]?.level) || 0;
-            const underground = data.underground_level || (data.tank_data && data.tank_data[1]?.level) || 0;
-            updateStatusMessages(overhead, underground);
-            
-            // Update automation status
-            const automationStatusEl = document.getElementById('automation-status');
-            if (automationStatusEl && data.automation_status) {
-                automationStatusEl.innerHTML = `<strong>Mode:</strong> ${data.automation_status}`;
-                
-                // Add rule details if active
-                if (data.active_rule && data.active_rule.name) {
-                    const ruleDetails = ` (On: ${data.active_rule.min_level}%, Off: ${data.active_rule.max_level}%)`;
-                    automationStatusEl.innerHTML += ruleDetails;
-                }
-            }
+            // --- 3. AUTOMATION & STATUS MESSAGES ---
+            safeUpdate(elements.autoModeStatus, data.automation_mode || 'System Auto-Mode');
+            updateStatusMessages(data.tanks);
+
+            // --- 4. UPDATE CHARTS (with dummy data for now) ---
+            // In a real app, this data would come from a separate API call or be part of the payload
+            updatePumpChart([80, 20]); // 80% off, 20% on
+            updatePowerChart([0,0,0,0,0, 0.5, 0.5, 0.4, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0.1,0.1,0]);
 
         } catch (error) {
             console.error("Error processing message:", error);
@@ -144,199 +111,266 @@ document.addEventListener('DOMContentLoaded', function() {
         updateConnectionStatus('websocket', 'Error', 'error');
     };
 
-    function safeUpdate(element, value) {
-        if (element) element.textContent = value;
-    }
-
-    function safeStyleUpdate(element, style, value) {
-        if (element) element.style[style] = value;
-    }
-
-    function safeClassUpdate(element, className) {
-        if (element) element.className = className;
-    }
-
-    function safeClassToggle(element, className, state) {
-        if (element) element.classList.toggle(className, state);
-    }
-
-    function updateConnectionStatus(type, text, state) {
-        const statusElement = type === 'websocket' ? elements.websocketStatus : elements.deviceStatus;
-        const lightElement = type === 'websocket' ? elements.websocketLight : elements.deviceLight;
+    // --- 3. DYNAMIC TANK UI FUNCTION ---
+    function updateDynamicTanks(tanks) {
+        if (!elements.tanksContainer) return;
         
-        safeUpdate(statusElement, text);
-        safeClassUpdate(lightElement, `status-light ${state}`);
-    }
+        // Keep track of which tanks we've seen
+        let seenTankSlugs = [];
 
-    function updateDeviceWifiIcon(state) {
-        const wifiIcon = document.getElementById('device-wifi-icon');
-        if (wifiIcon) {
-            wifiIcon.className = 'device-wifi ' + state;
-        }
-    }
-
-    function updateStatusMessages(overhead, underground) {
-        if (elements.overheadStatusMsg) {
-            if (overhead >= 95) {
-                elements.overheadStatusMsg.textContent = "Overhead Tank: FULL";
-                elements.overheadStatusMsg.style.color = "blue";
-            } else {
-                elements.overheadStatusMsg.textContent = `Overhead Tank: ${overhead}%`;
-                elements.overheadStatusMsg.style.color = "";
+        tanks.forEach(tank => {
+            const tankSlug = slugify(tank.name);
+            seenTankSlugs.push(tankSlug);
+            
+            let tankWrapper = document.getElementById(`tank-wrapper-${tankSlug}`);
+            
+            // If tank HTML doesn't exist, create it
+            if (!tankWrapper) {
+                tankWrapper = document.createElement('div');
+                tankWrapper.className = 'tank-wrapper';
+                tankWrapper.id = `tank-wrapper-${tankSlug}`;
+                
+                const tankTypeClass = tank.name.toLowerCase().includes('underground') ? 'underground' : 'overhead';
+                
+                tankWrapper.innerHTML = `
+                    <div class="tank-title">${tank.name}</div>
+                    <div class="tank ${tankTypeClass}">
+                        <div class="tank-frame">
+                            <div class="water-level" id="tank-level-${tankSlug}"></div>
+                        </div>
+                        <div class="tank-info"><span id="tank-percent-${tankSlug}">--%</span></div>
+                    </div>
+                `;
+                elements.tanksContainer.appendChild(tankWrapper);
             }
-        }
+            
+            // Update the levels
+            const levelElement = document.getElementById(`tank-level-${tankSlug}`);
+            const percentElement = document.getElementById(`tank-percent-${tankSlug}`);
+            
+            safeStyleUpdate(levelElement, 'height', `${tank.level}%`);
+            safeUpdate(percentElement, `${tank.level}%`);
+        });
 
-        if (elements.undergroundStatusMsg) {
-            if (underground < 10) {
-                elements.undergroundStatusMsg.textContent = "Underground: CRITICAL!";
-                elements.undergroundStatusMsg.style.color = "red";
-            } else if (underground < 25) {
-                elements.undergroundStatusMsg.textContent = "Underground: Low";
-                elements.undergroundStatusMsg.style.color = "orange";
-            } else {
-                elements.undergroundStatusMsg.textContent = `Underground Tank: ${underground}%`;
-                elements.undergroundStatusMsg.style.color = "";
+        // Remove any old tanks that are no longer in the data
+        elements.tanksContainer.querySelectorAll('.tank-wrapper').forEach(wrapper => {
+            const slug = wrapper.id.replace('tank-wrapper-', '');
+            if (!seenTankSlugs.includes(slug)) {
+                wrapper.remove();
             }
+        });
+
+        // Populate tank dropdown in modal
+        if (elements.ruleMonitorTank) {
+            elements.ruleMonitorTank.innerHTML = ''; // Clear old options
+            tanks.forEach(tank => {
+                elements.ruleMonitorTank.innerHTML += `<option value="${tank.name}">${tank.name}</option>`;
+            });
         }
     }
 
+    function updateStatusMessages(tanks) {
+        if (!elements.statusMessageBox) return;
+        elements.statusMessageBox.innerHTML = ''; // Clear old messages
+
+        tanks.forEach(tank => {
+            let p = document.createElement('p');
+            p.id = `status-msg-${slugify(tank.name)}`;
+            
+            if (tank.level < 10) {
+                p.textContent = `${tank.name}: CRITICAL!`;
+                p.style.color = "red";
+            } else if (tank.level < 25) {
+                p.textContent = `${tank.name}: Low`;
+                p.style.color = "orange";
+            } else if (tank.level > 95) {
+                p.textContent = `${tank.name}: FULL`;
+                p.style.color = "blue";
+            } else {
+                p.textContent = `${tank.name}: ${tank.level}%`;
+                p.style.color = "";
+            }
+            elements.statusMessageBox.appendChild(p);
+        });
+    }
+
+    // --- 4. PUMP CONTROL LISTENERS ---
     if (elements.pumpOnBtn) {
         elements.pumpOnBtn.addEventListener('click', () => {
             socket.send(JSON.stringify({command: 'PUMP_ON'}));
-            console.log("PUMP_ON command sent");
         });
     }
-
     if (elements.pumpOffBtn) {
         elements.pumpOffBtn.addEventListener('click', () => {
             socket.send(JSON.stringify({command: 'PUMP_OFF'}));
-            console.log("PUMP_OFF command sent");
         });
     }
 
-    // ==================== CHART.JS ANALYTICS ====================
-    // Initialize Pump Runtime Chart (Pie)
-    const pumpRuntimeCtx = document.getElementById('pumpRuntimeChart');
-    if (pumpRuntimeCtx && typeof Chart !== 'undefined') {
-        new Chart(pumpRuntimeCtx, {
-            type: 'pie',
-            data: {
-                labels: ['Pump ON', 'Pump OFF'],
-                datasets: [{
-                    data: [0, 100], // Will be updated with real data
-                    backgroundColor: ['#4CAF50', '#F44336']
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'bottom' },
-                    title: { display: false }
-                }
-            }
-        });
-    }
-
-    // Initialize Power Usage Chart (Bar)
-    const powerUsageCtx = document.getElementById('powerUsageChart');
-    if (powerUsageCtx && typeof Chart !== 'undefined') {
-        new Chart(powerUsageCtx, {
-            type: 'bar',
-            data: {
-                labels: Array.from({length: 24}, (_, i) => `${i}:00`),
-                datasets: [{
-                    label: 'Current (A)',
-                    data: Array(24).fill(0), // Will be updated with real data
-                    backgroundColor: '#2196F3'
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: { beginAtZero: true, title: { display: true, text: 'Amps' } },
-                    x: { title: { display: true, text: 'Hour' } }
-                },
-                plugins: {
-                    legend: { display: false }
-                }
-            }
-        });
-    }
-
-    // ==================== CHAT WIDGET LOGIC ====================
-    if (elements.chatLauncher && elements.chatPanel && elements.chatClose) {
-        elements.chatLauncher.addEventListener('click', () => {
-            elements.chatPanel.style.display = 'flex';
-        });
-        elements.chatClose.addEventListener('click', () => {
-            elements.chatPanel.style.display = 'none';
-        });
-    }
-
-    if (elements.chatMin && elements.chatPanel) {
-        elements.chatMin.addEventListener('click', () => {
-            elements.chatPanel.style.display = 'none';
-        });
-    }
-
-    function appendChatMessage(role, text) {
-        if (!elements.chatMessages) return;
-        const div = document.createElement('div');
-        div.className = `chat-msg ${role}`;
-        div.textContent = text;
-        elements.chatMessages.appendChild(div);
-        elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
-    }
-
-    function getCsrfToken() {
-        const name = 'csrftoken=';
-        const decoded = decodeURIComponent(document.cookie);
-        const parts = decoded.split(';');
-        for (let p of parts) {
-            const part = p.trim();
-            if (part.startsWith(name)) return part.substring(name.length);
+    // --- 5. AUTOMATION MODAL LOGIC ---
+    function openRuleModal(rule = null) {
+        elements.modalForm.reset(); // Clear the form
+        if (rule) {
+            // Edit mode
+            safeUpdate(elements.modalTitle, 'Edit Automation Rule');
+            elements.ruleId.value = rule.id;
+            elements.ruleName.value = rule.name;
+            elements.ruleStartTime.value = rule.start_time;
+            elements.ruleEndTime.value = rule.end_time;
+            elements.ruleMonitorTank.value = rule.monitor_tank_name;
+            elements.ruleMinLevel.value = rule.min_level;
+            elements.ruleMaxLevel.value = rule.max_level;
+        } else {
+            // Create mode
+            safeUpdate(elements.modalTitle, 'Create New Automation Rule');
+            elements.ruleId.value = ''; // No ID yet
         }
-        return '';
+        elements.modal.classList.remove('hidden');
     }
 
-    if (elements.chatForm && elements.chatInput) {
-        elements.chatForm.addEventListener('submit', async (e) => {
+    function closeRuleModal() {
+        elements.modal.classList.add('hidden');
+    }
+
+    if (elements.addRuleBtn) elements.addRuleBtn.addEventListener('click', () => openRuleModal());
+    if (elements.modalCancel) elements.modalCancel.addEventListener('click', closeRuleModal);
+
+    if (elements.modalForm) {
+        elements.modalForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const msg = elements.chatInput.value.trim();
-            if (!msg) return;
-            appendChatMessage('user', msg);
-            elements.chatInput.value = '';
+            const ruleData = {
+                id: elements.ruleId.value || null,
+                device_id: deviceId,
+                name: elements.ruleName.value,
+                start_time: elements.ruleStartTime.value,
+                end_time: elements.ruleEndTime.value,
+                monitor_tank_name: elements.ruleMonitorTank.value,
+                min_level: elements.ruleMinLevel.value,
+                max_level: elements.ruleMaxLevel.value,
+                enabled: true
+            };
+            
             try {
-                const resp = await fetch('/api/ai_chat/', {
+                const response = await fetch('/api/save_rule/', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCsrfToken()
-                    },
-                    body: JSON.stringify({ message: msg })
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                    body: JSON.stringify(ruleData)
                 });
-                const data = await resp.json();
-                appendChatMessage('bot', data.reply || 'No response');
+                const result = await response.json();
+                if (result.status === 'success') {
+                    closeRuleModal();
+                    // You would ideally refresh the list of rules here
+                    window.location.reload(); // Simple way to refresh
+                } else {
+                    alert('Error saving rule: ' + result.error);
+                }
             } catch (err) {
-                appendChatMessage('bot', 'Network error. Please try again later.');
+                alert('Network error saving rule.');
             }
         });
     }
 
-    // ==================== AUTOMATION RULE CRUD ====================
-    window.addNewRule = function(slotNumber) {
-        // Redirect to admin or show a modal (for now, use admin)
-        const deviceId = deviceId;
-        window.location.href = `/admin/dashboard/automationrule/add/?device__device_id=${encodeURIComponent(deviceId)}`;
-    };
+    // Add listeners for existing Edit/Delete buttons
+    elements.rulesList.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const ruleItem = e.currentTarget.closest('.rule-item');
+            // This is complex, as the data is not in the JS. 
+            // A full implementation would fetch rule data or embed it in HTML.
+            // For now, let's just open the modal in "create" mode.
+            openRuleModal();
+        });
+    });
+    
+    elements.rulesList.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            if (confirm('Are you sure you want to delete this rule?')) {
+                const ruleItem = e.currentTarget.closest('.rule-item');
+                const ruleId = ruleItem.dataset.ruleId;
+                
+                try {
+                    const response = await fetch('/api/delete_rule/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                        body: JSON.stringify({ id: ruleId })
+                    });
+                    const result = await response.json();
+                    if (result.status === 'success') {
+                        ruleItem.remove(); // Remove from UI
+                    } else {
+                        alert('Error deleting rule: ' + result.error);
+                    }
+                } catch (err) {
+                    alert('Network error deleting rule.');
+                }
+            }
+        });
+    });
 
-    window.editRule = function(ruleId) {
-        window.location.href = `/admin/dashboard/automationrule/${ruleId}/change/`;
-    };
 
-    window.deleteRule = function(ruleId) {
-        if (confirm('Are you sure you want to delete this automation rule?')) {
-            window.location.href = `/admin/dashboard/automationrule/${ruleId}/delete/`;
+    // --- 6. CHART INITIALIZATION ---
+    function initCharts() {
+        if (document.getElementById('pumpRuntimeChart')) {
+            const pumpCtx = document.getElementById('pumpRuntimeChart').getContext('2d');
+            pumpChart = new Chart(pumpCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Off', 'On'],
+                    datasets: [{ data: [1, 0], backgroundColor: ['#6c757d', '#28a745'], borderWidth: 2 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
         }
-    };
+        
+        if (document.getElementById('powerUsageChart')) {
+            const powerCtx = document.getElementById('powerUsageChart').getContext('2d');
+            powerChart = new Chart(powerCtx, {
+                type: 'bar',
+                data: {
+                    labels: Array.from({length: 24}, (_, i) => `${String(i).padStart(2, '0')}:00`),
+                    datasets: [{ label: 'Avg. Current (Amps)', data: Array(24).fill(0), backgroundColor: '#007bff' }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            });
+        }
+    }
+    
+    function updatePumpChart(data) {
+        if (pumpChart) {
+            pumpChart.data.datasets[0].data = data;
+            pumpChart.update();
+        }
+    }
+    
+    function updatePowerChart(data) {
+        if (powerChart) {
+            powerChart.data.datasets[0].data = data;
+            powerChart.update();
+        }
+    }
+    
+    initCharts(); // Create charts on page load
+    
+    // --- 7. HELPER FUNCTIONS ---
+    function safeUpdate(element, value) {
+        if (element) element.textContent = value;
+    }
+    function safeStyleUpdate(element, style, value) {
+        if (element) element.style[style] = value;
+    }
+    function safeClassToggle(element, className, state) {
+        if (element) element.classList.toggle(className, state);
+    }
+    function updateConnectionStatus(type, text, state) {
+        const statusElement = type === 'websocket' ? elements.websocketStatus : elements.deviceStatus;
+        const lightElement = type === 'websocket' ? elements.websocketLight : elements.deviceLight;
+        safeUpdate(statusElement, text);
+        if (lightElement) lightElement.className = `status-light ${state}`;
+    }
+    function slugify(text) {
+        return text.toString().toLowerCase()
+            .replace(/\s+/g, '-')       // Replace spaces with -
+            .replace(/[^\w\-]+/g, '')   // Remove all non-word chars
+            .replace(/\-\-+/g, '-')     // Replace multiple - with single -
+            .replace(/^-+/, '')        // Trim - from start of text
+            .replace(/-+$/, '');       // Trim - from end of text
+    }
 });
