@@ -1,5 +1,6 @@
 // dashboard/static/chat.js
-// AquaSavvy AI Chat Widget - Smart routing for public/private endpoints
+// Controls the floating AI chat widget (Amazon/Redmi style)
+
 document.addEventListener('DOMContentLoaded', function() {
     const chatIcon = document.getElementById('ai-chat-icon');
     const chatPanel = document.getElementById('ai-chat-panel');
@@ -8,16 +9,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const chatInput = document.getElementById('ai-chat-input');
     const messageDisplay = document.getElementById('ai-chat-messages');
     
-    if (!chatIcon || !chatPanel) return;
+    // Ensure essential elements exist
+    if (!chatIcon || !chatPanel || !chatClose || !chatSend || !chatInput || !messageDisplay) {
+        console.error("AquaSavvy Chat: One or more essential chat elements are missing from the page.");
+        return; 
+    }
     
-    // Get the CSRF token from the <input> tag in base.html
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+    // Attempt to get CSRF token (might be null if {% csrf_token %} is missing)
+    const csrfTokenInput = document.querySelector('[name=csrfmiddlewaretoken]');
+    const csrfToken = csrfTokenInput ? csrfTokenInput.value : '';
+    if (!csrfToken) {
+        console.warn("AquaSavvy Chat: CSRF token not found. POST requests might fail.");
+    }
+
+    // --- Event Listeners ---
 
     // Open chat panel
     chatIcon.addEventListener('click', () => {
         chatPanel.classList.add('visible');
         chatIcon.classList.add('hidden');
-        chatInput.focus();
+        chatInput.focus(); // Focus input when opened
     });
 
     // Close chat panel
@@ -29,28 +40,31 @@ document.addEventListener('DOMContentLoaded', function() {
     // Send message on button click
     chatSend.addEventListener('click', sendMessage);
     
-    // Send message on Enter key
+    // Send message on Enter key press in input
     chatInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
+        // Check if Enter key was pressed (and Shift key was not, to allow multi-line input if needed later)
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault(); // Prevent default form submission/newline
             sendMessage();
         }
     });
 
+    // --- Core Functions ---
+
     async function sendMessage() {
         const messageText = chatInput.value.trim();
-        if (messageText === "") return;
+        if (messageText === "") return; // Don't send empty messages
 
-        // Add user message to chat
+        // Add user message visually
         addMessage(messageText, 'user-message');
-        chatInput.value = '';
+        chatInput.value = ''; // Clear input field
         
-        // Disable send button while processing
-        chatSend.disabled = true;
-        chatSend.textContent = '...';
+        // Indicate loading state
+        setLoadingState(true);
         
-        // Determine which chat API to call (public or private)
-        const isPublicPage = window.location.pathname === '/home/' || window.location.pathname === '/';
+        // Determine the correct API endpoint based on the current page
+        // Assumes public homepage is '/home/' or '/'
+        const isPublicPage = ['/home/', '/'].includes(window.location.pathname);
         const chatApiUrl = isPublicPage ? '/api/ai_chat_public/' : '/api/ai_chat/';
 
         try {
@@ -58,45 +72,63 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken 
+                    'X-CSRFToken': csrfToken // Send CSRF token for security
                 },
                 body: JSON.stringify({ message: messageText })
             });
 
             if (!response.ok) { 
-                throw new Error(`HTTP ${response.status}`); 
+                // Handle HTTP errors (like 403 Forbidden, 500 Internal Server Error)
+                throw new Error(`HTTP error ${response.status}`); 
             }
 
             const data = await response.json();
             
+            // Display the response or error from the backend
             if (data.error) {
                 addMessage(data.error, 'ai-message error');
             } else {
-                addMessage(data.reply || 'No response received.', 'ai-message');
+                addMessage(data.reply || 'Sorry, I received an empty response.', 'ai-message');
             }
 
         } catch (error) {
+            // Handle network errors (e.g., server down, CORS issues) or HTTP errors
             console.error('Error sending chat message:', error);
-            addMessage("⚠️ Network Error: Could not connect to the AI assistant. For support, contact: contact:vision072025@gmail.com or WhatsApp: +254 702 715070", 'ai-message error');
+            // Provide a helpful error message to the user
+            addMessage(`⚠️ Network Error: Could not connect. Please check your connection or try again later. (Details: ${error.message})`, 'ai-message error');
         } finally {
-            // Re-enable send button
-            chatSend.disabled = false;
-            chatSend.textContent = 'Send';
-            chatInput.focus();
+            // Reset loading state regardless of success or failure
+            setLoadingState(false);
         }
     }
 
+    // Helper to add a message bubble to the chat window
     function addMessage(text, className) {
         const messageElement = document.createElement('div');
         messageElement.classList.add('chat-message', className);
-        messageElement.textContent = text;
+        // Basic sanitization: display text content only to prevent XSS
+        messageElement.textContent = text; 
         messageDisplay.appendChild(messageElement);
         
-        // Auto-scroll to bottom
+        // Auto-scroll to the newest message
         messageDisplay.scrollTop = messageDisplay.scrollHeight;
     }
 
-    // Close chat when pressing Escape key
+    // Helper to manage the loading state of the send button
+    function setLoadingState(isLoading) {
+        if (isLoading) {
+            chatSend.disabled = true;
+            // Simple text indicator, replace with spinner if needed
+            chatSend.innerHTML = '...'; 
+        } else {
+            chatSend.disabled = false;
+            // Restore the send icon
+            chatSend.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z"/></svg>';
+            chatInput.focus(); // Re-focus the input field
+        }
+    }
+
+    // Optional: Close chat panel when pressing Escape key
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && chatPanel.classList.contains('visible')) {
             chatPanel.classList.remove('visible');

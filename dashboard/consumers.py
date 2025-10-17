@@ -5,7 +5,7 @@ import ssl
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import async_to_sync, sync_to_async
 from channels.layers import get_channel_layer
-from .models import Device, WaterReading
+from .models import Device, WaterReading, AutomationRule
 from .notifications import check_and_send_alerts
 import os
 
@@ -76,6 +76,25 @@ def process_and_save_data(topic, payload_str):
                 print(f"CLEANUP: Deleted oldest reading for device '{device_id}' to stay within the {DATA_LIMIT_PER_DEVICE} limit.")
         # ==========================================================
         
+        # Check for active automation rules
+        automation_status = "System Auto-Mode"
+        active_rule = None
+        
+        try:
+            # Find active automation rule for this device
+            active_rules = AutomationRule.objects.filter(
+                device=device,
+                enabled=True
+            )
+            
+            for rule in active_rules:
+                if rule.is_active_now():
+                    active_rule = rule
+                    automation_status = f"Timeslot Active ({rule.name})"
+                    break
+        except Exception as e:
+            print(f"Error checking automation rules: {e}")
+        
         # Prepare payload for WebSocket (include both formats for compatibility)
         ws_payload = {
             'tank_data': tank_data,
@@ -83,6 +102,13 @@ def process_and_save_data(topic, payload_str):
             'pump_current_amps': reading.pump_current_amps,
             'pump_mode': reading.pump_mode,
             'system_status': reading.system_status,
+            'automation_status': automation_status,
+            'active_rule': {
+                'name': active_rule.name if active_rule else None,
+                'min_level': active_rule.min_level if active_rule else None,
+                'max_level': active_rule.max_level if active_rule else None,
+                'destination_tank': active_rule.destination_tank if active_rule else None
+            } if active_rule else None,
             # Legacy fields
             'overhead_level': reading.overhead_level or 0,
             'underground_level': reading.underground_level or 0,
