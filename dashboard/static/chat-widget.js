@@ -14,16 +14,23 @@
         position: fixed;
         bottom: 20px;
         right: 20px;
-        z-index: 9999;
+        z-index: 100000; /* stay above all */
         flex-direction: column;
     }
     #chat-popup {
+        position: fixed; /* floats with viewport */
+        right: 25px;
+        bottom: 90px; /* above bubble */
+        width: 360px;
         height: 70vh;
-        max-height: 500px;
-        width: 350px;
-        transition: all 0.3s;
+        max-height: 560px;
+        transition: all 0.25s ease;
         overflow: hidden;
-        z-index: 9998;
+        z-index: 100001;
+        background: rgba(255,255,255,0.98); /* less transparent for readability */
+        backdrop-filter: saturate(120%) blur(4px);
+        border-radius: 14px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.25);
     }
     #chat-bubble {
         z-index: 9999;
@@ -32,7 +39,6 @@
     /* Mobile styles from example */
     @media (max-width: 768px) {
         #chat-popup {
-            position: fixed;
             top: 0; right: 0; bottom: 0; left: 0;
             width: 100%; height: 100%;
             max-height: 100%;
@@ -67,7 +73,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
             </svg>
         </div>
-        <div id="chat-popup" class="hidden absolute bottom-20 right-0 w-96 bg-white rounded-md shadow-xl flex flex-col text-sm">
+        <div id="chat-popup" class="hidden flex flex-col text-sm">
             <div id="chat-header" class="flex justify-between items-center p-4 bg-blue-600 text-white rounded-t-md">
                 <h3 class="m-0 text-lg">AquaSavvy AI Assistant</h3>
                 <button id="close-popup" class="bg-transparent border-none text-white cursor-pointer">
