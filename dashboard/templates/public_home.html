@@ -67,9 +67,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script>
+<script>
         const apiKey = "AIzaSyDZ3lsOhZ4HRY9JmZlgulOjRrZ5KYZWdpk";
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+        // Expose to chat widget
+        window.apiUrl = apiUrl;
         
         async function fetchGeminiResponse(systemPrompt, userQuery) {
             const loader = document.getElementById('market-loader') || document.getElementById('safety-loader');
@@ -430,59 +432,74 @@
         <!-- Section 7: About Us -->
         <section id="about" class="mb-20">
             <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold">About Our Team</h2>
-                <p class="text-gray-600 mt-2 max-w-2xl mx-auto">Meet the innovative minds behind AquaSavvy Kenya. Our diverse team of engineers, developers, and water management experts is dedicated to solving Kenya's water challenges through cutting-edge IoT technology.</p>
+            <h2 class="text-3xl font-bold">About Our Team</h2>
+            <p class="text-gray-600 mt-2 max-w-2xl mx-auto">We are young innovators from the Technical University of Kenya (BTech Electrical & Electronic Engineering), building AquaSavvy to solve real water challenges with IoT.</p>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                <!-- Developer 1 -->
+                <!-- Josphat Mwamboa -->
                 <div class="bg-secondary p-6 rounded-lg shadow-lg text-center">
-                    <div class="w-24 h-24 bg-accent rounded-full mx-auto mb-4 flex items-center justify-center">
-                        <span class="text-white text-2xl font-bold">JD</span>
+                    <div class="w-24 h-24 bg-accent rounded-full mx-auto mb-4 flex items-center justify-center overflow-hidden">
+                        <img src="{% static 'images/team/josphat.jpg' %}" alt="Josphat Mwamboa" class="w-full h-full object-cover" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'w-24 h-24 flex items-center justify-center text-white font-bold',innerText:'JM'}))">
                     </div>
-                    <h3 class="text-xl font-semibold mb-2">John Developer</h3>
-                    <p class="text-gray-600 mb-3">Lead IoT Engineer</p>
-                    <p class="text-sm text-gray-500">Expert in ESP32 programming and AWS IoT Core integration. Specializes in real-time data processing and device connectivity.</p>
+                    <h3 class="text-xl font-semibold mb-1">Josphat Mwamboa</h3>
+                    <p class="text-gray-600 mb-2">Lead IoT & Embedded Engineer</p>
+                    <p class="text-sm text-gray-500">Device creation, PCB design, device testing, firmware, AWS IoT connectivity, and web app programming.</p>
+                    <div class="mt-3 text-sm text-gray-600 space-y-1">
+                        <p><strong>Contacts:</strong> <span class="opacity-70">Add email/phone here</span></p>
+                    </div>
                 </div>
 
-                <!-- Developer 2 -->
+                <!-- Joy Kihia -->
                 <div class="bg-secondary p-6 rounded-lg shadow-lg text-center">
-                    <div class="w-24 h-24 bg-accent rounded-full mx-auto mb-4 flex items-center justify-center">
-                        <span class="text-white text-2xl font-bold">SM</span>
+                    <div class="w-24 h-24 bg-accent rounded-full mx-auto mb-4 flex items-center justify-center overflow-hidden">
+                        <img src="{% static 'images/team/joy.jpg' %}" alt="Joy Kihia" class="w-full h-full object-cover" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'w-24 h-24 flex items-center justify-center text-white font-bold',innerText:'JK'}))">
                     </div>
-                    <h3 class="text-xl font-semibold mb-2">Sarah Manager</h3>
-                    <p class="text-gray-600 mb-3">Project Manager & UI/UX Designer</p>
-                    <p class="text-sm text-gray-500">Oversees project coordination and designs intuitive user interfaces. Ensures seamless user experience across all platforms.</p>
+                    <h3 class="text-xl font-semibold mb-1">Joy Kihia</h3>
+                    <p class="text-gray-600 mb-2">Finance & Documentation Lead</p>
+                    <p class="text-sm text-gray-500">Leads budgeting, financial analysis, write-ups, and stakeholder presentations.</p>
+                    <div class="mt-3 text-sm text-gray-600 space-y-1">
+                        <p><strong>Contacts:</strong> <span class="opacity-70">Add email/phone here</span></p>
+                    </div>
                 </div>
 
-                <!-- Developer 3 -->
+                <!-- Devis Machengo -->
                 <div class="bg-secondary p-6 rounded-lg shadow-lg text-center">
-                    <div class="w-24 h-24 bg-accent rounded-full mx-auto mb-4 flex items-center justify-center">
-                        <span class="text-white text-2xl font-bold">MA</span>
+                    <div class="w-24 h-24 bg-accent rounded-full mx-auto mb-4 flex items-center justify-center overflow-hidden">
+                        <img src="{% static 'images/team/devis.jpg' %}" alt="Devis Machengo" class="w-full h-full object-cover" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'w-24 h-24 flex items-center justify-center text-white font-bold',innerText:'DM'}))">
                     </div>
-                    <h3 class="text-xl font-semibold mb-2">Mike Analyst</h3>
-                    <p class="text-gray-600 mb-3">Data Scientist & Analytics Expert</p>
-                    <p class="text-sm text-gray-500">Develops advanced analytics algorithms and machine learning models for predictive water management and system optimization.</p>
+                    <h3 class="text-xl font-semibold mb-1">Devis Machengo</h3>
+                    <p class="text-gray-600 mb-2">Product Design & Embedded Engineer</p>
+                    <p class="text-sm text-gray-500">Designs protective enclosures and contributes to firmware and validation.</p>
+                    <div class="mt-3 text-sm text-gray-600 space-y-1">
+                        <p><strong>Contacts:</strong> <span class="opacity-70">Add email/phone here</span></p>
+                    </div>
                 </div>
 
-                <!-- Developer 4 -->
+                <!-- John Karauni -->
                 <div class="bg-secondary p-6 rounded-lg shadow-lg text-center">
-                    <div class="w-24 h-24 bg-accent rounded-full mx-auto mb-4 flex items-center justify-center">
-                        <span class="text-white text-2xl font-bold">EA</span>
+                    <div class="w-24 h-24 bg-accent rounded-full mx-auto mb-4 flex items-center justify-center overflow-hidden">
+                        <img src="{% static 'images/team/john.jpg' %}" alt="John Karauni" class="w-full h-full object-cover" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'w-24 h-24 flex items-center justify-center text-white font-bold',innerText:'JK'}))">
                     </div>
-                    <h3 class="text-xl font-semibold mb-2">Emma Architect</h3>
-                    <p class="text-gray-600 mb-3">Backend Systems Architect</p>
-                    <p class="text-sm text-gray-500">Designs scalable cloud infrastructure and database systems. Ensures high availability and performance of the AquaSavvy platform.</p>
+                    <h3 class="text-xl font-semibold mb-1">John Karauni</h3>
+                    <p class="text-gray-600 mb-2">Marketing & Prototyping Lead</p>
+                    <p class="text-sm text-gray-500">Market outreach and supports firmware plus casing print operations.</p>
+                    <div class="mt-3 text-sm text-gray-600 space-y-1">
+                        <p><strong>Contacts:</strong> <span class="opacity-70">Add email/phone here</span></p>
+                    </div>
                 </div>
 
-                <!-- Developer 5 -->
+                <!-- Moses Mutuma -->
                 <div class="bg-secondary p-6 rounded-lg shadow-lg text-center">
-                    <div class="w-24 h-24 bg-accent rounded-full mx-auto mb-4 flex items-center justify-center">
-                        <span class="text-white text-2xl font-bold">DT</span>
+                    <div class="w-24 h-24 bg-accent rounded-full mx-auto mb-4 flex items-center justify-center overflow-hidden">
+                        <img src="{% static 'images/team/moses.jpg' %}" alt="Moses Mutuma" class="w-full h-full object-cover" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'w-24 h-24 flex items-center justify-center text-white font-bold',innerText:'MM'}))">
                     </div>
-                    <h3 class="text-xl font-semibold mb-2">David Tester</h3>
-                    <p class="text-gray-600 mb-3">Quality Assurance & Hardware Specialist</p>
-                    <p class="text-sm text-gray-500">Ensures system reliability through comprehensive testing. Specializes in hardware integration and field deployment validation.</p>
+                    <h3 class="text-xl font-semibold mb-1">Moses Mutuma</h3>
+                    <p class="text-gray-600 mb-2">Marketing & Quality Assurance</p>
+                    <p class="text-sm text-gray-500">Coordinates market feedback and device field testing to ensure quality.</p>
+                    <div class="mt-3 text-sm text-gray-600 space-y-1">
+                        <p><strong>Contacts:</strong> <span class="opacity-70">Add email/phone here</span></p>
+                    </div>
                 </div>
 
                 <!-- Contact Card -->
@@ -501,13 +518,16 @@
             </div>
         </section>
 
-    </main>
+</main>
 
     <footer class="bg-secondary mt-20 py-6">
         <div class="container mx-auto text-center text-gray-500">
             <p>&copy; 2025 AquaSavvy Kenya. A Production-Ready IoT Solution.</p>
         </div>
-    </footer>
+</footer>
+
+<!-- AquaSavvy floating chat widget -->
+<script src="{% static 'chat.js' %}"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
