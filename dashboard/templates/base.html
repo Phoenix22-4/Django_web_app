@@ -2,19 +2,44 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-site-verification" content="gozFYv5nyWjXLad_h2RbQmBXExLGXbRUvxqDMgDW4Es" />
     
     <title>{% block title %}AquaSavvy Solution{% endblock %}</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'dashboard.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    {% block content %}{% endblock %}
 
-    <!-- Firebase SDK (Compat for messaging) -->
+    <!-- FLOATING AI CHAT WIDGET (Like Amazon/Redmi) -->
+    <button id="ai-chat-icon" class="chat-icon" aria-label="Open AquaSavvy AI Assistant">
+        💬
+    </button>
+
+    <div id="ai-chat-panel" class="chat-panel">
+        <div class="chat-panel-header">
+            <h3>AquaSavvy AI Assistant</h3>
+            <button id="ai-chat-close" class="chat-close-btn" aria-label="Close chat">×</button>
+        </div>
+        <div id="ai-chat-messages" class="chat-panel-body">
+            <div class="chat-message ai-message">
+                Hello! 👋 I'm your AquaSavvy AI Assistant. How can I help you understand your water system today?
+            </div>
+        </div>
+        <div class="chat-panel-footer">
+            {% csrf_token %}
+            <input type="text" id="ai-chat-input" placeholder="Ask a question..." autocomplete="off" />
+            <button id="ai-chat-send" aria-label="Send message">Send</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK for Push Notifications -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
     <script>
-      // Firebase config (provided by user)
+      // Firebase config
       const firebaseConfig = {
         apiKey: "AIzaSyCuorzrk2791U7GwqK0EziVFUlWI0NUMKc",
         authDomain: "aquasavvy-solution.firebaseapp.com",
@@ -30,78 +55,6 @@
       }
     </script>
     <script src="{% static 'push_handler.js' %}"></script>
-</head>
-<body>
-    {% block content %}{% endblock %}
-
-    <!-- FLOATING AI CHAT WIDGET -->
-    <div id="aquasavvy-chat-container">
-        <!-- Floating Chat Icon (Draggable) -->
-        <button id="chat-fab" class="chat-fab" aria-label="Open AquaSavvy AI Assistant" title="Chat with AquaSavvy AI">
-            <i class="fas fa-comments"></i>
-        </button>
-        <div class="chat-fab-label">AquaSavvy Chat</div>
-        
-        <!-- Chat Panel (Slides in from right) -->
-        <div id="chat-panel" class="chat-panel-container">
-            <div class="chat-panel-header">
-                <div class="chat-header-left">
-                    <i class="fas fa-robot"></i>
-                    <span>AquaSavvy AI Assistant</span>
-                </div>
-                <div class="chat-header-right">
-                    <button id="chat-minimize" class="chat-header-btn" aria-label="Minimize chat" title="Minimize">
-                        <i class="fas fa-minus"></i>
-                    </button>
-                    <button id="chat-close" class="chat-header-btn" aria-label="Close chat" title="Close">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <div id="chat-messages" class="chat-panel-messages">
-                <!-- Welcome message -->
-                <div class="chat-message bot-message">
-                    <div class="message-avatar">
-                        <i class="fas fa-robot"></i>
-                    </div>
-                    <div class="message-content">
-                        <p>👋 Hi! I'm your AquaSavvy AI Assistant. Ask me about:</p>
-                        <ul>
-                            <li>Water tank levels & management</li>
-                            <li>Pump control & automation</li>
-                            <li>System troubleshooting</li>
-                            <li>Power consumption & analytics</li>
-                        </ul>
-                        <p style="font-size: 0.85em; color: #666; margin-top: 8px;">
-                            💡 For technical issues, contact: <strong>contact:vision072025@gmail.com</strong> or WhatsApp: <strong>+254 702 715070</strong>
-                        </p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="chat-panel-input">
-                {% csrf_token %}
-                <form id="chat-form" class="chat-input-form">
-                    <input 
-                        type="text" 
-                        id="chat-input" 
-                        class="chat-text-input" 
-                        placeholder="Ask me anything about your water system..." 
-                        autocomplete="off"
-                        required
-                    />
-                    <button type="submit" id="chat-send" class="chat-send-btn" aria-label="Send message">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
-                </form>
-                <div class="chat-typing-indicator" id="typing-indicator" style="display: none;">
-                    <span></span><span></span><span></span>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script src="{% static 'chat.js' %}"></script>
 </body>
 </html>

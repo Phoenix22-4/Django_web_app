@@ -133,30 +133,223 @@ body::before {
 .pump-status { display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 0.9rem; font-weight: bold; }
 .pump-status p { margin: 0; }
 
-.tanks-visualization { display: flex; flex-direction: column; align-items: center; width: 100%; position: relative; margin: 20px 0; }
-.tank-wrapper { display: flex; flex-direction: column; align-items: center; margin: 10px 0; }
-.tank-title, .tank-info { font-weight: bold; background-color: rgba(255, 255, 255, 0.9); padding: 5px 10px; border-radius: 5px; font-size: 0.9rem; }
-.tank-title { margin-bottom: 8px; }
-.tank-info { margin-top: 8px; }
-.tank { position: relative; }
+/* ==================== TANK SYSTEM WITH T-JUNCTION PIPES ==================== */
+.tanks-visualization { 
+    width: 100%; 
+    padding: 20px 0;
+}
+
+.tank-system-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.tanks-row {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.tank-wrapper { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center;
+    position: relative;
+}
+
+.tank-title, .tank-info { 
+    font-weight: bold; 
+    background-color: rgba(255, 255, 255, 0.95); 
+    padding: 6px 12px; 
+    border-radius: 6px; 
+    font-size: 0.9rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.tank-title { margin-bottom: 10px; color: #0b5fa5; }
+.tank-info { margin-top: 10px; }
+
+.tank { 
+    position: relative;
+}
+
 .tank.underground { height: 200px; width: 120px; }
 .tank.overhead { height: 150px; width: 100px; }
-.tank-frame { width: 100%; height: 100%; border: 3px solid #6c757d; border-radius: 5px; position: relative; overflow: hidden; background-color: #e9ecef; }
-.water-level { position: absolute; bottom: 0; left: 0; width: 100%; background-color: #23c5ee; transition: height 0.5s ease-in-out; }
 
-.pipe-and-pump { display: flex; align-items: center; justify-content: center; width: 100%; margin: 15px 0; }
-.pipe-horizontal { height: 15px; background-color: #44a7fd; border-radius: 5px; flex: 1; max-width: 80px; }
-.pump { position: relative; width: 60px; height: 60px; color: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.8rem; box-shadow: 0 0 8px rgba(0,0,0,0.2); border: 4px solid #0b5fa5; margin: 0 10px; }
-.pump.online { background-color: #28a745; }
-.pump.offline { background-color: #6c757d; }
-.led-light { width: 14px; height: 14px; border-radius: 50%; margin: 0 8px; border: 2px solid rgba(0,0,0,0.1); }
-.led-on { background-color: #1e90ff; box-shadow: 0 0 10px rgba(30, 144, 255, 0.9), 0 0 20px rgba(30, 144, 255, 0.6); }
-.led-off { background-color: #7a1f1f; }
-.pump.active .fa-water { animation: pump-vibrate 0.4s infinite; }
-@keyframes pump-vibrate { 0% { transform: translate(0, 0) rotate(0deg); } 25% { transform: translate(1px, -1px) rotate(0.5deg); } 50% { transform: translate(-1px, 1px) rotate(-0.5deg); } 75% { transform: translate(1px, 1px) rotate(0.3deg); } 100% { transform: translate(0, 0) rotate(0deg); } }
+.tank-frame { 
+    width: 100%; 
+    height: 100%; 
+    border: 3px solid #0b5fa5; 
+    border-radius: 8px; 
+    position: relative; 
+    overflow: hidden; 
+    background-color: #e9ecef;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.water-level { 
+    position: absolute; 
+    bottom: 0; 
+    left: 0; 
+    width: 100%; 
+    background: linear-gradient(180deg, #23c5ee 0%, #1e90ff 100%);
+    transition: height 0.5s ease-in-out;
+}
+
+/* Vertical pipes from tanks */
+.pipe-vertical {
+    width: 8px;
+    height: 30px;
+    background: linear-gradient(180deg, #44a7fd 0%, #0b5fa5 100%);
+    margin-top: 5px;
+}
+
+/* T-Junction horizontal pipe */
+.pipe-junction {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    position: relative;
+}
+
+.main-pipe {
+    height: 12px;
+    background: linear-gradient(90deg, #44a7fd 0%, #0b5fa5 50%, #44a7fd 100%);
+    width: 80%;
+    max-width: 600px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.junction-point {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.junction-circle {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #0b5fa5;
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 2px #0b5fa5, 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* Pump Section */
+.pump-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.pipe-to-pump,
+.pipe-from-pump {
+    width: 8px;
+    height: 20px;
+    background: linear-gradient(180deg, #44a7fd 0%, #0b5fa5 100%);
+}
+
+.pump-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.pump { 
+    position: relative; 
+    width: 70px; 
+    height: 70px; 
+    color: #fff; 
+    border-radius: 50%; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    font-size: 2rem; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
+    border: 4px solid #0b5fa5;
+    background-color: #6c757d;
+    transition: all 0.3s;
+}
+
+.pump.online { 
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    box-shadow: 0 4px 16px rgba(40, 167, 69, 0.4);
+}
+
+.pump.offline { 
+    background-color: #6c757d;
+}
+
+.led-light { 
+    width: 16px; 
+    height: 16px; 
+    border-radius: 50%; 
+    border: 2px solid rgba(0,0,0,0.2);
+    transition: all 0.3s;
+}
+
+.led-on { 
+    background-color: #1e90ff; 
+    box-shadow: 0 0 12px rgba(30, 144, 255, 1), 0 0 24px rgba(30, 144, 255, 0.6);
+}
+
+.led-off { 
+    background-color: #4a4a4a;
+}
+
+.pump.active .fa-water { 
+    animation: pump-vibrate 0.4s infinite;
+}
+
+@keyframes pump-vibrate { 
+    0% { transform: translate(0, 0) rotate(0deg); } 
+    25% { transform: translate(1px, -1px) rotate(0.5deg); } 
+    50% { transform: translate(-1px, 1px) rotate(-0.5deg); } 
+    75% { transform: translate(1px, 1px) rotate(0.3deg); } 
+    100% { transform: translate(0, 0) rotate(0deg); }
+}
 
 .status-box { padding: 12px; background-color: #f8f9fa; border-radius: 8px; border: 1px solid #e3eef7; width: 100%; box-sizing: border-box; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
 .status-box p { margin: 4px 0; font-weight: bold; font-size: 0.9rem; }
+
+/* ==================== PUBLIC HOMEPAGE STYLES ==================== */
+.about-us {
+    background: #fff;
+    padding: 60px 20px;
+}
+
+.about-content {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.about-text {
+    line-height: 1.8;
+    color: #333;
+}
+
+.about-text p {
+    margin-bottom: 16px;
+    font-size: 1.05rem;
+}
+
+.about-text ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.about-text li {
+    padding: 8px 0;
+    font-size: 1rem;
+}
 
 /* ==================== FOOTER ==================== */
 .site-footer { text-align: center; padding: 15px; background-color: rgba(11, 209, 209, 0.9); color: #0d14ec; font-size: 0.8rem; margin-top: auto; }
@@ -666,5 +859,447 @@ body::before {
 @media (min-width: 769px) and (max-width: 1024px) {
     .chat-panel-container {
         width: 380px;
+    }
+}
+
+/* ==================== NEW FLOATING CHAT WIDGET (Amazon/Redmi Style) ==================== */
+.chat-icon {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 28px;
+    box-shadow: 0 4px 20px rgba(0, 123, 255, 0.4);
+    cursor: pointer;
+    z-index: 9998;
+    transition: transform 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-icon:hover {
+    transform: scale(1.15);
+    box-shadow: 0 6px 30px rgba(0, 123, 255, 0.6);
+}
+
+.chat-icon:active {
+    transform: scale(0.95);
+}
+
+.chat-icon.hidden {
+    transform: scale(0);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.chat-panel {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    width: 90%;
+    max-width: 400px;
+    height: 70vh;
+    max-height: 600px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.25);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    
+    /* Hidden by default with smooth animation */
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+    visibility: hidden;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                visibility 0.3s;
+}
+
+.chat-panel.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    visibility: visible;
+}
+
+.chat-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.chat-panel-header h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+.chat-close-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 28px;
+    font-weight: 300;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.chat-close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.chat-panel-body {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: #f8f9fa;
+}
+
+.chat-panel-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-panel-body::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
+
+.chat-panel-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.chat-message {
+    padding: 12px 16px;
+    border-radius: 18px;
+    line-height: 1.5;
+    max-width: 85%;
+    animation: messageSlideIn 0.3s ease;
+    word-wrap: break-word;
+    font-size: 0.95rem;
+}
+
+@keyframes messageSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.user-message {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+}
+
+.ai-message {
+    background: #ffffff;
+    color: #333;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+    border: 1px solid #e3eef7;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.ai-message.error {
+    background: #fff5f5;
+    color: #d90000;
+    border-color: #ffcccc;
+}
+
+.chat-panel-footer {
+    display: flex;
+    gap: 10px;
+    padding: 16px;
+    border-top: 1px solid #e3eef7;
+    background: #fff;
+    border-radius: 0 0 16px 16px;
+}
+
+#ai-chat-input {
+    flex-grow: 1;
+    border: 2px solid #e3eef7;
+    border-radius: 24px;
+    padding: 12px 18px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#ai-chat-input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+#ai-chat-send {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    flex-shrink: 0;
+}
+
+#ai-chat-send:hover:not(:disabled) {
+    transform: scale(1.1);
+    box-shadow: 0 4px 16px rgba(0, 123, 255, 0.4);
+}
+
+#ai-chat-send:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .chat-panel {
+        bottom: 0;
+        right: 0;
+        width: 100%;
+        max-width: 100%;
+        height: 85vh;
+        max-height: 85vh;
+        border-radius: 20px 20px 0 0;
+    }
+    
+    .chat-icon {
+        bottom: 20px;
+        right: 20px;
+        width: 56px;
+        height: 56px;
+        font-size: 24px;
+    }
+    
+    .chat-message {
+        max-width: 90%;
+    }
+}
+
+/* ==================== TIMESLOT 4-SLOT UI (Rectangle Boxes) ==================== */
+.timeslots-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-top: 15px;
+}
+
+.timeslot-box {
+    border: 2px solid #e3eef7;
+    border-radius: 12px;
+    padding: 16px;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s;
+    background: #f8f9fa;
+}
+
+.timeslot-box.filled {
+    background: #ffffff;
+    border-color: #007bff;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+}
+
+.timeslot-box.filled:hover {
+    box-shadow: 0 4px 16px rgba(0, 123, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.timeslot-box.empty {
+    border-style: dashed;
+    border-color: #ccc;
+    background: #fafbfc;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.timeslot-box.empty:hover {
+    border-color: #007bff;
+    background: #f0f8ff;
+}
+
+/* Slot Header */
+.slot-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.slot-number {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #666;
+}
+
+.slot-badge {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: #e9ecef;
+    color: #666;
+}
+
+.slot-badge.active {
+    background: #d4edda;
+    color: #28a745;
+}
+
+/* Slot Content */
+.slot-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #007bff;
+    margin-bottom: 8px;
+}
+
+.slot-time {
+    font-size: 0.9rem;
+    color: #495057;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.slot-levels {
+    display: flex;
+    gap: 12px;
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.slot-levels span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Slot Actions */
+.slot-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: auto;
+}
+
+.slot-btn {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.edit-btn {
+    background: #007bff;
+    color: white;
+}
+
+.edit-btn:hover {
+    background: #0056b3;
+    transform: translateY(-2px);
+}
+
+.delete-btn {
+    background: #dc3545;
+    color: white;
+}
+
+.delete-btn:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+}
+
+/* Empty Slot Content */
+.slot-empty-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 10px;
+    color: #999;
+}
+
+.add-slot-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 2px dashed #ccc;
+    background: white;
+    color: #999;
+    font-size: 1.8rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.add-slot-btn:hover {
+    border-color: #007bff;
+    color: #007bff;
+    background: #f0f8ff;
+    transform: scale(1.1);
+}
+
+.slot-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.slot-hint {
+    font-size: 0.8rem;
+    color: #aaa;
+}
+
+/* Responsive timeslots */
+@media (max-width: 768px) {
+    .timeslots-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .timeslot-box {
+        min-height: 160px;
     }
 }

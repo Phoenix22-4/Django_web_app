@@ -310,4 +310,21 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // ==================== AUTOMATION RULE CRUD ====================
+    window.addNewRule = function(slotNumber) {
+        // Redirect to admin or show a modal (for now, use admin)
+        const deviceId = deviceId;
+        window.location.href = `/admin/dashboard/automationrule/add/?device__device_id=${encodeURIComponent(deviceId)}`;
+    };
+
+    window.editRule = function(ruleId) {
+        window.location.href = `/admin/dashboard/automationrule/${ruleId}/change/`;
+    };
+
+    window.deleteRule = function(ruleId) {
+        if (confirm('Are you sure you want to delete this automation rule?')) {
+            window.location.href = `/admin/dashboard/automationrule/${ruleId}/delete/`;
+        }
+    };
 });

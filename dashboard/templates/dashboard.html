@@ -28,46 +28,67 @@
             <section class="card" aria-label="Tank Visualizations">
                 <h2 class="card-title">Tank Levels</h2>
                 <div class="tanks-visualization" id="tanks-container">
-                    {% if last_reading and last_reading.tank_data %}
-                        {% for tank in last_reading.tank_data %}
-                            <div class="tank-wrapper" data-tank-name="{{ tank.name }}">
-                                <div class="tank-title">{{ tank.name }}</div>
-                                <div class="tank">
-                                    <div class="tank-frame">
-                                        <div class="water-level" data-tank-level="{{ tank.name }}" style="height: {{ tank.level }}%;"></div>
+                    <div class="tank-system-layout">
+                        <!-- Dynamic Tanks Row -->
+                        <div class="tanks-row">
+                            {% if last_reading and last_reading.tank_data %}
+                                {% for tank in last_reading.tank_data %}
+                                    <div class="tank-wrapper" data-tank-name="{{ tank.name }}">
+                                        <div class="tank-title">{{ tank.name }}</div>
+                                        <div class="tank {% if forloop.first %}underground{% elif forloop.counter == 2 %}overhead{% endif %}">
+                                            <div class="tank-frame">
+                                                <div class="water-level" data-tank-level="{{ tank.name }}" style="height: {{ tank.level }}%;"></div>
+                                            </div>
+                                            <div class="tank-info"><span data-tank-text="{{ tank.name }}">{{ tank.level }}%</span></div>
+                                        </div>
+                                        <!-- Vertical Pipe from tank -->
+                                        <div class="pipe-vertical"></div>
                                     </div>
-                                    <div class="tank-info"><span data-tank-text="{{ tank.name }}">{{ tank.level }}%</span></div>
+                                {% endfor %}
+                            {% else %}
+                                <!-- Fallback for old format -->
+                                <div class="tank-wrapper" data-tank-name="Underground">
+                                    <div class="tank-title">Underground Tank</div>
+                                    <div class="tank underground">
+                                        <div class="tank-frame">
+                                            <div class="water-level" id="underground-water" data-tank-level="Underground"></div>
+                                        </div>
+                                        <div class="tank-info"><span id="underground-level" data-tank-text="Underground">--%</span></div>
+                                    </div>
+                                    <div class="pipe-vertical"></div>
                                 </div>
-                            </div>
-                        {% endfor %}
-                    {% else %}
-                        <!-- Fallback for old format or no data -->
-                        <div class="tank-wrapper" data-tank-name="Overhead">
-                            <div class="tank-title">Overhead Tank</div>
-                            <div class="tank overhead">
-                                <div class="tank-frame">
-                                    <div class="water-level" id="overhead-water" data-tank-level="Overhead"></div>
+                                <div class="tank-wrapper" data-tank-name="Overhead">
+                                    <div class="tank-title">Overhead Tank</div>
+                                    <div class="tank overhead">
+                                        <div class="tank-frame">
+                                            <div class="water-level" id="overhead-water" data-tank-level="Overhead"></div>
+                                        </div>
+                                        <div class="tank-info"><span id="overhead-level" data-tank-text="Overhead">--%</span></div>
+                                    </div>
+                                    <div class="pipe-vertical"></div>
                                 </div>
-                                <div class="tank-info"><span id="overhead-level" data-tank-text="Overhead">--%</span></div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- T-Junction Pipe System -->
+                        <div class="pipe-junction">
+                            <div class="pipe-horizontal main-pipe"></div>
+                            <div class="junction-point">
+                                <div class="junction-circle"></div>
                             </div>
                         </div>
-                        <div class="tank-wrapper" data-tank-name="Underground">
-                            <div class="tank-title">Underground Tank</div>
-                            <div class="tank underground">
-                                <div class="tank-frame">
-                                    <div class="water-level" id="underground-water" data-tank-level="Underground"></div>
+                        
+                        <!-- Pump with Connections -->
+                        <div class="pump-section">
+                            <div class="pipe-to-pump"></div>
+                            <div class="pump-container">
+                                <div class="pump" id="pump-motor" aria-label="Pump Motor">
+                                    <i class="fas fa-water"></i>
                                 </div>
-                                <div class="tank-info"><span id="underground-level" data-tank-text="Underground">--%</span></div>
+                                <div class="led-light led-off" id="pump-led" aria-label="Pump LED Indicator"></div>
                             </div>
+                            <div class="pipe-from-pump"></div>
                         </div>
-                    {% endif %}
-                    
-                    <!-- Pump visualization in the middle -->
-                    <div class="pipe-and-pump">
-                        <div class="pipe-horizontal"></div>
-                        <div class="pump" id="pump-motor" aria-label="Pump Motor"><i class="fas fa-water"></i></div>
-                        <div class="led-light led-off" id="pump-led" aria-label="Pump LED Indicator"></div>
-                        <div class="pipe-horizontal"></div>
                     </div>
                 </div>
             </section>
@@ -86,29 +107,57 @@
                 </div>
             </section>
 
-            <!-- NEW: Automation Rules Card -->
-            <section class="card" aria-label="Automation Rules">
-                <h2 class="card-title">Automation Rules</h2>
-                <div class="automation-rules-list" id="automation-rules-list">
-                    {% if device.automation_rules.all %}
-                        {% for rule in device.automation_rules.all|slice:":4" %}
-                            <div class="rule-item {% if not rule.enabled %}disabled{% endif %}">
-                                <div class="rule-info">
-                                    <strong>{{ rule.name }}</strong>
-                                    <span class="rule-time">{{ rule.start_time|time:"H:i" }} - {{ rule.end_time|time:"H:i" }}</span>
-                                    <span class="rule-levels">ON: {{ rule.min_level }}%, OFF: {{ rule.max_level }}%</span>
+            <!-- NEW: Automation Timeslots (4 Slots with Rectangle Boxes) -->
+            <section class="card" aria-label="Automation Timeslots">
+                <h2 class="card-title">⏰ Automation Timeslots</h2>
+                <div class="timeslots-grid">
+                    {% for i in "1234" %}
+                        {% with rules=device.automation_rules.all %}
+                        {% with rule=rules|slice:forloop.counter0|first %}
+                        {% if rule and forloop.counter0 < rules|length %}
+                            <!-- Filled Slot -->
+                            <div class="timeslot-box filled" data-slot="{{ forloop.counter }}">
+                                <div class="slot-header">
+                                    <span class="slot-number">Slot {{ forloop.counter }}</span>
+                                    {% if rule.enabled %}
+                                        <span class="slot-badge active">Active</span>
+                                    {% else %}
+                                        <span class="slot-badge">Disabled</span>
+                                    {% endif %}
                                 </div>
-                                <div class="rule-actions">
-                                    <button class="rule-btn edit" data-rule-id="{{ rule.id }}"><i class="fas fa-edit"></i></button>
-                                    <button class="rule-btn delete" data-rule-id="{{ rule.id }}"><i class="fas fa-trash"></i></button>
+                                <div class="slot-name">{{ rule.name }}</div>
+                                <div class="slot-time">
+                                    <i class="fas fa-clock"></i> {{ rule.start_time|time:"H:i" }} - {{ rule.end_time|time:"H:i" }}
+                                </div>
+                                <div class="slot-levels">
+                                    <span><i class="fas fa-arrow-up"></i> ON: {{ rule.min_level }}%</span>
+                                    <span><i class="fas fa-arrow-down"></i> OFF: {{ rule.max_level }}%</span>
+                                </div>
+                                <div class="slot-actions">
+                                    <button class="slot-btn edit-btn" onclick="editRule({{ rule.id }})" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="slot-btn delete-btn" onclick="deleteRule({{ rule.id }})" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </div>
                             </div>
-                        {% endfor %}
-                    {% else %}
-                        <p class="no-rules">No automation rules set. Create one to override system behavior!</p>
-                    {% endif %}
+                        {% else %}
+                            <!-- Empty Slot with Plus Button -->
+                            <div class="timeslot-box empty" data-slot="{{ forloop.counter }}">
+                                <div class="slot-empty-content">
+                                    <button class="add-slot-btn" onclick="addNewRule({{ forloop.counter }})" title="Add Automation Rule">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                    <span class="slot-label">Slot {{ forloop.counter }}</span>
+                                    <span class="slot-hint">Click + to create</span>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% endwith %}
+                        {% endwith %}
+                    {% endfor %}
                 </div>
-                <button id="create-rule-btn" class="secondary-button"><i class="fas fa-plus"></i> Create New Rule</button>
             </section>
 
             <!-- BL: Status Messages -->
