@@ -77,12 +77,12 @@ def home_view(request):
 
 @login_required
 def device_list_view(request):
-    devices = request.user.devices.all()
+    devices = request.user.device_set.all()
     return render(request, 'device_list.html', {'devices': devices})
 
 @login_required
 def dashboard_view(request, device_id):
-    device = get_object_or_404(request.user.devices, device_id=device_id)
+    device = get_object_or_404(request.user.device_set, device_id=device_id)
     
     # Get latest reading
     last_reading = device.readings.last()

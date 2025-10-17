@@ -1,0 +1,2 @@
+<!-- Placeholder for team images - these will be replaced with actual photos -->
+<!-- This file prevents 404 errors for missing team images -->
