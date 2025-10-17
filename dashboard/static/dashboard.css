@@ -208,16 +208,28 @@ body::before {
     margin-top: 5px;
 }
 
-/* T-Junction horizontal pipe */
+/* Dynamic Pipe System */
 .pipe-junction {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
     position: relative;
+    margin: 10px 0;
 }
 
-.main-pipe {
+/* Simple pipe for 2 tanks */
+.pipe-junction.simple-pipe .main-pipe {
+    height: 12px;
+    background: linear-gradient(90deg, #44a7fd 0%, #0b5fa5 50%, #44a7fd 100%);
+    width: 60%;
+    max-width: 400px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Complex pipe for 3+ tanks */
+.pipe-junction.complex-pipe .main-pipe {
     height: 12px;
     background: linear-gradient(90deg, #44a7fd 0%, #0b5fa5 50%, #44a7fd 100%);
     width: 80%;
@@ -229,17 +241,26 @@ body::before {
 .junction-point {
     position: absolute;
     top: 50%;
-    left: 50%;
     transform: translate(-50%, -50%);
 }
 
 .junction-circle {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
     background: #0b5fa5;
-    border: 3px solid #fff;
-    box-shadow: 0 0 0 2px #0b5fa5, 0 2px 8px rgba(0,0,0,0.2);
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px #0b5fa5, 0 2px 6px rgba(0,0,0,0.2);
+}
+
+/* For 2 tanks: center junction */
+.pipe-junction.simple-pipe .junction-point {
+    left: 50%;
+}
+
+/* For 3+ tanks: multiple junctions positioned dynamically */
+.pipe-junction.complex-pipe .junction-point {
+    /* Position calculated by Django template */
 }
 
 /* Pump Section */
