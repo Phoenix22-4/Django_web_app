@@ -219,9 +219,41 @@ body::before {
 
 .tanks-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
     gap: 15px;
     height: 100%;
+    /* Dynamic grid based on tank count */
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+}
+
+/* Dynamic tank layouts */
+.tanks-grid[data-tank-count="1"] {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+}
+
+.tanks-grid[data-tank-count="2"] {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: 1fr;
+}
+
+.tanks-grid[data-tank-count="3"] {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+}
+
+.tanks-grid[data-tank-count="4"] {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+}
+
+/* For 4+ tanks, use single row */
+.tanks-grid[data-tank-count="5"],
+.tanks-grid[data-tank-count="6"],
+.tanks-grid[data-tank-count="7"],
+.tanks-grid[data-tank-count="8"] {
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, 1fr);
 }
 
 .tank-card {
@@ -317,16 +349,31 @@ body::before {
 .pump-svg {
     width: 100%;
     height: 100%;
-    animation: pump-rotate 2s linear infinite;
+    transition: all 0.3s ease;
 }
 
 .pump-svg.active {
-    animation: pump-rotate 0.5s linear infinite;
+    animation: pump-rotate 0.8s linear infinite;
+    filter: drop-shadow(0 0 10px #28a745);
+}
+
+.pump-svg.offline {
+    opacity: 0.5;
+    filter: grayscale(100%);
 }
 
 @keyframes pump-rotate {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+@keyframes pump-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.pump-svg.pulsing {
+    animation: pump-pulse 1s ease-in-out infinite;
 }
 
 .pump-led {
@@ -476,6 +523,22 @@ body::before {
 .activate-btn {
     background: #007bff;
     color: white;
+}
+
+.activate-btn.active {
+    background: #28a745;
+    color: white;
+}
+
+.timeslot.active {
+    border-color: #28a745;
+    background: #d4edda;
+}
+
+.timeslot-form {
+    border-top: 1px solid #dee2e6;
+    padding-top: 15px;
+    margin-top: 15px;
 }
 
 /* Responsive Design */
