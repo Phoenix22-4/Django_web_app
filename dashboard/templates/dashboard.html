@@ -8,7 +8,7 @@
 
 <div class="header">
     <div class="header-left">
-        <h1 class="heading">AquaSavvy: {{ device.name }}</h1>
+    <h1 class="heading">AquaSavvy: {{ device.name }}</h1>
         <div class="connection-status">
             <div class="status-indicator">
                 <span>WebSocket:</span>
@@ -67,8 +67,8 @@
             </div>
             {% endfor %}
         </div>
+        </div>
     </div>
-</div>
 
 <!-- Bottom Section: Control Grid -->
 <div class="control-grid">
@@ -100,11 +100,11 @@
     <div class="control-card status-messages">
         <h3 class="control-title">Status Messages</h3>
         <div class="status-content">
-            <p id="overhead-status-msg">Overhead: --%</p>
-            <p id="underground-status-msg">Underground: --%</p>
-        </div>
-    </div>
-
+                    <p id="overhead-status-msg">Overhead: --%</p>
+                    <p id="underground-status-msg">Underground: --%</p>
+                </div>
+            </div>
+            
     <!-- Automation Timeslots -->
     <div class="control-card automation">
         <h3 class="control-title">Automation</h3>
@@ -127,8 +127,8 @@
                         <button class="save-btn">Save</button>
                         <button class="delete-btn">Delete</button>
                         <button class="activate-btn">Activate</button>
-                    </div>
-                </div>
+                            </div>
+                        </div>
             </div>
             
             <div class="timeslot" data-slot="2">
