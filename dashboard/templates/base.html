@@ -58,41 +58,5 @@
     </script>
     <script src="{% static 'push_handler.js' %}"></script>
     <script src="{% static 'chat.js' %}"></script>
-
-    <!-- Floating AquaSavvy Chat Widget (HTML structure injected here; styled via dashboard.css; logic in chat.js) -->
-    <div id="chat-widget-container">
-        <div id="chat-bubble" aria-label="Open AquaSavvy Chat">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-            </svg>
-        </div>
-        <div id="chat-popup" class="hidden" role="dialog" aria-label="AquaSavvy AI Assistant">
-            <div id="chat-header">
-                <h3 class="m-0">AquaSavvy AI Assistant</h3>
-                <button id="close-popup" aria-label="Close chat">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-            <div id="chat-tips">
-                <div><strong>Tip:</strong> Ask about features, safety (SSR, 240V), or pricing.</div>
-                <div class="chat-quick-btns">
-                    <button type="button" data-q="What does AquaSavvy do?">What does AquaSavvy do?</button>
-                    <button type="button" data-q="Is the pump protected from dry-run?">Dry-run protection?</button>
-                    <button type="button" data-q="What is the estimated price and profit?">Price & profit</button>
-                </div>
-            </div>
-            <div id="chat-messages" aria-live="polite"></div>
-            <div id="chat-input-container">
-                {% csrf_token %}
-                <div class="chat-input-row">
-                    <input type="text" id="chat-input" placeholder="Ask about AquaSavvy..." autocomplete="off" />
-                    <button id="chat-submit" type="button">Send</button>
-                </div>
-                <div class="chat-powered">Powered by Gemini</div>
-            </div>
-        </div>
-    </div>
 </body>
 </html>
