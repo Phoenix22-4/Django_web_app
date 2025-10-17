@@ -22,12 +22,34 @@ class PushNotificationService:
         try:
             # Check if Firebase is already initialized
             if not firebase_admin._apps:
+                # Check if all required environment variables are present
+                required_vars = [
+                    'FIREBASE_PROJECT_ID',
+                    'FIREBASE_PRIVATE_KEY_ID', 
+                    'FIREBASE_PRIVATE_KEY',
+                    'FIREBASE_CLIENT_EMAIL',
+                    'FIREBASE_CLIENT_ID',
+                    'FIREBASE_CLIENT_X509_CERT_URL'
+                ]
+                
+                missing_vars = [var for var in required_vars if not os.getenv(var)]
+                if missing_vars:
+                    logger.warning(f"Firebase credentials not configured. Missing: {missing_vars}")
+                    self.firebase_initialized = False
+                    return
+                
                 # Initialize Firebase Admin SDK
+                private_key = os.getenv('FIREBASE_PRIVATE_KEY', '').replace('\\n', '\n')
+                if not private_key.startswith('-----BEGIN PRIVATE KEY-----'):
+                    logger.error("Firebase private key is malformed")
+                    self.firebase_initialized = False
+                    return
+                
                 cred = credentials.Certificate({
                     "type": "service_account",
                     "project_id": os.getenv('FIREBASE_PROJECT_ID'),
                     "private_key_id": os.getenv('FIREBASE_PRIVATE_KEY_ID'),
-                    "private_key": os.getenv('FIREBASE_PRIVATE_KEY', '').replace('\\n', '\n'),
+                    "private_key": private_key,
                     "client_email": os.getenv('FIREBASE_CLIENT_EMAIL'),
                     "client_id": os.getenv('FIREBASE_CLIENT_ID'),
                     "auth_uri": "https://accounts.google.com/o/oauth2/auth",

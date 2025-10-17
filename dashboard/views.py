@@ -125,7 +125,7 @@ def ai_chat_view(request):
         
         # Initialize Gemini model with device information
         model = genai.GenerativeModel(
-            'gemini-1.5-flash',  # Using flash model for faster responses
+            'gemini-1.5-flash-8b',  # Using correct flash model name
             system_instruction=DEVICE_INFO
         )
         

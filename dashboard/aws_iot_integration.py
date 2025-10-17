@@ -18,7 +18,7 @@ class AWSIoTManager:
         self.iot_endpoint = os.getenv('AWS_IOT_ENDPOINT')
         
         if not all([self.aws_access_key, self.aws_secret_key, self.iot_endpoint]):
-            logger.warning("AWS IoT credentials not configured")
+            logger.warning("AWS IoT credentials not configured. Missing: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, or AWS_IOT_ENDPOINT")
             return
             
         try:
