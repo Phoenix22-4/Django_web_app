@@ -8,8 +8,9 @@ from django.dispatch import receiver
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone_number = models.CharField(max_length=20, blank=True) # Kept from previous
-    # We will also need to store push notification tokens here
-    # GCMDevice or WebPushDevice from 'push_notifications' will handle this
+    fcm_token = models.TextField(blank=True, null=True, help_text="Firebase Cloud Messaging token for push notifications")
+    push_notifications_enabled = models.BooleanField(default=True, help_text="Enable/disable push notifications")
+    last_notification_sent = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return f'{self.user.username} Profile'
