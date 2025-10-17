@@ -133,7 +133,7 @@ def ai_chat_view(request):
     except Exception as exc:
         return JsonResponse({'reply': 'AI error. Please contact support.'}, status=200)
 
-# Public chat endpoint for the homepage (no login required)
+# Public chat endpoint for the homepage (no login required) - CUSTOMER-FACING
 def ai_chat_public_view(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
@@ -152,10 +152,15 @@ def ai_chat_public_view(request):
             request.session['ai_last_ts'] = now_ts
 
         system_preamble = (
-            "You are AquaSavvy Assistant for Vision Technology. "
-            "Answer only AquaSavvy Solution topics: water level monitoring, pump control, alerts, setup, troubleshooting, usage. "
-            "If unrelated, redirect to AquaSavvy topics. If a technical fault is suspected or you cannot help, provide support: "
-            "Email contact:vision072025@gmail.com and WhatsApp +254 702 715070. "
+            "You are AquaSavvy AI Assistant for Vision Technology, talking to a POTENTIAL CUSTOMER on the public homepage. "
+            "Your goal is to explain the AquaSavvy Solution product benefits:\n"
+            "- What it does: Real-time water tank monitoring, automated pump protection, smart alerts\n"
+            "- Why it saves money: Prevents pump burnout (dry-run protection), reduces electricity waste, optimizes water usage\n"
+            "- Key features: Remote monitoring, mobile alerts, automated control, usage analytics\n"
+            "- Who it's for: Homeowners, apartments, commercial buildings with water tanks\n\n"
+            "Be friendly, helpful, and sales-oriented. Explain technical concepts in simple terms. "
+            "If asked non-related questions, politely say 'I can only answer questions about the AquaSavvy water management system.'\n"
+            "For technical support or pricing inquiries, provide: Email contact:vision072025@gmail.com and WhatsApp +254 702 715070"
         )
 
         try:
