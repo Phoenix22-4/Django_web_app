@@ -6,195 +6,264 @@
 {% block content %}
 <meta name="device-id" id="device-id" content="{{ device.device_id }}">
 
-<div class="header">
+<!-- Clean Header with Connection Status in Center -->
+<div class="dashboard-header">
     <div class="header-left">
-    <h1 class="heading">AquaSavvy: {{ device.name }}</h1>
+        <h1 class="dashboard-title">AquaSavvy: {{ device.name }}</h1>
+    </div>
+    <div class="header-center">
         <div class="connection-status">
-            <div class="status-indicator">
-                <span>WebSocket:</span>
-                <span id="websocket-status">Connecting...</span>
-                <div id="websocket-light" class="status-light offline"></div>
+            <div class="status-item">
+                <span class="status-label">WebSocket:</span>
+                <span id="websocket-status" class="status-text">Connecting...</span>
+                <div id="websocket-light" class="status-dot offline"></div>
             </div>
-            <div class="status-indicator">
-                <span>Device:</span>
-                <span id="device-status">Offline</span>
-                <div id="device-light" class="status-light offline"></div>
+            <div class="status-item">
+                <span class="status-label">Device:</span>
+                <span id="device-status" class="status-text">Offline</span>
+                <div id="device-light" class="status-dot offline"></div>
             </div>
         </div>
     </div>
-    <div class="user-info">
-        <span>Welcome, {{ user.username }}!</span>
-        <a href="{% url 'device_list' %}" class="icon-nav-button" title="Back to Devices"><i class="fas fa-arrow-left"></i></a>
-        <a href="{% static 'docs/index.html' %}" class="icon-nav-button" title="Docs"><i class="fas fa-book"></i></a>
-        <a href="{% url 'logout' %}" class="logout-link icon-nav-button danger" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
+    <div class="header-right">
+        <span class="welcome-text">Welcome, {{ user.username }}!</span>
+        <div class="header-actions">
+            <a href="{% url 'device_list' %}" class="action-btn" title="Back to Devices"><i class="fas fa-arrow-left"></i></a>
+            <a href="{% static 'docs/index.html' %}" class="action-btn" title="Docs"><i class="fas fa-book"></i></a>
+            <a href="{% url 'logout' %}" class="action-btn logout" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
+        </div>
     </div>
 </div>
 
-<!-- Main Dashboard Layout -->
-<div class="dashboard-main-grid">
-    <!-- Left Side: Charts Column -->
-    <div class="charts-column">
-        <div class="chart-card light-blue">
-            <h3 class="chart-title">Pump Runtime (Last 24h)</h3>
+<!-- Main Dashboard Grid - Clean Layout -->
+<div class="dashboard-grid">
+    <!-- Top Row: Charts and Tank Level -->
+    <div class="dashboard-row">
+        <!-- Water Usage Chart -->
+        <div class="dashboard-card chart-card">
+            <h3 class="card-title">Water Usage (Last 24h)</h3>
             <div class="chart-container">
-                <canvas id="pumpRuntimeChart"></canvas>
+                <canvas id="waterUsageChart"></canvas>
             </div>
         </div>
-        <div class="chart-card light-blue">
-            <h3 class="chart-title">Power Usage (Last 24h)</h3>
-            <div class="chart-container">
-                <canvas id="powerUsageChart"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Right Side: Tanks Column -->
-    <div class="tanks-column">
-        <div class="tanks-grid" id="tanks-grid">
-            {% for tank in last_reading.tank_data %}
-            <div class="tank-card yellow-bg">
-                <div class="tank-title">{{ tank.name }}</div>
-                <div class="tank-visual {% if 'underground' in tank.name|lower %}underground{% else %}overhead{% endif %}">
-                    <div class="tank-frame">
-                        <div class="water-level" id="tank-level-{{ tank.name|slugify }}" style="height: {{ tank.level }}%;"></div>
-                    </div>
-                    <div class="tank-percentage"><span id="tank-percent-{{ tank.name|slugify }}">{{ tank.level }}%</span></div>
+        
+        <!-- Tank Level Gauge -->
+        <div class="dashboard-card tank-gauge-card">
+            <h3 class="card-title">Tank Level</h3>
+            <div class="tank-gauge">
+                <div class="gauge-circle">
+                    <div class="gauge-fill" id="tank-gauge-fill"></div>
+                    <div class="gauge-text" id="tank-level-text">75%</div>
                 </div>
             </div>
-            {% empty %}
-            <div class="tank-card yellow-bg">
-                <p>Waiting for device data...</p>
-            </div>
-            {% endfor %}
         </div>
-        </div>
-    </div>
-
-<!-- Bottom Section: Control Grid -->
-<div class="control-grid">
-    <!-- Pump Control -->
-    <div class="control-card pump-control">
-        <h3 class="control-title">Pump Control</h3>
-        <div class="pump-visual">
-            <div class="pump-icon" id="pump-motor">
-                <svg viewBox="0 0 100 100" class="pump-svg">
-                    <circle cx="50" cy="50" r="40" fill="#007bff" stroke="#0056b3" stroke-width="3"/>
-                    <path d="M30 30 L70 30 L70 70 L30 70 Z" fill="white"/>
-                    <circle cx="50" cy="50" r="15" fill="#007bff"/>
-                    <path d="M45 45 L55 45 L55 55 L45 55 Z" fill="white"/>
-                </svg>
-                <div id="pump-led" class="pump-led"></div>
-            </div>
-            <div class="pump-buttons">
-                <button id="pump-on" class="control-btn on">ON</button>
-                <button id="pump-off" class="control-btn off">OFF</button>
-            </div>
-            <div class="pump-status">
-                <span id="pump-status-text">Status: --</span>
-                <span id="pump-current-text">Current: -- A</span>
+        
+        <!-- Pump Status -->
+        <div class="dashboard-card pump-status-card">
+            <h3 class="card-title">Pump Status</h3>
+            <div class="pump-container">
+                <div class="pump-icon" id="pump-icon">
+                    <div class="pump-rectangle"></div>
+                </div>
+                <div class="pump-controls">
+                    <button id="pump-on-btn" class="pump-btn on-btn">ON</button>
+                    <button id="pump-off-btn" class="pump-btn off-btn">OFF</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Status Messages -->
-    <div class="control-card status-messages">
-        <h3 class="control-title">Status Messages</h3>
-        <div class="status-content">
-                    <p id="overhead-status-msg">Overhead: --%</p>
-                    <p id="underground-status-msg">Underground: --%</p>
-                </div>
-            </div>
-            
-    <!-- Automation Timeslots -->
-    <div class="control-card automation">
-        <h3 class="control-title">Automation</h3>
-        <div class="timeslots-grid">
-            <div class="timeslot" data-slot="1">
-                <div class="timeslot-header">
-                    <span class="timeslot-name">Timeslot 1</span>
-                    <button class="timeslot-toggle" data-slot="1">+</button>
-                </div>
-                <div class="timeslot-form hidden" data-slot="1">
-                    <input type="text" placeholder="Rule Name" class="rule-name">
-                    <input type="time" class="start-time">
-                    <input type="time" class="end-time">
-                    <select class="tank-select">
-                        <option>Select Tank</option>
-                    </select>
-                    <input type="number" placeholder="Min Level %" class="min-level">
-                    <input type="number" placeholder="Max Level %" class="max-level">
-                    <div class="timeslot-actions">
-                        <button class="save-btn">Save</button>
-                        <button class="delete-btn">Delete</button>
-                        <button class="activate-btn">Activate</button>
-                            </div>
-                        </div>
-            </div>
-            
-            <div class="timeslot" data-slot="2">
-                <div class="timeslot-header">
-                    <span class="timeslot-name">Timeslot 2</span>
-                    <button class="timeslot-toggle" data-slot="2">+</button>
-                </div>
-                <div class="timeslot-form hidden" data-slot="2">
-                    <input type="text" placeholder="Rule Name" class="rule-name">
-                    <input type="time" class="start-time">
-                    <input type="time" class="end-time">
-                    <select class="tank-select">
-                        <option>Select Tank</option>
-                    </select>
-                    <input type="number" placeholder="Min Level %" class="min-level">
-                    <input type="number" placeholder="Max Level %" class="max-level">
-                    <div class="timeslot-actions">
-                        <button class="save-btn">Save</button>
-                        <button class="delete-btn">Delete</button>
-                        <button class="activate-btn">Activate</button>
+    <!-- Middle Row: Tank Levels and Parameters -->
+    <div class="dashboard-row">
+        <!-- Tank Levels -->
+        <div class="dashboard-card tanks-card">
+            <h3 class="card-title">Tank Levels</h3>
+            <div class="tanks-container" id="tanks-container">
+                {% for tank in last_reading.tank_data %}
+                <div class="tank-item">
+                    <div class="tank-name">{{ tank.name }}</div>
+                    <div class="tank-level-bar">
+                        <div class="level-fill" id="tank-level-{{ tank.name|slugify }}" style="width: {{ tank.level }}%"></div>
                     </div>
+                    <div class="tank-percentage" id="tank-percent-{{ tank.name|slugify }}">{{ tank.level }}%</div>
+                </div>
+                {% empty %}
+                <div class="tank-item">
+                    <div class="tank-name">Waiting for data...</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- System Parameters -->
+        <div class="dashboard-card parameters-card">
+            <h3 class="card-title">System Parameters</h3>
+            <div class="parameters-grid">
+                <div class="param-item">
+                    <span class="param-label">Water Level:</span>
+                    <span class="param-value" id="water-level-value">7</span>
+                </div>
+                <div class="param-item">
+                    <span class="param-label">Pump Current:</span>
+                    <span class="param-value" id="pump-current-value">2.5A</span>
+                </div>
+                <div class="param-item">
+                    <span class="param-label">Temperature:</span>
+                    <span class="param-value" id="temperature-value">25°C</span>
+                </div>
+                <div class="param-item">
+                    <span class="param-label">Humidity:</span>
+                    <span class="param-value" id="humidity-value">70%</span>
                 </div>
             </div>
-            
-            <div class="timeslot" data-slot="3">
-                <div class="timeslot-header">
-                    <span class="timeslot-name">Timeslot 3</span>
-                    <button class="timeslot-toggle" data-slot="3">+</button>
+        </div>
+        
+        <!-- Automation Timeslots -->
+        <div class="dashboard-card automation-card">
+            <h3 class="card-title">Automation Timeslots</h3>
+            <div class="timeslots-container" id="timeslots-container">
+                <!-- Timeslots will be dynamically generated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Row: Status Messages -->
+    <div class="dashboard-row">
+        <div class="dashboard-card status-card">
+            <h3 class="card-title">System Status</h3>
+            <div class="status-messages" id="status-messages">
+                <div class="status-item">
+                    <span class="status-label">Pump Status:</span>
+                    <span class="status-value" id="pump-status-text">OFF</span>
                 </div>
-                <div class="timeslot-form hidden" data-slot="3">
-                    <input type="text" placeholder="Rule Name" class="rule-name">
-                    <input type="time" class="start-time">
-                    <input type="time" class="end-time">
-                    <select class="tank-select">
-                        <option>Select Tank</option>
-                    </select>
-                    <input type="number" placeholder="Min Level %" class="min-level">
-                    <input type="number" placeholder="Max Level %" class="max-level">
-                    <div class="timeslot-actions">
-                        <button class="save-btn">Save</button>
-                        <button class="delete-btn">Delete</button>
-                        <button class="activate-btn">Activate</button>
-                    </div>
+                <div class="status-item">
+                    <span class="status-label">Current:</span>
+                    <span class="status-value" id="pump-current-text">0.0A</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Last Update:</span>
+                    <span class="status-value" id="last-update-text">--</span>
                 </div>
             </div>
-            
-            <div class="timeslot" data-slot="4">
-                <div class="timeslot-header">
-                    <span class="timeslot-name">Timeslot 4</span>
-                    <button class="timeslot-toggle" data-slot="4">+</button>
-                </div>
-                <div class="timeslot-form hidden" data-slot="4">
-                    <input type="text" placeholder="Rule Name" class="rule-name">
-                    <input type="time" class="start-time">
-                    <input type="time" class="end-time">
-                    <select class="tank-select">
-                        <option>Select Tank</option>
-                    </select>
-                    <input type="number" placeholder="Min Level %" class="min-level">
-                    <input type="number" placeholder="Max Level %" class="max-level">
-                    <div class="timeslot-actions">
-                        <button class="save-btn">Save</button>
-                        <button class="delete-btn">Delete</button>
-                        <button class="activate-btn">Activate</button>
-                    </div>
-                </div>
+        </div>
+    </div>
+</div>
+
+<!-- Expandable Automation Timeslots -->
+<div class="automation-timeslots">
+    <div class="timeslot" data-slot="1">
+        <div class="timeslot-header">
+            <span class="timeslot-name">Timeslot 1</span>
+            <button class="timeslot-toggle" data-slot="1">+</button>
+        </div>
+        <div class="timeslot-form hidden" data-slot="1">
+            <div class="form-group">
+                <label>Rule Name:</label>
+                <input type="text" placeholder="e.g., Night Refill" class="rule-name">
+            </div>
+            <div class="form-group">
+                <label>Start Time:</label>
+                <input type="time" class="start-time">
+            </div>
+            <div class="form-group">
+                <label>End Time:</label>
+                <input type="time" class="end-time">
+            </div>
+            <div class="form-group">
+                <label>Tank to Monitor:</label>
+                <select class="tank-select">
+                    <option>Select Tank</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Turn ON Below (%):</label>
+                <input type="number" placeholder="20" class="min-level">
+            </div>
+            <div class="form-group">
+                <label>Turn OFF Above (%):</label>
+                <input type="number" placeholder="80" class="max-level">
+            </div>
+            <div class="form-actions">
+                <button class="save-btn">Save</button>
+                <button class="cancel-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="timeslot" data-slot="2">
+        <div class="timeslot-header">
+            <span class="timeslot-name">Timeslot 2</span>
+            <button class="timeslot-toggle" data-slot="2">+</button>
+        </div>
+        <div class="timeslot-form hidden" data-slot="2">
+            <div class="form-group">
+                <label>Rule Name:</label>
+                <input type="text" placeholder="e.g., Morning Fill" class="rule-name">
+            </div>
+            <div class="form-group">
+                <label>Start Time:</label>
+                <input type="time" class="start-time">
+            </div>
+            <div class="form-group">
+                <label>End Time:</label>
+                <input type="time" class="end-time">
+            </div>
+            <div class="form-group">
+                <label>Tank to Monitor:</label>
+                <select class="tank-select">
+                    <option>Select Tank</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Turn ON Below (%):</label>
+                <input type="number" placeholder="20" class="min-level">
+            </div>
+            <div class="form-group">
+                <label>Turn OFF Above (%):</label>
+                <input type="number" placeholder="80" class="max-level">
+            </div>
+            <div class="form-actions">
+                <button class="save-btn">Save</button>
+                <button class="cancel-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="timeslot" data-slot="3">
+        <div class="timeslot-header">
+            <span class="timeslot-name">Timeslot 3</span>
+            <button class="timeslot-toggle" data-slot="3">+</button>
+        </div>
+        <div class="timeslot-form hidden" data-slot="3">
+            <div class="form-group">
+                <label>Rule Name:</label>
+                <input type="text" placeholder="e.g., Evening Refill" class="rule-name">
+            </div>
+            <div class="form-group">
+                <label>Start Time:</label>
+                <input type="time" class="start-time">
+            </div>
+            <div class="form-group">
+                <label>End Time:</label>
+                <input type="time" class="end-time">
+            </div>
+            <div class="form-group">
+                <label>Tank to Monitor:</label>
+                <select class="tank-select">
+                    <option>Select Tank</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Turn ON Below (%):</label>
+                <input type="number" placeholder="20" class="min-level">
+            </div>
+            <div class="form-group">
+                <label>Turn OFF Above (%):</label>
+                <input type="number" placeholder="80" class="max-level">
+            </div>
+            <div class="form-actions">
+                <button class="save-btn">Save</button>
+                <button class="cancel-btn">Cancel</button>
             </div>
         </div>
     </div>
@@ -377,8 +446,10 @@ function activateTimeslotRule(slot) {
 }
 </script>
 <script src="{% static 'dashboard.js' %}"></script>
+<script src="{% static 'timeslots.js' %}"></script>
 
 <!-- AquaSavvy AI Chat Widget -->
 <link rel="stylesheet" href="{% static 'aquasavvy-chat.css' %}">
 <script src="{% static 'aquasavvy-chat.js' %}"></script>
+{% endblock %}
 {% endblock %}
