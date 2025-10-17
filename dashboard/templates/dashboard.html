@@ -41,8 +41,10 @@
                                             </div>
                                             <div class="tank-info"><span data-tank-text="{{ tank.name }}">{{ tank.level }}%</span></div>
                                         </div>
-                                        <!-- Vertical Pipe from tank -->
-                                        <div class="pipe-vertical"></div>
+                                        <!-- Vertical Pipe from tank (only if multiple tanks) -->
+                                        {% if last_reading.tank_data|length > 1 %}
+                                            <div class="pipe-vertical"></div>
+                                        {% endif %}
                                     </div>
                                 {% endfor %}
                             {% else %}
@@ -70,13 +72,32 @@
                             {% endif %}
                         </div>
                         
-                        <!-- T-Junction Pipe System -->
-                        <div class="pipe-junction">
-                            <div class="pipe-horizontal main-pipe"></div>
-                            <div class="junction-point">
-                                <div class="junction-circle"></div>
+                        <!-- Dynamic Pipe System (adapts to number of tanks) -->
+                        {% if last_reading and last_reading.tank_data %}
+                            {% if last_reading.tank_data|length == 1 %}
+                                <!-- 1 tank: No pipes needed -->
+                            {% elif last_reading.tank_data|length == 2 %}
+                                <!-- 2 tanks: Simple horizontal pipe -->
+                                <div class="pipe-junction simple-pipe">
+                                    <div class="pipe-horizontal main-pipe"></div>
+                                </div>
+                            {% else %}
+                                <!-- 3+ tanks: T-junction with multiple connection points -->
+                                <div class="pipe-junction complex-pipe">
+                                    <div class="pipe-horizontal main-pipe"></div>
+                                    {% for tank in last_reading.tank_data %}
+                                        <div class="junction-point" style="left: {{ forloop.counter0|floatformat:0|add:1|mul:100|div:last_reading.tank_data|length|floatformat:0 }}%;">
+                                            <div class="junction-circle"></div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <!-- Fallback: 2 tanks (Underground + Overhead) -->
+                            <div class="pipe-junction simple-pipe">
+                                <div class="pipe-horizontal main-pipe"></div>
                             </div>
-                        </div>
+                        {% endif %}
                         
                         <!-- Pump with Connections -->
                         <div class="pump-section">
