@@ -6,119 +6,109 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import async_to_sync, sync_to_async
 from channels.layers import get_channel_layer
 from .models import Device, WaterReading, AutomationRule
-from .notifications import check_and_send_alerts
 import os
+from django.utils import timezone
+from datetime import datetime
 
-# --- MQTT Setup (WITH YOUR NEW ENDPOINT) ---
-MQTT_SERVER = "a2hspl06jd48n2-ats.iot.me-central-1.amazonaws.com" 
+# --- MQTT Setup ---
+MQTT_SERVER = "a32641ary7fmuf-ats.iot.me-central-1.amazonaws.com"
 MQTT_PORT = 8883
 MQTT_WILDCARD_DATA_TOPIC = "devices/+/data"
 MQTT_COMMAND_TOPIC_FORMAT = "devices/{}/commands"
 
-# --- Global variable to hold our single MQTT client instance ---
 mqtt_listener_client = None
 
-# =================================================================
+# --- Helper function to send commands ---
+def send_pump_command(device_id, command):
+    command_topic = MQTT_COMMAND_TOPIC_FORMAT.format(device_id)
+    payload = json.dumps({"command": command})
+    client_instance = get_mqtt_client()
+    client_instance.client.publish(command_topic, payload)
+    print(f"Web app sent command '{command}' to device '{device_id}'")
+
 # --- This is the Web App's Brain (Your Dynamic Logic) ---
-# =================================================================
 @sync_to_async
 def process_and_save_data(topic, payload_str):
     try:
-        # Step 1: The web app reads the device_id from the topic.
         device_id = topic.split('/')[1]
         payload = json.loads(payload_str)
         
-        # YOUR LOGIC: The web app automatically creates a device record if it's new.
         device, created = Device.objects.get_or_create(device_id=device_id)
         if created:
             print(f"AUTO-CREATED: New device '{device_id}' has connected and been added to the database.")
 
-        # NEW: Support dynamic tank_data structure
-        tank_data = payload.get('tank_data', [])
-        
-        # Backward compatibility: if ESP32 sends old format, convert to new format
-        if not tank_data and ('overhead_level' in payload or 'underground_level' in payload):
-            tank_data = [
-                {"name": "Overhead", "level": payload.get('overhead_level', 0)},
-                {"name": "Underground", "level": payload.get('underground_level', 0)}
-            ]
-        
-        # The web app saves the data, linking it to the correct device.
-        reading = WaterReading.objects.create(
+        # --- MODIFIED: Save new dynamic data format ---
+        WaterReading.objects.create(
             device=device,
-            tank_data=tank_data,
-            # Legacy fields for backward compat
-            overhead_level=payload.get('overhead_level', 0),
-            underground_level=payload.get('underground_level', 0),
+            tank_data=payload.get('tanks', []), # Expects [{"name": "Tank 1", "level": 80}]
             pump_status=payload.get('pump_status', False),
-            pump_current_amps=payload.get('pump_current_amps', payload.get('pump_current', 0.0)),
-            pump_mode=payload.get('pump_mode', 'AUTO'),
-            system_status=payload.get('system_status', 'OK')
+            pump_current_amps=payload.get('pump_current_amps', 0.0)
         )
 
-        # Notifications: evaluate critical alerts
-        try:
-            check_and_send_alerts(device, reading)
-        except Exception as _:
-            pass
-
-        # ==========================================================
-        # --- AUTOMATIC DATA DELETION LOGIC ---
-        # ==========================================================
+        # --- DATA DELETION LOGIC (from old file) ---
         DATA_LIMIT_PER_DEVICE = 150
         reading_count = WaterReading.objects.filter(device=device).count()
-
         if reading_count > DATA_LIMIT_PER_DEVICE:
-            # Find the oldest reading for this specific device
             oldest_reading = WaterReading.objects.filter(device=device).order_by('timestamp').first()
             if oldest_reading:
                 oldest_reading.delete()
-                print(f"CLEANUP: Deleted oldest reading for device '{device_id}' to stay within the {DATA_LIMIT_PER_DEVICE} limit.")
-        # ==========================================================
-        
-        # Check for active automation rules
-        automation_status = "System Auto-Mode"
-        active_rule = None
-        
-        try:
-            # Find active automation rule for this device
-            active_rules = AutomationRule.objects.filter(
-                device=device,
-                enabled=True
-            )
-            
-            for rule in active_rules:
-                if rule.is_active_now():
-                    active_rule = rule
-                    automation_status = f"Timeslot Active ({rule.name})"
+
+        # --- NEW: ADVANCED PUMP & AUTOMATION LOGIC ---
+        now_time = timezone.now().time()
+        active_rule = AutomationRule.objects.filter(
+            device=device,
+            enabled=True,
+            start_time__lte=now_time,
+            end_time__gte=now_time
+        ).first()
+
+        automation_mode_message = "System Auto-Mode"
+        pump_should_be_on = payload.get('pump_status', False) # Default to current status
+
+        if active_rule:
+            # User timeslot is active. Use its logic.
+            current_level = -1
+            for tank in payload.get('tanks', []):
+                if tank['name'] == active_rule.monitor_tank_name:
+                    current_level = tank['level']
                     break
-        except Exception as e:
-            print(f"Error checking automation rules: {e}")
+            
+            if current_level != -1:
+                automation_mode_message = f"Timeslot Active ({active_rule.name}): ON at {active_rule.min_level}%, OFF at {active_rule.max_level}%"
+                
+                if current_level < active_rule.min_level:
+                    pump_should_be_on = True
+                elif current_level > active_rule.max_level:
+                    pump_should_be_on = False
+                
+        else:
+            # No active rule. Use default system logic.
+            # Example: fill overhead from underground
+            overhead_level = -1
+            underground_level = -1
+            for tank in payload.get('tanks', []):
+                if 'overhead' in tank['name'].lower():
+                    overhead_level = tank['level']
+                if 'underground' in tank['name'].lower():
+                    underground_level = tank['level']
+
+            if overhead_level != -1 and underground_level != -1:
+                if overhead_level < 20 and underground_level > 10: # Min levels
+                    pump_should_be_on = True
+                elif overhead_level > 95: # Max level
+                    pump_should_be_on = False
         
-        # Prepare payload for WebSocket (include both formats for compatibility)
-        ws_payload = {
-            'tank_data': tank_data,
-            'pump_status': reading.pump_status,
-            'pump_current_amps': reading.pump_current_amps,
-            'pump_mode': reading.pump_mode,
-            'system_status': reading.system_status,
-            'automation_status': automation_status,
-            'active_rule': {
-                'name': active_rule.name if active_rule else None,
-                'min_level': active_rule.min_level if active_rule else None,
-                'max_level': active_rule.max_level if active_rule else None,
-                'destination_tank': active_rule.destination_tank if active_rule else None
-            } if active_rule else None,
-            # Legacy fields
-            'overhead_level': reading.overhead_level or 0,
-            'underground_level': reading.underground_level or 0,
-            'pump_current': reading.pump_current_amps
-        }
+        # --- Send command ONLY if the state needs to change ---
+        if device.pump_present and pump_should_be_on != payload.get('pump_status'):
+            send_pump_command(device_id, 'PUMP_ON' if pump_should_be_on else 'PUMP_OFF')
+
+        # Add the automation status to the payload
+        payload['automation_mode'] = automation_mode_message
         
-        # Only forward the message if an admin has assigned a user to this device.
+        # Only forward if owner is assigned
         if device.owner:
             print(f"SUCCESS: Saved data for device '{device_id}' owned by '{device.owner}'.")
-            return device_id, ws_payload
+            return device_id, payload
         else:
             print(f"Data received for unassigned device '{device_id}'. Stored, but not forwarded.")
             return None, None
@@ -131,7 +121,6 @@ def process_and_save_data(topic, payload_str):
 def on_message(client, userdata, msg):
     device_id, payload = async_to_sync(process_and_save_data)(msg.topic, msg.payload.decode())
     
-    # If the device has an owner, the web app forwards the data to the correct user's browser.
     if device_id and payload:
         channel_layer = get_channel_layer()
         group_name = f"device_{device_id}"
@@ -140,16 +129,8 @@ def on_message(client, userdata, msg):
             {"type": "device.message", "message": payload}
         )
 
-# This function is called when the web app connects to AWS.
-def on_connect(client, userdata, flags, rc):
-    if rc == 0:
-        print("SUCCESS: Connected to MQTT Broker!")
-        client.subscribe(MQTT_WILDCARD_DATA_TOPIC)
-        print(f"--> Web App is now listening for data from all devices.")
-    else:
-        print(f"FAILED to connect Web App, return code {rc}")
-
-# --- This class defines the Web App's fixed identity ---
+# --- (Rest of MqttClient, get_mqtt_client, and DashboardConsumer stay the same) ---
+# ... (Keep the rest of your file from MqttClient class downwards) ...
 class MqttClient:
     def __init__(self):
         # The web app has one, fixed ID ("the mail van").
@@ -162,7 +143,6 @@ class MqttClient:
 
         self.client.tls_set(
             ca_certs=os.path.join(certs_dir, "AmazonRootCA1.pem"),
-            # --- UPDATED CERTIFICATE AND KEY FILES ---
             certfile=os.path.join(certs_dir, "7355e09287fa3fab0fbd2c16eaee80bedd61b592e42dd5b6697f59c2de643149-certificate.pem.crt"),
             keyfile=os.path.join(certs_dir, "7355e09287fa3fab0fbd2c16eaee80bedd61b592e42dd5b6697f59c2de643149-private.pem.key"),
             tls_version=ssl.PROTOCOL_TLSv1_2
@@ -208,11 +188,8 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         command = data.get('command')
         
         if command in ["PUMP_ON", "PUMP_OFF"]:
-            command_topic = MQTT_COMMAND_TOPIC_FORMAT.format(self.device_id)
-            payload = json.dumps({"command": command})
-            client_instance = get_mqtt_client()
-            client_instance.client.publish(command_topic, payload)
-            print(f"Web app sent command '{command}' to device '{self.device_id}'")
+            # Use the helper function to send commands
+            send_pump_command(self.device_id, command)
 
     async def device_message(self, event):
         message = event['message']

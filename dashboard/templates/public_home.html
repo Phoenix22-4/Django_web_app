@@ -4,75 +4,73 @@
 {% block title %}AquaSavvy Kenya: IoT Water Management System{% endblock %}
 
 {% block content %}
-<style>
-    html { scroll-behavior: smooth; }
-    body {
-        font-family: 'Inter', sans-serif;
-        background-color: #F5F5F5; 
-        color: #4A4A4A;
-    }
-    .bg-primary { background-color: #F5F5F5; }
-    .bg-secondary { background-color: #FFFFFF; }
-    .bg-accent { background-color: #00796B; } 
-    .text-accent { color: #00796B; }
-    .border-accent { border-color: #00796B; }
-    .nav-link {
-        padding: 8px 16px;
-        border-radius: 9999px;
-        transition: all 0.3s;
-        font-weight: 500;
-    }
-    .nav-link:hover, .nav-link.active {
-        background-color: #E0F2F1; 
-        color: #004D40;
-    }
-    .stat-card {
-        background-color: #FFFFFF;
-        border-left: 5px solid #00796B;
-    }
-    .system-component {
-        transition: all 0.3s ease-in-out;
-        cursor: pointer;
-    }
-    .system-component:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    }
-    .tab-button {
-        transition: all 0.3s;
-    }
-    .tab-button.active {
-        border-color: #00796B;
-        background-color: #E0F2F1;
-        color: #004D40;
-    }
-    .chart-container {
-        position: relative;
-        width: 100%;
-        max-width: 500px;
-        margin-left: auto;
-        margin-right: auto;
-        height: 300px;
-        max-height: 40vh;
-    }
-    @media (min-width: 768px) {
-        .chart-container {
-            height: 350px;
+<head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F5F5F5; 
+            color: #4A4A4A;
         }
-    }
-</style>
-
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="{% static 'chat.js' %}"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script>
+        .bg-primary { background-color: #F5F5F5; }
+        .bg-secondary { background-color: #FFFFFF; }
+        .bg-accent { background-color: #00796B; } 
+        .text-accent { color: #00796B; }
+        .border-accent { border-color: #00796B; }
+        .nav-link {
+            padding: 8px 16px;
+            border-radius: 9999px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        .nav-link:hover, .nav-link.active {
+            background-color: #E0F2F1; 
+            color: #004D40;
+        }
+        .stat-card {
+            background-color: #FFFFFF;
+            border-left: 5px solid #00796B;
+        }
+        .system-component {
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+        }
+        .system-component:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .tab-button {
+            transition: all 0.3s;
+        }
+        .tab-button.active {
+            border-color: #00796B;
+            background-color: #E0F2F1;
+            color: #004D40;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 40vh;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+    </style>
+    <script>
+        // These functions are for this page only
         const apiKey = "AIzaSyDZ3lsOhZ4HRY9JmZlgulOjRrZ5KYZWdpk";
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-        // Expose to chat widget
-        window.apiUrl = apiUrl;
         
         async function fetchGeminiResponse(systemPrompt, userQuery) {
             const loader = document.getElementById('market-loader') || document.getElementById('safety-loader');
@@ -147,22 +145,9 @@
             output.innerHTML = `<div class="p-4 bg-red-50 rounded-lg border border-red-300 text-sm whitespace-pre-wrap">${checklist}</div>`;
         }
     </script>
-    <!-- 
-        Chosen Palette: Savanna Calm 
-        Application Structure Plan: The SPA is structured as a narrative journey, starting with a high-level overview and impact (the "Why"), moving to an interactive system diagram (the "How it Works"), delving into specific technical pillars (the "What"), analyzing the business case (the "Why it's Viable"), and concluding with the production roadmap (the "What's Next"). This thematic, top-down structure is more intuitive for a broader audience than a traditional report layout. It allows a user to grasp the core value proposition immediately, explore the system's architecture interactively, and then drill down into technical or economic details as needed via tabs and dedicated sections. This flow prioritizes user understanding and engagement over strict adherence to the source document's order.
-        Visualization & Content Choices: 
-        - Report Info: Key project benefits (water/cost savings, pump protection). Goal: Inform/Impact. Viz/Method: Prominent stat cards (HTML/CSS). Interaction: Static. Justification: Immediately communicates the core value proposition.
-        - Report Info: Overall system architecture. Goal: Organize/Explain. Viz/Method: Interactive diagram using HTML/Tailwind divs. Interaction: Hover/click on components to display detailed info text via JS. Justification: More engaging and explorable than a static image, allowing users to learn at their own pace.
-        - Report Info: Technical details (Hardware, Software, Safety). Goal: Organize/Inform. Viz/Method: Tabbed content sections (HTML/JS). Interaction: Click tabs to switch content. Justification: Organizes dense technical information into digestible chunks, preventing user overload.
-        - Report Info: Bill of Materials (BOM) cost breakdown. Goal: Compare/Analyze. Viz/Method: Donut Chart (Chart.js). Interaction: Tooltips on hover. Justification: Effectively shows the proportional cost of each component category.
-        - Report Info: Cost vs. Price vs. Profit. Goal: Compare/Analyze. Viz/Method: Bar Chart (Chart.js). Interaction: Tooltips on hover. Justification: Clearly visualizes the project's economic viability and profit margin.
-        - Report Info: Manufacturing Process. Goal: Explain Change. Viz/Method: Numbered list/timeline (HTML/CSS). Interaction: Static. Justification: A simple, clear process flow is most effective for this linear information.
-        - New Feature (AI): Market Viability Analysis. Goal: Analyze/Synthesize. Viz/Method: Text output block. Interaction: Click button (on demand). Justification: Provides a high-value, instant expert perspective on profitability and market fit, improving stakeholder confidence.
-        - New Feature (AI): Safety Checklist. Goal: Inform/Compliance. Viz/Method: Text output block with alert styling. Interaction: Click button (on demand). Justification: Generates critical, context-aware regulatory advice based on high-voltage hardware.
-        CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
-    -->
+</head>
+<body class="bg-primary">
 
-    <!-- Header & Navigation -->
     <header class="bg-secondary/80 backdrop-blur-sm sticky top-0 z-50 shadow-md">
         <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
             <h1 class="text-2xl font-bold text-accent">AquaSavvy Kenya</h1>
@@ -193,7 +178,6 @@
 
     <main class="container mx-auto px-6 py-12">
 
-        <!-- Section 1: Overview / Hero -->
         <section id="overview" class="text-center mb-20">
             <h2 class="text-4xl font-bold mb-4">Smart Water Management for a Resilient Kenya</h2>
             <p class="max-w-3xl mx-auto text-lg text-gray-600 mb-10">
@@ -208,7 +192,7 @@
                 <div class="stat-card p-6 rounded-lg shadow-lg text-left">
                     <span class="text-4xl">💰</span>
                     <h3 class="text-xl font-semibold mt-2">Save Money</h3>
-                    <p class="text-gray-600 mt-1">Prevents catastrophic pump burnout from dry-running, saving homeowners over **KES 15,000** in potential repair and replacement costs.</p>
+                    <p class="text-gray-600 mt-1">Prevents catastrophic pump burnout from dry-running, saving homeowners over <strong>KES 15,000</strong> in potential repair and replacement costs.</p>
                 </div>
                 <div class="stat-card p-6 rounded-lg shadow-lg text-left">
                     <span class="text-4xl">🛡️</span>
@@ -218,7 +202,6 @@
             </div>
         </section>
 
-        <!-- Section 2: Interactive Architecture -->
         <section id="architecture" class="mb-20">
             <div class="text-center mb-12">
                 <h2 class="text-3xl font-bold">Interactive System Architecture</h2>
@@ -226,7 +209,6 @@
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
                 <div id="diagram-container" class="lg:col-span-2 grid grid-cols-3 grid-rows-3 gap-4 items-center text-center">
-                    <!-- Row 1 -->
                     <div class="system-component bg-secondary p-4 rounded-lg shadow-md" data-info="device">
                         <h4 class="font-semibold">Device Layer</h4>
                         <p class="text-sm">ESP32 & Sensors</p>
@@ -237,12 +219,10 @@
                         <p class="text-sm">AWS IoT Core (MQTTs)</p>
                     </div>
                     
-                    <!-- Vertical Arrow -->
                     <div></div>
                     <div></div>
                     <div class="flex items-center justify-center text-2xl font-mono text-accent -rotate-90 scale-150 my-4">→</div>
 
-                    <!-- Row 2 -->
                     <div class="system-component bg-secondary p-4 rounded-lg shadow-md" data-info="control">
                         <h4 class="font-semibold">Control Flow</h4>
                         <p class="text-sm">Web App → ESP32</p>
@@ -253,12 +233,10 @@
                         <p class="text-sm">Django & WebSockets</p>
                     </div>
 
-                    <!-- Vertical Arrow -->
                     <div></div>
                     <div></div>
                     <div class="flex items-center justify-center text-2xl font-mono text-accent rotate-90 scale-150 my-4">→</div>
 
-                    <!-- Row 3 -->
                     <div></div>
                     <div class="flex items-center justify-center text-2xl font-mono text-accent">→</div>
                     <div class="system-component bg-secondary p-4 rounded-lg shadow-md" data-info="frontend">
@@ -274,7 +252,6 @@
             </div>
         </section>
 
-        <!-- Section 3: The Solution in Detail -->
         <section id="details" class="mb-20">
             <div class="text-center mb-12">
                 <h2 class="text-3xl font-bold">The Solution in Detail</h2>
@@ -302,8 +279,8 @@
                     <ul class="list-disc list-inside space-y-2">
                         <li><strong>Cloud Communication (AWS IoT Core):</strong> The ESP32 communicates with the cloud using the secure and lightweight MQTTs protocol. AWS IoT Core acts as the central message broker, reliably routing data from thousands of devices.</li>
                         <li><strong>Web Application (Django):</strong> The user-facing dashboard is a powerful Django application. It uses Django Channels and the Daphne server to handle real-time WebSocket connections, pushing live data to the user's browser without needing to refresh the page.</li>
-                         <li><strong>Hosting Strategy:</strong> The Django app is architected for portability. It can be quickly deployed to **Render** for its simplicity and managed PostgreSQL, and later migrated to **AWS Elastic Beanstalk** for fine-grained control and deeper integration with other AWS services as the user base scales.</li>
-                        <li><strong>Database Strategy:</strong> A dual-database approach ensures performance. **PostgreSQL (AWS RDS)** stores structured user and device ownership data, while **DynamoDB** is used for high-volume, time-series sensor data, perfect for future analytics.</li>
+                          <li><strong>Hosting Strategy:</strong> The Django app is architected for portability. It can be quickly deployed to <strong>Render</strong> for its simplicity and managed PostgreSQL, and later migrated to <strong>AWS Elastic Beanstalk</strong> for fine-grained control and deeper integration with other AWS services as the user base scales.</li>
+                        <li><strong>Database Strategy:</strong> A dual-database approach ensures performance. <strong>PostgreSQL (AWS RDS)</strong> stores structured user and device ownership data, while <strong>DynamoDB</strong> is used for high-volume, time-series sensor data, perfect for future analytics.</li>
                     </ul>
                 </div>
                 <div id="safety-content" class="tab-pane hidden">
@@ -318,7 +295,6 @@
             </div>
         </section>
 
-        <!-- Section 4: Economic Impact -->
         <section id="economics" class="mb-20">
             <div class="text-center mb-12">
                 <h2 class="text-3xl font-bold">Economic & Market Impact</h2>
@@ -333,14 +309,13 @@
                 </div>
                 <div class="bg-secondary p-6 rounded-lg shadow-lg">
                     <h3 class="text-xl font-semibold text-center mb-4">Profitability Analysis</h3>
-                     <div class="chart-container">
+                      <div class="chart-container">
                         <canvas id="profitChart"></canvas>
                     </div>
                 </div>
             </div>
         </section>
         
-        <!-- Section 5: AI Insight -->
         <section id="ai-analysis" class="mb-20">
             <div class="text-center mb-12">
                 <h2 class="text-3xl font-bold text-accent">✨ AI Expert Analysis</h2>
@@ -348,7 +323,6 @@
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Market Viability Analysis -->
                 <div class="bg-secondary p-6 rounded-lg shadow-lg">
                     <h3 class="text-xl font-semibold mb-4">Market & Financial Viability</h3>
                     <button onclick="analyzeMarketViability()" class="bg-accent text-white px-4 py-2 rounded-lg text-sm hover:bg-teal-700 transition duration-150">
@@ -362,7 +336,6 @@
                     </div>
                 </div>
                 
-                <!-- Safety and Certification Checklist -->
                 <div class="bg-secondary p-6 rounded-lg shadow-lg">
                     <h3 class="text-xl font-semibold mb-4">Safety & Compliance Checklist (240V AC)</h3>
                     <button onclick="checkSafetyCertifications()" class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700 transition duration-150">
@@ -378,7 +351,6 @@
             </div>
         </section>
 
-        <!-- Section 6: Production Roadmap -->
         <section id="production" class="bg-secondary p-8 rounded-lg shadow-lg">
             <div class="text-center mb-12">
                 <h2 class="text-3xl font-bold">Production & Future Roadmap</h2>
@@ -415,11 +387,11 @@
                     <div class="space-y-4">
                         <div class="p-4 bg-gray-50 rounded-lg">
                             <h4 class="font-semibold">Phase 1: Quick Hosting (Render)</h4>
-                            <p class="text-sm text-gray-600">Initial deployment on **Render** (or similar managed service) for speed, simplified database integration, and automatic HTTPS/SSL certificate management.</p>
+                            <p class="text-sm text-gray-600">Initial deployment on <strong>Render</strong> (or similar managed service) for speed, simplified database integration, and automatic HTTPS/SSL certificate management.</p>
                         </div>
                         <div class="p-4 bg-gray-50 rounded-lg">
                             <h4 class="font-semibold">Phase 2: Scale & Cost Optimization (AWS)</h4>
-                            <p class="text-sm text-gray-600">Migrate to **AWS Elastic Beanstalk** (for Django/ASGI) and **AWS S3** (for static files) for deeper cost control, performance tuning, and scalability once user volume increases.</p>
+                            <p class="text-sm text-gray-600">Migrate to <strong>AWS Elastic Beanstalk</strong> (for Django/ASGI) and <strong>AWS S3</strong> (for static files) for deeper cost control, performance tuning, and scalability once user volume increases.</p>
                         </div>
                         <div class="p-4 bg-gray-50 rounded-lg">
                             <h4 class="font-semibold">Future: OTA & Advanced Monitoring</h4>
@@ -430,7 +402,6 @@
             </div>
         </section>
 
-        <!-- Section 7: About Us -->
         <section id="about" class="mb-20">
             <div class="text-center mb-12">
             <h2 class="text-3xl font-bold">About Our Team</h2>
@@ -438,7 +409,6 @@
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                <!-- Josphat Mwamboa -->
                 <div class="bg-secondary p-6 rounded-lg shadow-lg text-center">
                     <div class="w-24 h-24 bg-accent rounded-full mx-auto mb-4 flex items-center justify-center overflow-hidden">
                         <img src="{% static 'images/team/josphat.jpg' %}" alt="Josphat Mwamboa" class="w-full h-full object-cover" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'w-24 h-24 flex items-center justify-center text-white font-bold',innerText:'JM'}))">
@@ -451,7 +421,6 @@
                     </div>
                 </div>
 
-                <!-- Joy Kihia -->
                 <div class="bg-secondary p-6 rounded-lg shadow-lg text-center">
                     <div class="w-24 h-24 bg-accent rounded-full mx-auto mb-4 flex items-center justify-center overflow-hidden">
                         <img src="{% static 'images/team/joy.jpg' %}" alt="Joy Kihia" class="w-full h-full object-cover" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'w-24 h-24 flex items-center justify-center text-white font-bold',innerText:'JK'}))">
@@ -464,7 +433,6 @@
                     </div>
                 </div>
 
-                <!-- Devis Machengo -->
                 <div class="bg-secondary p-6 rounded-lg shadow-lg text-center">
                     <div class="w-24 h-24 bg-accent rounded-full mx-auto mb-4 flex items-center justify-center overflow-hidden">
                         <img src="{% static 'images/team/devis.jpg' %}" alt="Devis Machengo" class="w-full h-full object-cover" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'w-24 h-24 flex items-center justify-center text-white font-bold',innerText:'DM'}))">
@@ -477,7 +445,6 @@
                     </div>
                 </div>
 
-                <!-- John Karauni -->
                 <div class="bg-secondary p-6 rounded-lg shadow-lg text-center">
                     <div class="w-24 h-24 bg-accent rounded-full mx-auto mb-4 flex items-center justify-center overflow-hidden">
                         <img src="{% static 'images/team/john.jpg' %}" alt="John Karauni" class="w-full h-full object-cover" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'w-24 h-24 flex items-center justify-center text-white font-bold',innerText:'JK'}))">
@@ -490,7 +457,6 @@
                     </div>
                 </div>
 
-                <!-- Moses Mutuma -->
                 <div class="bg-secondary p-6 rounded-lg shadow-lg text-center">
                     <div class="w-24 h-24 bg-accent rounded-full mx-auto mb-4 flex items-center justify-center overflow-hidden">
                         <img src="{% static 'images/team/moses.jpg' %}" alt="Moses Mutuma" class="w-full h-full object-cover" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'w-24 h-24 flex items-center justify-center text-white font-bold',innerText:'MM'}))">
@@ -503,7 +469,6 @@
                     </div>
                 </div>
 
-                <!-- Contact Card -->
                 <div class="bg-secondary p-6 rounded-lg shadow-lg text-center border-2 border-accent">
                     <div class="w-24 h-24 bg-accent rounded-full mx-auto mb-4 flex items-center justify-center">
                         <span class="text-white text-2xl">📧</span>
@@ -519,245 +484,180 @@
             </div>
         </section>
 
-</main>
+    </main>
 
     <footer class="bg-secondary mt-20 py-6">
         <div class="container mx-auto text-center text-gray-500">
             <p>&copy; 2025 AquaSavvy Kenya. A Production-Ready IoT Solution.</p>
         </div>
-</footer>
+    </footer>
 
-<!-- AquaSavvy floating chat widget -->
-<script src="{% static 'chat.js' %}"></script>
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-
-    const bomData = {
-        labels: ['Sensors (JSN-SR04T)', 'Relay (SSR)', 'ESP32', 'LCD', 'Power System', 'Current Sensor', 'Other'],
-        data: [1600, 1100, 1000, 1200, 650, 400, 930]
-    };
-
-    const profitData = {
-        labels: ['Low-End', 'High-End'],
-        costs: [6880, 6880],
-        prices: [18000, 25000],
-        profits: [11120, 18120]
-    };
-
-    const diagramInfo = {
-        device: {
-            title: 'Device Layer: The Senses',
-            text: 'The ESP32 microcontroller acts as the on-site brain. It reads data from the JSN-SR04T ultrasonic sensors (water level) and the ACS712 current sensor (pump status) in real-time.'
-        },
-        cloud: {
-            title: 'Cloud Ingest: The Superhighway',
-            text: 'Data from the ESP32 is securely published to AWS IoT Core using the MQTTs protocol. This serves as a highly scalable and reliable message broker, capable of handling data from thousands of devices simultaneously.'
-        },
-        backend: {
-            title: 'Backend Logic: The Central Brain',
-            text: 'A Django application, running on a cloud server (like Render or AWS), subscribes to the MQTT topics. It processes incoming data, stores it, and manages the logic for real-time updates and commands.'
-        },
-        frontend: {
-            title: 'User Interface: Your Control Panel',
-            text: 'The custom Django web application renders an interactive dashboard in your browser. It uses WebSockets to receive live data from the backend, providing an instant view of your water system without needing to refresh the page.'
-        },
-        control: {
-            title: 'Control Flow: Sending Commands',
-            text: 'When you press a button on the web app, a command (e.g., PUMP_ON) is sent via WebSocket to the Django server. The server then publishes this command to a specific MQTT topic on AWS IoT Core, which the target ESP32 is subscribed to, allowing for remote control.'
-        },
-        default: {
-            title: 'Component Details',
-            text: 'Select a component to learn more about its function within the AquaSavvy system.'
-        }
-    };
-    
-    function initBOMChart() {
-        const ctx = document.getElementById('bomChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: bomData.labels,
-                datasets: [{
-                    label: 'Cost (Ksh)',
-                    data: bomData.data,
-                    backgroundColor: ['#004D40', '#00796B', '#4DB6AC', '#B2DFDB', '#80CBC4', '#26A69A', '#E0F2F1'],
-                    borderColor: '#FFFFFF',
-                    borderWidth: 2
-                }]
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const bomData = {
+            labels: ['Sensors (JSN-SR04T)', 'Relay (SSR)', 'ESP32', 'LCD', 'Power System', 'Current Sensor', 'Other'],
+            data: [1600, 1100, 1000, 1200, 650, 400, 930]
+        };
+        const profitData = {
+            labels: ['Low-End', 'High-End'],
+            costs: [6880, 6880],
+            prices: [18000, 25000],
+            profits: [11120, 18120]
+        };
+        const diagramInfo = {
+            device: {
+                title: 'Device Layer: The Senses',
+                text: 'The ESP32 microcontroller acts as the on-site brain. It reads data from the JSN-SR04T ultrasonic sensors (water level) and the ACS712 current sensor (pump status) in real-time.'
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                             boxWidth: 15
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                if (context.parsed !== null) {
-                                    label += new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KSH' }).format(context.parsed);
-                                }
-                                return label;
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    function initProfitChart() {
-        const ctx = document.getElementById('profitChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: profitData.labels,
-                datasets: [
-                    {
-                        label: 'BOM Cost',
-                        data: profitData.costs,
-                        backgroundColor: '#FFAB91',
-                    },
-                    {
-                        label: 'Selling Price',
-                        data: profitData.prices,
-                        backgroundColor: '#4DB6AC',
-                    },
-                    {
-                        label: 'Profit',
-                        data: profitData.profits,
-                        backgroundColor: '#00796B',
-                    }
-                ]
+            cloud: {
+                title: 'Cloud Ingest: The Superhighway',
+                text: 'Data from the ESP32 is securely published to AWS IoT Core using the MQTTs protocol...'
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return 'Ksh ' + (value / 1000) + 'k';
-                            }
-                        }
-                    }
-                },
-                plugins: {
-                     legend: {
-                        position: 'bottom',
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                if (context.parsed.y !== null) {
-                                     label += new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KSH' }).format(context.parsed.y);
-                                }
-                                return label;
-                            }
-                        }
-                    }
-                }
+            backend: {
+                title: 'Backend Logic: The Central Brain',
+                text: 'A Django application, running on a cloud server (like Render or AWS), subscribes to the MQTT topics...'
+            },
+            frontend: {
+                title: 'User Interface: Your Control Panel',
+                text: 'The custom Django web application renders an interactive dashboard in your browser...'
+            },
+            control: {
+                title: 'Control Flow: Sending Commands',
+                text: 'When you press a button on the web app, a command (e.g., PUMP_ON) is sent via WebSocket to the Django server...'
+            },
+            default: {
+                title: 'Component Details',
+                text: 'Select a component to learn more about its function within the AquaSavvy system.'
             }
-        });
-    }
-
-    function handleTabs() {
-        const tabButtons = document.querySelectorAll('.tab-button');
-        const tabPanes = document.querySelectorAll('.tab-pane');
+        };
         
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const tabId = button.dataset.tab;
-
-                tabButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-
-                tabPanes.forEach(pane => {
-                    if (pane.id === `${tabId}-content`) {
-                        pane.classList.remove('hidden');
-                    } else {
-                        pane.classList.add('hidden');
+        function initBOMChart() {
+            const ctx = document.getElementById('bomChart')?.getContext('2d');
+            if (!ctx) return;
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: bomData.labels,
+                    datasets: [{
+                        label: 'Cost (Ksh)',
+                        data: bomData.data,
+                        backgroundColor: ['#004D40', '#00796B', '#4DB6AC', '#B2DFDB', '#80CBC4', '#26A69A', '#E0F2F1'],
+                        borderColor: '#FFFFFF',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 15 } },
+                        tooltip: { callbacks: { label: (context) => `Ksh ${context.parsed}` } }
                     }
+                }
+            });
+        }
+
+        function initProfitChart() {
+            const ctx = document.getElementById('profitChart')?.getContext('2d');
+            if (!ctx) return;
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: profitData.labels,
+                    datasets: [
+                        { label: 'BOM Cost', data: profitData.costs, backgroundColor: '#FFAB91' },
+                        { label: 'Selling Price', data: profitData.prices, backgroundColor: '#4DB6AC' },
+                        { label: 'Profit', data: profitData.profits, backgroundColor: '#00796B' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, ticks: { callback: (value) => 'Ksh ' + (value / 1000) + 'k' } } },
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: { callbacks: { label: (context) => `${context.dataset.label}: Ksh ${context.parsed.y}` } }
+                    }
+                }
+            });
+        }
+
+        function handleTabs() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabPanes = document.querySelectorAll('.tab-pane');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const tabId = button.dataset.tab;
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    tabPanes.forEach(pane => {
+                        pane.id === `${tabId}-content` ? pane.classList.remove('hidden') : pane.classList.add('hidden');
+                    });
                 });
             });
-        });
-    }
+        }
 
-    function handleDiagramInteraction() {
-        const components = document.querySelectorAll('.system-component');
-        const infoBox = document.getElementById('diagram-info');
-        
-        const updateInfoBox = (key) => {
-            const info = diagramInfo[key] || diagramInfo.default;
-            infoBox.innerHTML = `
-                <h3 class="font-bold text-lg text-accent mb-2">${info.title}</h3>
-                <p class="text-gray-600">${info.text}</p>
-            `;
-        };
+        function handleDiagramInteraction() {
+            const components = document.querySelectorAll('.system-component');
+            const infoBox = document.getElementById('diagram-info');
+            
+            const updateInfoBox = (key) => {
+                const info = diagramInfo[key] || diagramInfo.default;
+                infoBox.innerHTML = `<h3 class="font-bold text-lg text-accent mb-2">${info.title}</h3><p class="text-gray-600">${info.text}</p>`;
+            };
 
-        components.forEach(component => {
-            const infoKey = component.dataset.info;
-            component.addEventListener('mouseenter', () => updateInfoBox(infoKey));
-            component.addEventListener('click', () => updateInfoBox(infoKey));
-        });
-        
-        document.getElementById('diagram-container').addEventListener('mouseleave', () => updateInfoBox('default'));
-    }
-
-    function handleMobileNav() {
-        const mobileNav = document.getElementById('mobile-nav');
-        mobileNav.addEventListener('change', (e) => {
-            const targetId = e.target.value;
-            const targetElement = document.querySelector(targetId);
-            if (targetElement) {
-                targetElement.scrollIntoView({ behavior: 'smooth' });
-            }
-        });
-    }
-    
-    function handleScrollSpy() {
-        const sections = document.querySelectorAll('section');
-        const navLinks = document.querySelectorAll('.nav-link');
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const id = entry.target.getAttribute('id');
-                    navLinks.forEach(link => {
-                        link.classList.remove('active');
-                        if (link.getAttribute('href') === `#${id}`) {
-                            link.classList.add('active');
-                        }
-                    });
-                }
+            components.forEach(component => {
+                const infoKey = component.dataset.info;
+                component.addEventListener('mouseenter', () => updateInfoBox(infoKey));
+                component.addEventListener('click', () => updateInfoBox(infoKey));
             });
-        }, { rootMargin: "-50% 0px -50% 0px" });
+            
+            document.getElementById('diagram-container')?.addEventListener('mouseleave', () => updateInfoBox('default'));
+        }
 
-        sections.forEach(section => {
-            observer.observe(section);
-        });
-    }
+        function handleMobileNav() {
+            const mobileNav = document.getElementById('mobile-nav');
+            mobileNav?.addEventListener('change', (e) => {
+                const targetElement = document.querySelector(e.target.value);
+                if (targetElement) targetElement.scrollIntoView({ behavior: 'smooth' });
+            });
+        }
+        
+        function handleScrollSpy() {
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.getAttribute('id');
+                        navLinks.forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href') === `#${id}`) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                });
+            }, { rootMargin: "-50% 0px -50% 0px" });
 
-    initBOMChart();
-    initProfitChart();
-    handleTabs();
-    handleDiagramInteraction();
-    handleMobileNav();
-    handleScrollSpy();
-});
-</script>
-{% endblock %}
+            sections.forEach(section => observer.observe(section));
+        }
+
+        // Initialize all functions for this page
+        initBOMChart();
+        initProfitChart();
+        handleTabs();
+        handleDiagramInteraction();
+        handleMobileNav();
+        handleScrollSpy();
+    });
+    </script>
+</body>
+{% endblock %} 
+i need the full code for public_home.html by adding the new changes in the file for i see in the {% extends 'base.html' %} it has this code  body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F5F5F5; 
+            color: #4A4A4A;
+        } this will not be ok
