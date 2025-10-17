@@ -117,6 +117,14 @@ def process_and_save_data(topic, payload_str):
         print(f"ERROR: Could not process message. Reason: {e}")
     return None, None
 
+# MQTT callbacks
+def on_connect(client, userdata, flags, rc, properties=None):
+    try:
+        client.subscribe(MQTT_WILDCARD_DATA_TOPIC)
+        print(f"Connected to MQTT with result code {rc}; subscribed to {MQTT_WILDCARD_DATA_TOPIC}")
+    except Exception as e:
+        print(f"MQTT on_connect error: {e}")
+
 # This function runs when a message arrives from ANY device.
 def on_message(client, userdata, msg):
     device_id, payload = async_to_sync(process_and_save_data)(msg.topic, msg.payload.decode())
