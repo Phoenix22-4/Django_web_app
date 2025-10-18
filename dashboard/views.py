@@ -91,7 +91,7 @@ def device_list_view(request):
 @login_required
 def dashboard_view(request, device_id):
     device = get_object_or_404(request.user.device_set, device_id=device_id)
-    
+    accass key w secret key now o
     # Get latest reading
     last_reading = device.readings.last()
     
@@ -125,7 +125,7 @@ def ai_chat_view(request):
         
         # Initialize Gemini model with device information
         model = genai.GenerativeModel(
-            'gemini-1.5-pro',  # Using Gemini 1.5 Pro model
+            'gemini-1.5-flash',  # Using Gemini 1.5 Flash for speed and performance
             system_instruction=DEVICE_INFO
         )
         
