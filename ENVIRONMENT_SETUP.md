@@ -1,68 +1,69 @@
 # Environment Variables Setup Guide
 
-## Required Environment Variables for Railway Deployment
+## Required Environment Variables for Railway
 
-### 1. Django Settings
-```bash
-SECRET_KEY=your-secret-key-here
-DEBUG=False
-ALLOWED_HOSTS=your-domain.railway.app
+### AWS IoT Credentials (For Device Control)
 ```
-
-### 2. Database (Railway provides automatically)
-```bash
-DATABASE_URL=postgresql://... (provided by Railway)
-```
-
-### 3. AWS IoT Configuration (Optional - for device communication)
-```bash
-AWS_ACCESS_KEY_ID=your-aws-access-key
-AWS_SECRET_ACCESS_KEY=your-aws-secret-key
+AWS_ACCESS_KEY_ID=your-aws-access-key-id
+AWS_SECRET_ACCESS_KEY=your-aws-secret-access-key
 AWS_REGION=us-east-1
 AWS_IOT_ENDPOINT=your-iot-endpoint.amazonaws.com
 ```
 
-### 4. Firebase Configuration (Optional - for push notifications)
-```bash
-FIREBASE_PROJECT_ID=your-firebase-project-id
-FIREBASE_PRIVATE_KEY_ID=your-private-key-id
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nyour-private-key\n-----END PRIVATE KEY-----\n"
-FIREBASE_CLIENT_EMAIL=your-service-account@your-project.iam.gserviceaccount.com
-FIREBASE_CLIENT_ID=your-client-id
-FIREBASE_CLIENT_X509_CERT_URL=https://www.googleapis.com/robot/v1/metadata/x509/your-service-account%40your-project.iam.gserviceaccount.com
+### Gemini AI (For Chat Assistant)
+```
+GEMINI_API_KEY=your-gemini-api-key
 ```
 
-### 5. Gemini AI Configuration (Optional - for AI chat)
-```bash
-GEMINI_API_KEY=your-gemini-api-key
+### Firebase (For Push Notifications - Optional)
+```
+FIREBASE_SERVICE_ACCOUNT_JSON={"type":"service_account","project_id":"your-project-id",...}
 ```
 
 ## How to Set Environment Variables in Railway
 
-1. Go to your Railway project dashboard
-2. Click on your service
-3. Go to the "Variables" tab
-4. Add each environment variable with its value
-5. Click "Deploy" to apply changes
+1. Go to [railway.app](https://railway.app)
+2. Sign in and select your AquaGuard project
+3. Click on your Django service
+4. Go to the **"Variables"** tab
+5. Click **"New Variable"** for each environment variable
+6. Add the variable name and value
+7. Click **"Deploy"** to apply changes
 
-## Current Status
+## How to Get Firebase Service Account JSON
 
-✅ **Working Features:**
-- Basic web application
-- User authentication
-- Device management
-- Dashboard interface
-- Team member images
-- Static files
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Select your project
+3. Go to **Project Settings** → **Service Accounts**
+4. Click **"Generate new private key"**
+5. Download the JSON file
+6. Copy the entire JSON content as the value for `FIREBASE_SERVICE_ACCOUNT_JSON`
 
-⚠️ **Optional Features (require environment variables):**
-- AWS IoT device communication
-- Firebase push notifications
-- Gemini AI chat assistance
+## What Works Without Credentials
 
-## Notes
+- ✅ Basic web application
+- ✅ User authentication
+- ✅ Dashboard interface
+- ✅ Static files and CSS
+- ✅ Database operations
 
-- The application will work without AWS IoT, Firebase, or Gemini API keys
-- Missing credentials will show warnings in logs but won't break the application
-- You can add these services later when needed
-- All core functionality works without external services
+## What Needs Credentials
+
+- ⚠️ AWS IoT device communication
+- ⚠️ Gemini AI chat assistant
+- ⚠️ Firebase push notifications
+
+## Security Notes
+
+- **Never commit credentials to Git**
+- **Use Railway's environment variables** for secure storage
+- **Rotate credentials regularly**
+- **Use IAM roles with minimal permissions**
+
+## After Setup
+
+Once you add the environment variables and deploy:
+1. **AWS IoT** will work for device control
+2. **Gemini AI** will work for chat assistance
+3. **Firebase** will work for push notifications
+4. **All features** will be fully functional

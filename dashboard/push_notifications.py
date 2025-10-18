@@ -22,45 +22,30 @@ class PushNotificationService:
         try:
             # Check if Firebase is already initialized
             if not firebase_admin._apps:
-                # Check if all required environment variables are present
-                required_vars = [
-                    'FIREBASE_PROJECT_ID',
-                    'FIREBASE_PRIVATE_KEY_ID', 
-                    'FIREBASE_PRIVATE_KEY',
-                    'FIREBASE_CLIENT_EMAIL',
-                    'FIREBASE_CLIENT_ID',
-                    'FIREBASE_CLIENT_X509_CERT_URL'
-                ]
+                # Try to get Firebase service account JSON from environment variable
+                firebase_json = os.getenv('FIREBASE_SERVICE_ACCOUNT_JSON')
                 
-                missing_vars = [var for var in required_vars if not os.getenv(var)]
-                if missing_vars:
-                    logger.warning(f"Firebase credentials not configured. Missing: {missing_vars}")
+                if not firebase_json:
+                    logger.warning("Firebase credentials not configured. Missing: FIREBASE_SERVICE_ACCOUNT_JSON")
                     self.firebase_initialized = False
                     return
                 
-                # Initialize Firebase Admin SDK
-                private_key = os.getenv('FIREBASE_PRIVATE_KEY', '').replace('\\n', '\n')
-                if not private_key.startswith('-----BEGIN PRIVATE KEY-----'):
-                    logger.error("Firebase private key is malformed")
+                try:
+                    # Parse the JSON string
+                    import json
+                    firebase_config = json.loads(firebase_json)
+                    
+                    # Initialize Firebase Admin SDK with the service account
+                    cred = credentials.Certificate(firebase_config)
+                    firebase_admin.initialize_app(cred)
+                    self.firebase_initialized = True
+                    logger.info("Firebase Admin SDK initialized successfully")
+                    
+                except json.JSONDecodeError as e:
+                    logger.error(f"Invalid Firebase service account JSON: {e}")
                     self.firebase_initialized = False
                     return
-                
-                cred = credentials.Certificate({
-                    "type": "service_account",
-                    "project_id": os.getenv('FIREBASE_PROJECT_ID'),
-                    "private_key_id": os.getenv('FIREBASE_PRIVATE_KEY_ID'),
-                    "private_key": private_key,
-                    "client_email": os.getenv('FIREBASE_CLIENT_EMAIL'),
-                    "client_id": os.getenv('FIREBASE_CLIENT_ID'),
-                    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                    "token_uri": "https://oauth2.googleapis.com/token",
-                    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-                    "client_x509_cert_url": os.getenv('FIREBASE_CLIENT_X509_CERT_URL')
-                })
-                
-                firebase_admin.initialize_app(cred)
-                self.firebase_initialized = True
-                logger.info("Firebase Admin SDK initialized successfully")
+                    
             else:
                 self.firebase_initialized = True
                 logger.info("Firebase Admin SDK already initialized")
