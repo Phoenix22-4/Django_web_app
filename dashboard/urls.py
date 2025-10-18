@@ -6,6 +6,7 @@ urlpatterns = [
     path('login/', views.CustomLoginView.as_view(), name='login'),
     path('logout/', views.CustomLogoutView.as_view(), name='logout'),
     path('devices/', views.device_list_view, name='device_list'),
+    path('claim-device/<str:device_id>/', views.claim_device_view, name='claim_device'),
     path('dashboard/<str:device_id>/', views.dashboard_view, name='dashboard'),
     
     # --- CHANGE: The root path now points to the new public home_view ---

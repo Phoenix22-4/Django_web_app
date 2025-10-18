@@ -1349,6 +1349,36 @@ body::before {
 }
 
 /* ====================
+   DEVICE CLAIMING
+   ==================== */
+.device-card.unassigned {
+    border: 2px dashed #007bff;
+    background: linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%);
+}
+
+.claim-btn {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.3s ease;
+}
+
+.claim-btn:hover {
+    background: linear-gradient(135deg, #20c997, #17a2b8);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    color: white;
+    text-decoration: none;
+}
+
+/* ====================
    RESPONSIVE DESIGN
    ==================== */
 @media (max-width: 768px) {

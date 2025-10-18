@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
 from django.http import JsonResponse
@@ -60,12 +60,41 @@ def home_view(request):
 
 @login_required
 def device_list_view(request):
-    devices = request.user.device_set.all()
-    return render(request, 'device_list.html', {'devices': devices})
+    if not request.user.is_authenticated:
+        return redirect('login')
+    
+    # Get user's devices and unassigned devices
+    user_devices = request.user.device_set.all()
+    unassigned_devices = Device.objects.filter(owner__isnull=True)
+    
+    return render(request, 'device_list.html', {
+        'devices': user_devices,
+        'unassigned_devices': unassigned_devices
+    })
+
+@login_required
+def claim_device_view(request, device_id):
+    """Allow user to claim an unassigned device"""
+    if not request.user.is_authenticated:
+        return redirect('login')
+    
+    device = get_object_or_404(Device, device_id=device_id, owner__isnull=True)
+    device.owner = request.user
+    device.name = device.name or f"{request.user.username}'s Device"
+    device.save()
+    
+    print(f"✅ Device '{device_id}' claimed by user '{request.user.username}'")
+    return redirect('device_list')
 
 @login_required
 def dashboard_view(request, device_id):
-    device = get_object_or_404(request.user.device_set, device_id=device_id)
+    # Allow access to devices owned by user OR unassigned devices
+    try:
+        device = get_object_or_404(Device, device_id=device_id)
+        if device.owner and device.owner != request.user:
+            return redirect('login')  # Redirect to login if trying to access someone else's device
+    except:
+        return redirect('login')
     
     # Get latest reading
     last_reading = device.readings.last()
