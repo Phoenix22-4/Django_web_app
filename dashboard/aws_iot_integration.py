@@ -174,9 +174,49 @@ class AWSIoTManager:
             shadow_data = json.loads(response['payload'].read())
             return shadow_data.get('state', {}).get('reported', {})
             
+        except ClientError as e:
+            error_code = e.response['Error']['Code']
+            if error_code == 'ResourceNotFoundException':
+                logger.info(f"Device shadow not found for {device_id} - device may not be connected yet")
+                return None
+            else:
+                logger.error(f"AWS IoT error getting device shadow for {device_id}: {e}")
+                return None
         except Exception as e:
             logger.error(f"Error getting device shadow for {device_id}: {e}")
             return None
+
+    def create_device_shadow(self, device_id, initial_state=None):
+        """Create a device shadow if it doesn't exist"""
+        try:
+            if not self.iot_client:
+                return False
+                
+            if initial_state is None:
+                initial_state = {
+                    "pump_status": False,
+                    "tank_data": [],
+                    "last_updated": datetime.now().isoformat()
+                }
+                
+            shadow_update = {
+                "state": {
+                    "desired": initial_state,
+                    "reported": initial_state
+                }
+            }
+            
+            response = self.iot_client.update_thing_shadow(
+                thingName=device_id,
+                payload=json.dumps(shadow_update)
+            )
+            
+            logger.info(f"Created device shadow for {device_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error creating device shadow for {device_id}: {e}")
+            return False
 
     def update_device_shadow(self, device_id, desired_state):
         """Update device shadow desired state"""
