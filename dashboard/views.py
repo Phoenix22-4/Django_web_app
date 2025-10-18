@@ -91,7 +91,7 @@ def device_list_view(request):
 @login_required
 def dashboard_view(request, device_id):
     device = get_object_or_404(request.user.device_set, device_id=device_id)
-    accass key w secret key now o
+    
     # Get latest reading
     last_reading = device.readings.last()
     
