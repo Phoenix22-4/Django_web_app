@@ -348,35 +348,6 @@
     color: #dc3545 !important;
 }
 
-/* Pump Controls Card */
-.pump-controls-card {
-    min-height: 120px;
-}
-
-.pump-controls-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 10px;
-}
-
-.pump-status-display {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 12px;
-    background: #f8f9fa;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.pump-buttons {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-}
-
 /* Status Message */
 .status-message-card {
     min-height: 60px;
