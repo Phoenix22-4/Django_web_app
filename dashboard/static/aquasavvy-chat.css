@@ -163,6 +163,40 @@
     font-style: italic;
 }
 
+/* Streaming message styles */
+.message.streaming p {
+    position: relative;
+}
+
+.message.streaming p::after {
+    content: '▋';
+    animation: blink 1s infinite;
+    color: #007bff;
+    font-weight: bold;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+/* Enhanced typing indicator */
+.message.typing p {
+    position: relative;
+    color: #666;
+}
+
+.message.typing p::after {
+    content: '...';
+    animation: dots 1.5s infinite;
+}
+
+@keyframes dots {
+    0%, 20% { content: '.'; }
+    40% { content: '..'; }
+    60%, 100% { content: '...'; }
+}
+
 .chat-input-area {
     padding: 15px 20px;
     background: white;
