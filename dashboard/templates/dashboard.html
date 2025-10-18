@@ -8,6 +8,8 @@
 <script>
     // Make device_id available to JavaScript
     window.deviceId = "{{ device.device_id }}";
+    // Also set it on body for device_control.js
+    document.body.dataset.deviceId = "{{ device.device_id }}";
 </script>
 
 <!-- Clean Header with Connection Status in Center -->
@@ -40,7 +42,7 @@
 </div>
 
 <!-- Main Dashboard Grid - Clean Layout -->
-<div class="dashboard-grid">
+<div class="dashboard-grid" id="dashboard-container" data-device-id="{{ device.device_id }}">
     <!-- Top Row: Charts and Tank Level -->
     <div class="dashboard-row">
         <!-- Water Usage Chart -->

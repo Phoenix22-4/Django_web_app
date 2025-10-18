@@ -43,6 +43,29 @@
         {% else %}
         <p>You have no devices registered to your account.</p>
         {% endif %}
+
+        {% if unassigned_devices %}
+        <h2>Available Devices (Unassigned)</h2>
+        <div class="device-grid">
+            {% for device in unassigned_devices %}
+            <div class="device-card unassigned">
+                <div class="device-card-link">
+                    <div class="device-card-icon"><i class="fas fa-water"></i></div>
+                    <div class="device-card-meta">
+                        <div class="device-card-name">{{ device.name|default:"Unnamed Device" }}</div>
+                        <div class="device-card-sub">ID: {{ device.device_id }}</div>
+                        <div class="device-card-sub">Status: Available</div>
+                    </div>
+                    <div class="device-card-actions">
+                        <a href="{% url 'claim_device' device.device_id %}" class="claim-btn" title="Claim this device">
+                            <i class="fas fa-plus"></i> Claim
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
     </div>
 
     <footer class="site-footer">

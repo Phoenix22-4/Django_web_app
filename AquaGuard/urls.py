@@ -23,8 +23,17 @@ def service_worker(request):
     content = render_to_string('sw.js')
     return HttpResponse(content, content_type='application/javascript')
 
+def firebase_service_worker(request):
+    try:
+        with open('firebase-messaging-sw.js', 'r') as f:
+            content = f.read()
+        return HttpResponse(content, content_type='application/javascript')
+    except FileNotFoundError:
+        return HttpResponse('// Firebase service worker not found', content_type='application/javascript')
+
 urlpatterns = [
     path('sw.js', service_worker, name='service_worker'),
+    path('firebase-messaging-sw.js', firebase_service_worker, name='firebase_service_worker'),
     path('admin/', admin.site.urls),
     path('', include('dashboard.urls')),
 ]
