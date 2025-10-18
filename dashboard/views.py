@@ -435,7 +435,12 @@ def device_data_view(request, device_id):
                 'device_id': device.device_id,
                 'name': device.name,
                 'tank_capacity_liters': device.tank_capacity_liters,
-                'pump_present': device.pump_present
+                'pump_present': device.pump_present,
+                'tank_names': device.get_tank_names(),
+                'tank_1_name': device.tank_1_name,
+                'tank_2_name': device.tank_2_name,
+                'tank_3_name': device.tank_3_name,
+                'tank_4_name': device.tank_4_name
             },
             'readings': readings_data,
             'automation_rules': rules_data,

@@ -31,9 +31,33 @@ class Device(models.Model):
     tank_capacity_liters = models.PositiveIntegerField(default=1000, help_text="Total capacity of the main user tank in Liters.")
     pump_present = models.BooleanField(default=True, help_text="Set to False if this is a monitor-only device with no pump.")
 
+    # --- TANK NAME FIELDS (Auto-populated from IoT data) ---
+    tank_1_name = models.CharField(max_length=100, blank=True, null=True, help_text="Name for Tank 1 (auto-detected from IoT data)")
+    tank_2_name = models.CharField(max_length=100, blank=True, null=True, help_text="Name for Tank 2 (auto-detected from IoT data)")
+    tank_3_name = models.CharField(max_length=100, blank=True, null=True, help_text="Name for Tank 3 (auto-detected from IoT data)")
+    tank_4_name = models.CharField(max_length=100, blank=True, null=True, help_text="Name for Tank 4 (auto-detected from IoT data)")
+
     # --- NEW FIELDS FOR NOTIFICATION COOLDOWN ---
     last_alert_type = models.CharField(max_length=50, blank=True, null=True)
     last_alert_sent_at = models.DateTimeField(blank=True, null=True)
+
+    def get_tank_names(self):
+        """Get list of tank names that have been set"""
+        tank_names = []
+        for i in range(1, 5):
+            tank_name = getattr(self, f'tank_{i}_name', None)
+            if tank_name:
+                tank_names.append(tank_name)
+        return tank_names
+    
+    def get_available_tank_slots(self):
+        """Get list of available tank slots (1-4) that don't have names yet"""
+        available = []
+        for i in range(1, 5):
+            tank_name = getattr(self, f'tank_{i}_name', None)
+            if not tank_name:
+                available.append(i)
+        return available
 
     def __str__(self):
         return self.name or self.device_id
