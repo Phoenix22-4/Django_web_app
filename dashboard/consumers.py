@@ -33,17 +33,24 @@ def process_and_save_data(topic, payload_str):
         device_id = topic.split('/')[1]
         payload = json.loads(payload_str)
         
+        print(f"📡 AWS IoT Data Received from device '{device_id}'")
+        print(f"📊 Data: {payload}")
+        
         device, created = Device.objects.get_or_create(device_id=device_id)
         if created:
-            print(f"AUTO-CREATED: New device '{device_id}' has connected and been added to the database.")
+            print(f"✅ AUTO-CREATED: New device '{device_id}' has connected and been added to the database.")
+        else:
+            print(f"🔄 Device '{device_id}' already exists, updating data...")
 
         # --- MODIFIED: Save new dynamic data format ---
-        WaterReading.objects.create(
+        reading = WaterReading.objects.create(
             device=device,
             tank_data=payload.get('tanks', []), # Expects [{"name": "Tank 1", "level": 80}]
             pump_status=payload.get('pump_status', False),
             pump_current_amps=payload.get('pump_current_amps', 0.0)
         )
+        
+        print(f"💾 Data saved successfully for device '{device_id}' - Reading ID: {reading.id}")
 
         # --- DATA DELETION LOGIC (from old file) ---
         DATA_LIMIT_PER_DEVICE = 150

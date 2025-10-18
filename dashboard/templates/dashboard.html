@@ -62,8 +62,14 @@
         <div class="dashboard-card pump-status-card">
             <h3 class="card-title">Pump Status</h3>
             <div class="pump-container">
-                <div class="pump-icon" id="pump-icon">
-                    <div class="pump-rectangle"></div>
+                <div class="pump-visual">
+                    <div class="pump-icon" id="pump-icon">
+                        <div class="pump-body">
+                            <div class="pump-motor"></div>
+                            <div class="pump-pipe"></div>
+                        </div>
+                        <div class="pump-status-indicator" id="pump-status-indicator">OFF</div>
+                    </div>
                 </div>
                 <div class="pump-controls">
                     <button id="pump-on-btn" class="pump-btn on-btn">ON</button>
@@ -81,11 +87,18 @@
             <div class="tanks-container" id="tanks-container">
                 {% for tank in last_reading.tank_data %}
                 <div class="tank-item">
-                    <div class="tank-name">{{ tank.name }}</div>
-                    <div class="tank-level-bar">
-                        <div class="level-fill" id="tank-level-{{ tank.name|slugify }}" style="width: {{ tank.level }}%"></div>
+                    <div class="tank-visual">
+                        <div class="tank-image">
+                            <div class="tank-body">
+                                <div class="tank-capacity">{{ tank.capacity|default:"1000L" }}</div>
+                                <div class="water-level" id="water-level-{{ tank.name|slugify }}" style="height: {{ tank.level }}%"></div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="tank-percentage" id="tank-percent-{{ tank.name|slugify }}">{{ tank.level }}%</div>
+                    <div class="tank-info">
+                        <div class="tank-name">{{ tank.name }}</div>
+                        <div class="tank-percentage" id="tank-percent-{{ tank.name|slugify }}">{{ tank.level }}%</div>
+                    </div>
                 </div>
                 {% empty %}
                 <div class="tank-item">
@@ -98,23 +111,8 @@
         <!-- System Parameters -->
         <div class="dashboard-card parameters-card">
             <h3 class="card-title">System Parameters</h3>
-            <div class="parameters-grid">
-                <div class="param-item">
-                    <span class="param-label">Water Level:</span>
-                    <span class="param-value" id="water-level-value">7</span>
-                </div>
-                <div class="param-item">
-                    <span class="param-label">Pump Current:</span>
-                    <span class="param-value" id="pump-current-value">2.5A</span>
-                </div>
-                <div class="param-item">
-                    <span class="param-label">Temperature:</span>
-                    <span class="param-value" id="temperature-value">25°C</span>
-                </div>
-                <div class="param-item">
-                    <span class="param-label">Humidity:</span>
-                    <span class="param-value" id="humidity-value">70%</span>
-                </div>
+            <div class="parameters-grid" id="parameters-grid">
+                <!-- Dynamic parameters will be populated here -->
             </div>
         </div>
         
@@ -137,7 +135,7 @@
                     <span class="status-value" id="pump-status-text">OFF</span>
                 </div>
                 <div class="status-item">
-                    <span class="status-label">Current:</span>
+                    <span class="status-label">Pump Current:</span>
                     <span class="status-value" id="pump-current-text">0.0A</span>
                 </div>
                 <div class="status-item">
@@ -269,43 +267,6 @@
     </div>
 </div>
 
-<div id="rule-modal" class="modal-backdrop hidden">
-    <div class="modal-content">
-        <h2 id="modal-title">Create New Automation Rule</h2>
-        <form id="rule-form">
-            <input type="hidden" id="rule-id">
-            <div>
-                <label for="rule-name">Rule Name:</label>
-                <input type="text" id="rule-name" placeholder="e.g., Night Refill">
-            </div>
-            <div>
-                <label for="rule-start-time">Start Time:</label>
-                <input type="time" id="rule-start-time">
-            </div>
-            <div>
-                <label for="rule-end-time">End Time:</label>
-                <input type="time" id="rule-end-time">
-            </div>
-            <div>
-                <label for="rule-monitor-tank">Tank to Monitor:</label>
-                <select id="rule-monitor-tank">
-                    </select>
-            </div>
-            <div>
-                <label for="rule-min-level">Turn ON Below (%):</label>
-                <input type="number" id="rule-min-level" min="0" max="100">
-            </div>
-            <div>
-                <label for="rule-max-level">Turn OFF Above (%):</label>
-                <input type="number" id="rule-max-level" min="0" max="100">
-            </div>
-            <div class="modal-actions">
-                <button type="button" id="modal-cancel" class="control-button off">Cancel</button>
-                <button type="submit" id="modal-save" class="control-button on">Save</button>
-            </div>
-        </form>
-    </div>
-</div>
 
 <footer class="site-footer">
     <p>AquaSavvy Solutions | email: contact:vision072025@gmail.com | WhatsApp: +254 702 715070</p>
@@ -315,16 +276,63 @@
 <script>
 // Dynamic tank grid setup
 document.addEventListener('DOMContentLoaded', function() {
-    const tanksGrid = document.getElementById('tanks-grid');
-    const tankCards = tanksGrid.querySelectorAll('.tank-card');
-    const tankCount = tankCards.length;
-    
-    // Set data attribute for dynamic CSS
-    tanksGrid.setAttribute('data-tank-count', tankCount);
+    // Initialize dynamic parameters
+    initializeDynamicParameters();
     
     // Initialize timeslot functionality
     initializeTimeslots();
+    
+    // Initialize pump animation
+    initializePumpAnimation();
 });
+
+function initializeDynamicParameters() {
+    const parametersGrid = document.getElementById('parameters-grid');
+    
+    // Clear existing parameters
+    parametersGrid.innerHTML = '';
+    
+    // Get tank data from the page
+    const tankData = {{ last_reading.tank_data|safe|default:"[]" }};
+    
+    // Add water level parameters for each tank
+    tankData.forEach(tank => {
+        const paramItem = document.createElement('div');
+        paramItem.className = 'param-item';
+        paramItem.innerHTML = `
+            <span class="param-label">${tank.name} Level:</span>
+            <span class="param-value" id="water-level-${tank.name.replace(/\s+/g, '-').toLowerCase()}">${tank.level}%</span>
+        `;
+        parametersGrid.appendChild(paramItem);
+    });
+    
+    // Add pump current parameter
+    const pumpCurrentItem = document.createElement('div');
+    pumpCurrentItem.className = 'param-item';
+    pumpCurrentItem.innerHTML = `
+        <span class="param-label">Pump Current:</span>
+        <span class="param-value" id="pump-current-value">0.0A</span>
+    `;
+    parametersGrid.appendChild(pumpCurrentItem);
+}
+
+function initializePumpAnimation() {
+    const pumpIcon = document.getElementById('pump-icon');
+    const pumpStatusIndicator = document.getElementById('pump-status-indicator');
+    
+    // Function to update pump animation
+    window.updatePumpStatus = function(isOn) {
+        if (isOn) {
+            pumpIcon.classList.add('pump-running');
+            pumpStatusIndicator.textContent = 'ON';
+            pumpStatusIndicator.classList.add('status-on');
+        } else {
+            pumpIcon.classList.remove('pump-running');
+            pumpStatusIndicator.textContent = 'OFF';
+            pumpStatusIndicator.classList.remove('status-on');
+        }
+    };
+}
 
 function initializeTimeslots() {
     const timeslotToggles = document.querySelectorAll('.timeslot-toggle');
