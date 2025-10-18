@@ -20,6 +20,11 @@ class DashboardConfig(AppConfig):
             
             print("--- Starting MQTT client from AppConfig ---")
             mqtt_client = get_mqtt_client()
-            mqtt_client.start()
+            success = mqtt_client.start()
             
-            self.mqtt_client_started = True
+            if success:
+                print("✅ MQTT client started successfully")
+                self.mqtt_client_started = True
+            else:
+                print("❌ MQTT client failed to start - will retry on next request")
+                # Don't set mqtt_client_started = True so it can retry
