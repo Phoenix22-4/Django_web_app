@@ -179,7 +179,7 @@ def ai_chat_view(request):
             )
         else:
             # For non-streaming responses (fallback)
-        response = model.generate_content(user_message)
+            response = model.generate_content(user_message)
         
         return JsonResponse({
             'reply': response.text,
