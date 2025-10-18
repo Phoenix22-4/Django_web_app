@@ -1,0 +1,609 @@
+/* Tank.jpeg Layout CSS - New Dashboard Design */
+
+/* Main Dashboard Grid - Tank.jpeg Layout */
+.dashboard-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.main-content-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 15px;
+    min-height: 600px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.tank-system-column {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.usage-graphs-column {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.parameters-column {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Tank System Styles - Matching tank.jpeg exactly */
+.tank-system-container {
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.tank-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    position: relative;
+    width: 100%;
+    max-width: 300px;
+}
+
+/* Tank Grid Layouts for 1-4 tanks - Matching tank.jpeg */
+.tank-grid-1 {
+    flex-direction: column;
+    align-items: center;
+}
+
+.tank-grid-2 {
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.tank-grid-3 {
+    flex-direction: column;
+    align-items: center;
+}
+
+.tank-grid-4 {
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Tank Element Styles - Matching tank.jpeg */
+.tank-element {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+}
+
+.tank-visual {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.tank-body {
+    width: 60px;
+    height: 100px;
+    background: #f8f9fa;
+    border: 2px solid #6c757d;
+    border-radius: 6px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.tank-capacity {
+    position: absolute;
+    top: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 8px;
+    font-weight: bold;
+    color: #495057;
+    z-index: 2;
+    background: rgba(255,255,255,0.8);
+    padding: 1px 3px;
+    border-radius: 2px;
+}
+
+.water-level {
+    background: linear-gradient(to top, #007bff, #0056b3);
+    width: 100%;
+    transition: height 0.5s ease;
+    border-radius: 0 0 4px 4px;
+    animation: waterWave 2s ease-in-out infinite;
+}
+
+@keyframes waterWave {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-1px); }
+}
+
+.tank-pipe {
+    width: 15px;
+    height: 2px;
+    background: #6c757d;
+    margin-top: 3px;
+    border-radius: 1px;
+}
+
+.tank-info {
+    text-align: center;
+}
+
+.tank-name {
+    font-weight: 600;
+    font-size: 10px;
+    color: #495057;
+    margin-bottom: 1px;
+}
+
+.tank-percentage {
+    font-weight: bold;
+    font-size: 12px;
+    color: #007bff;
+}
+
+/* Pump Element Styles - Matching tank.jpeg exactly */
+.pump-element {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+}
+
+.pump-visual {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.pump-circle {
+    width: 40px;
+    height: 40px;
+    border: 2px solid #dc3545;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.pump-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pump-body {
+    width: 16px;
+    height: 16px;
+    background: url('../images/images (1).png') no-repeat center center;
+    background-size: contain;
+    border-radius: 2px;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.pump-motor {
+    width: 100%;
+    height: 100%;
+    background: url('../images/images (1).png') no-repeat center center;
+    background-size: contain;
+    border-radius: 2px;
+}
+
+.pump-icon.pump-running .pump-motor {
+    animation: pumpRotate 1s linear infinite;
+}
+
+@keyframes pumpRotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.pump-pipes {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120px;
+    height: 120px;
+    pointer-events: none;
+}
+
+.pump-pipe-in,
+.pump-pipe-out {
+    position: absolute;
+    background: #6c757d;
+    border-radius: 1px;
+}
+
+.pump-pipe-in {
+    width: 50px;
+    height: 3px;
+    top: 50%;
+    left: -25px;
+    transform: translateY(-50%);
+}
+
+.pump-pipe-out {
+    width: 50px;
+    height: 3px;
+    top: 50%;
+    right: -25px;
+    transform: translateY(-50%);
+}
+
+.pump-controls {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.pump-btn {
+    padding: 4px 8px;
+    border: none;
+    border-radius: 3px;
+    font-weight: 600;
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.on-btn {
+    background: #28a745;
+    color: white;
+}
+
+.on-btn:hover {
+    background: #218838;
+}
+
+.off-btn {
+    background: #dc3545;
+    color: white;
+}
+
+.off-btn:hover {
+    background: #c82333;
+}
+
+/* Status Message */
+.status-message-card {
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.status-message {
+    font-size: 14px;
+    color: #6c757d;
+    text-align: center;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    width: 100%;
+}
+
+/* Usage Charts */
+.usage-chart-card {
+    min-height: 250px;
+}
+
+.chart-label {
+    text-align: center;
+    font-weight: bold;
+    color: #007bff;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.chart-container {
+    height: 200px;
+    position: relative;
+}
+
+/* System Parameters Table */
+.parameters-table {
+    width: 100%;
+}
+
+.parameters-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.parameters-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #e9ecef;
+    font-size: 14px;
+}
+
+.param-label {
+    font-weight: 500;
+    color: #6c757d;
+    text-align: left;
+}
+
+.param-value {
+    font-weight: 600;
+    color: #495057;
+    text-align: right;
+}
+
+/* Pump Image in System Parameters */
+.pump-image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 15px;
+    padding: 10px;
+}
+
+.system-pump-image {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    filter: grayscale(0.3);
+    transition: all 0.3s ease;
+}
+
+.system-pump-image:hover {
+    filter: grayscale(0);
+    transform: scale(1.1);
+}
+
+/* Push Notification Button */
+.notification-card {
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.activate-feedback-btn {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #28a745;
+    border-radius: 8px;
+    background: #fff;
+    color: #28a745;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.activate-feedback-btn:hover {
+    background: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+}
+
+.activate-feedback-btn.active {
+    background: #28a745;
+    color: white;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-text {
+    font-size: 16px;
+}
+
+.btn-status {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+/* Automation Timeslots with Green Border */
+.automation-timeslots {
+    margin-top: 20px;
+    border: 3px solid #28a745;
+    border-radius: 12px;
+    padding: 15px;
+    background: #f8fff9;
+}
+
+.timeslot {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border: 1px solid #e9ecef;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+.timeslot:last-child {
+    margin-bottom: 0;
+}
+
+.timeslot-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    background: #f8f9fa;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.timeslot-header:hover {
+    background: #e9ecef;
+}
+
+.timeslot-name {
+    font-weight: 600;
+    color: #495057;
+    font-size: 14px;
+}
+
+.timeslot-toggle {
+    width: 25px;
+    height: 25px;
+    border: none;
+    border-radius: 50%;
+    background: #007bff;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.timeslot-toggle:hover {
+    background: #0056b3;
+    transform: scale(1.1);
+}
+
+.timeslot-toggle.expanded {
+    background: #dc3545;
+}
+
+.timeslot-form {
+    padding: 15px;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.timeslot-form.hidden {
+    display: none;
+}
+
+.form-group {
+    margin-bottom: 12px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 500;
+    color: #495057;
+    font-size: 13px;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 13px;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+}
+
+.form-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 15px;
+}
+
+.save-btn,
+.cancel-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.save-btn {
+    background: #28a745;
+    color: white;
+}
+
+.save-btn:hover {
+    background: #218838;
+}
+
+.cancel-btn {
+    background: #6c757d;
+    color: white;
+}
+
+.cancel-btn:hover {
+    background: #5a6268;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .main-content-row {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto;
+    }
+    
+    .usage-graphs-column {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content-row {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .tank-grid-2,
+    .tank-grid-3,
+    .tank-grid-4 {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(auto, 1fr);
+    }
+    
+    .pump-element {
+        grid-column: 1;
+        grid-row: auto;
+        margin: 10px 0;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+}
+
+/* No Data State */
+.no-data {
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+    padding: 40px 20px;
+}
