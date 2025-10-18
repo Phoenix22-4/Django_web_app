@@ -106,7 +106,7 @@ def ai_chat_view(request):
         )
         
         if stream:
-            # For streaming responses
+            # For streaming responses using the correct API
             response = model.generate_content(
                 user_message,
                 stream=True
@@ -116,7 +116,7 @@ def ai_chat_view(request):
             def generate_stream():
                 full_response = ""
                 for chunk in response:
-                    if chunk.text:
+                    if hasattr(chunk, 'text') and chunk.text:
                         full_response += chunk.text
                         yield f"data: {json.dumps({'chunk': chunk.text, 'status': 'streaming'})}\n\n"
                 
@@ -140,7 +140,7 @@ def ai_chat_view(request):
             return JsonResponse({
                 'reply': response.text,
                 'status': 'success'
-            })
+            })to my railway brsnch
         
     except Exception as e:
         # Provide a helpful fallback response
