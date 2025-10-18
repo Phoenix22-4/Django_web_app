@@ -52,24 +52,9 @@
                 <h3 class="card-title">Tank Levels</h3>
                 <div class="tank-system-container" id="tank-system-container">
                     <!-- Dynamic tank grid will be populated here -->
-                </div>
             </div>
-            
-            <!-- Pump Controls -->
-            <div class="dashboard-card pump-controls-card">
-                <h3 class="card-title">Pump Controls</h3>
-                <div class="pump-controls-container">
-                    <div class="pump-status-display">
-                        <span id="pump-status-text">Pump: OFF</span>
-                        <span id="pump-current-text">Current: 0.0A</span>
-                    </div>
-                    <div class="pump-buttons">
-                        <button id="pump-on-btn" class="pump-btn on-btn">ON</button>
-                        <button id="pump-off-btn" class="pump-btn off-btn">OFF</button>
-                    </div>
-                </div>
-            </div>
-            
+        </div>
+        
             <!-- Status Message -->
             <div class="dashboard-card status-message-card">
                 <div class="status-message" id="status-message">
@@ -86,9 +71,9 @@
                 <div class="chart-label">NMPG 1</div>
                 <div class="chart-container">
                     <canvas id="waterUsageChart"></canvas>
-                </div>
-            </div>
-            
+        </div>
+    </div>
+
             <!-- Pump Usage Chart -->
             <div class="dashboard-card usage-chart-card">
                 <h3 class="card-title">Pump Usage</h3>
@@ -101,9 +86,9 @@
         
         <!-- Right Column: Parameters and Controls -->
         <div class="parameters-column">
-            <!-- System Parameters -->
-            <div class="dashboard-card parameters-card">
-                <h3 class="card-title">System Parameters</h3>
+        <!-- System Parameters -->
+        <div class="dashboard-card parameters-card">
+            <h3 class="card-title">System Parameters</h3>
                 <div class="parameters-table">
                     <table id="system-parameters-table">
                         <tbody>
@@ -114,9 +99,9 @@
                 <!-- Pump Image in System Parameters -->
                 <div class="pump-image-container">
                     <div class="system-pump-image">💧</div>
-                </div>
             </div>
-            
+        </div>
+        
             <!-- Push Notification Activation -->
             <div class="dashboard-card notification-card">
                 <button id="activate-feedback-btn" class="activate-feedback-btn">
@@ -270,29 +255,63 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function initializeTankSystem() {
     const tankContainer = document.getElementById('tank-system-container');
+    const tankData = {{ last_reading.tank_data|safe|default:"[]" }};
+    const pumpStatus = {{ last_reading.pump_status|default:"false" }};
     
     // Clear container
     tankContainer.innerHTML = '';
     
-    // Create default tanks if no data available
-    const defaultTanks = [
-        { name: 'Tank 1', level: 75, capacity: '1000L' },
-        { name: 'Tank 2', level: 60, capacity: '1000L' }
-    ];
+    if (tankData.length === 0) {
+        tankContainer.innerHTML = '<div class="no-data">Waiting for tank data...</div>';
+        return;
+    }
     
-    // Create tank grid
+    // Create tank grid based on number of tanks (1-4 max)
+    const numTanks = Math.min(tankData.length, 4);
+    const gridClass = `tank-grid-${numTanks}`;
+    
     const tankGrid = document.createElement('div');
-    tankGrid.className = 'tank-grid tank-grid-2';
+    tankGrid.className = `tank-grid ${gridClass}`;
     
-    // Add tanks
-    defaultTanks.forEach((tank, index) => {
-        const tankElement = createTankElement(tank, index);
+    // Add tanks based on tank.jpeg layout
+    if (numTanks === 1) {
+        // Single tank - centered
+        const tankElement = createTankElement(tankData[0], 0);
         tankGrid.appendChild(tankElement);
-    });
-    
-    // Add pump in center
-    const pumpElement = createPumpElement();
-    tankGrid.appendChild(pumpElement);
+    } else if (numTanks === 2) {
+        // Two tanks - side by side with pump in center
+        const leftTank = createTankElement(tankData[0], 0);
+        const rightTank = createTankElement(tankData[1], 1);
+        tankGrid.appendChild(leftTank);
+        tankGrid.appendChild(rightTank);
+        
+        // Add pump in center
+        const pumpElement = createPumpElement();
+        tankGrid.appendChild(pumpElement);
+    } else if (numTanks === 3) {
+        // Three tanks - one above, two below with pump in center
+        const topTank = createTankElement(tankData[0], 0);
+        const leftTank = createTankElement(tankData[1], 1);
+        const rightTank = createTankElement(tankData[2], 2);
+        
+        tankGrid.appendChild(topTank);
+        tankGrid.appendChild(leftTank);
+        tankGrid.appendChild(rightTank);
+        
+        // Add pump in center
+        const pumpElement = createPumpElement();
+        tankGrid.appendChild(pumpElement);
+    } else if (numTanks === 4) {
+        // Four tanks - 2x2 grid with pump in center
+        tankData.forEach((tank, index) => {
+            const tankElement = createTankElement(tank, index);
+            tankGrid.appendChild(tankElement);
+        });
+        
+        // Add pump in center
+        const pumpElement = createPumpElement();
+        tankGrid.appendChild(pumpElement);
+    }
     
     tankContainer.appendChild(tankGrid);
 }
@@ -685,7 +704,6 @@ function activateTimeslotRule(slot) {
 <script src="{% static 'aquasavvy-chat.js' %}"></script>
 
 <!-- Tank Layout CSS -->
-<link rel="stylesheet" href="{% static 'tanklayout.css' %}">
 
 <!-- Dashboard Clean CSS -->
 <link rel="stylesheet" href="{% static 'dashboard_clean.css' %}">
