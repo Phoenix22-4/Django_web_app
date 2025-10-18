@@ -273,16 +273,42 @@ function initializeTankSystem() {
     const tankGrid = document.createElement('div');
     tankGrid.className = `tank-grid ${gridClass}`;
     
-    // Add tanks
-    tankData.forEach((tank, index) => {
-        if (index < 4) { // Max 4 tanks
+    // Add tanks based on tank.jpeg layout
+    if (numTanks === 1) {
+        // Single tank - centered
+        const tankElement = createTankElement(tankData[0], 0);
+        tankGrid.appendChild(tankElement);
+    } else if (numTanks === 2) {
+        // Two tanks - side by side with pump in center
+        const leftTank = createTankElement(tankData[0], 0);
+        const rightTank = createTankElement(tankData[1], 1);
+        tankGrid.appendChild(leftTank);
+        tankGrid.appendChild(rightTank);
+        
+        // Add pump in center
+        const pumpElement = createPumpElement();
+        tankGrid.appendChild(pumpElement);
+    } else if (numTanks === 3) {
+        // Three tanks - one above, two below with pump in center
+        const topTank = createTankElement(tankData[0], 0);
+        const leftTank = createTankElement(tankData[1], 1);
+        const rightTank = createTankElement(tankData[2], 2);
+        
+        tankGrid.appendChild(topTank);
+        tankGrid.appendChild(leftTank);
+        tankGrid.appendChild(rightTank);
+        
+        // Add pump in center
+        const pumpElement = createPumpElement();
+        tankGrid.appendChild(pumpElement);
+    } else if (numTanks === 4) {
+        // Four tanks - 2x2 grid with pump in center
+        tankData.forEach((tank, index) => {
             const tankElement = createTankElement(tank, index);
             tankGrid.appendChild(tankElement);
-        }
-    });
-    
-    // Add pump in center (if more than 1 tank or pump enabled)
-    if (numTanks > 1 || pumpStatus) {
+        });
+        
+        // Add pump in center
         const pumpElement = createPumpElement();
         tankGrid.appendChild(pumpElement);
     }
