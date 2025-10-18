@@ -35,14 +35,10 @@ def process_and_save_data(topic, payload_str):
         device_id = topic.split('/')[1]
         payload = json.loads(payload_str)
         
-        print(f"📡 AWS IoT Data Received from device '{device_id}'")
-        print(f"📊 Data: {payload}")
-        
         device, created = Device.objects.get_or_create(device_id=device_id)
         if created:
-            print(f"✅ AUTO-CREATED: New device '{device_id}' has connected and been added to the database.")
-        else:
-            print(f"🔄 Device '{device_id}' already exists, updating data...")
+            print(f"✅ NEW DEVICE: '{device_id}' connected and registered")
+        # Skip logging for existing devices to reduce noise
 
         # --- MODIFIED: Save new dynamic data format ---
         reading = WaterReading.objects.create(
@@ -52,7 +48,7 @@ def process_and_save_data(topic, payload_str):
             pump_current_amps=payload.get('pump_current_amps', 0.0)
         )
         
-        print(f"💾 Data saved successfully for device '{device_id}' - Reading ID: {reading.id}")
+        # Skip data save logging to reduce noise - only log errors
 
         # --- DATA DELETION LOGIC (from old file) ---
         DATA_LIMIT_PER_DEVICE = 150
@@ -115,10 +111,7 @@ def process_and_save_data(topic, payload_str):
         payload['automation_mode'] = automation_mode_message
         
         # Forward data regardless of owner assignment (for admin monitoring)
-        if device.owner:
-            print(f"SUCCESS: Saved data for device '{device_id}' owned by '{device.owner.username}'.")
-        else:
-            print(f"Data received for unassigned device '{device_id}'. Stored and available for admin assignment.")
+        # Skip owner logging to reduce noise - only log errors
         
         return device_id, payload
 
@@ -193,7 +186,7 @@ def on_disconnect(client, userdata, rc):
 
 # This function runs when a message arrives from ANY device.
 def on_message(client, userdata, msg):
-    print(f"📨 Message received from topic: {msg.topic}")
+    # Skip message logging to reduce noise - only process data
     device_id, payload = async_to_sync(process_and_save_data)(msg.topic, msg.payload.decode())
     
     if device_id and payload:
@@ -204,9 +197,12 @@ def on_message(client, userdata, msg):
             {"type": "device.message", "message": payload}
         )
 
-# --- Add this function for debugging ---
+# --- Reduced logging function ---
 def on_log(client, userdata, level, buf):
-    print(f"MQTT DEBUG LOG: {buf}")
+    # Only log important events, not every message
+    if "CONNECT" in buf or "CONNACK" in buf or "DISCONNECT" in buf:
+        print(f"MQTT: {buf}")
+    # Skip PINGREQ, PINGRESP, PUBLISH, SUBSCRIBE, SUBACK to reduce noise
 
 
 class MqttClient:
@@ -238,8 +234,7 @@ class MqttClient:
             file_size = os.path.getsize(path)
             if file_size < 100:  # Certificates should be at least 100 bytes
                 print(f"⚠️ Warning: {cert_file} seems too small ({file_size} bytes): {path}")
-            else:
-                print(f"✅ {cert_file} found ({file_size} bytes): {path}")
+            # Skip success logging to reduce noise
 
         # Configure TLS for secure connection
         self.client.tls_set(
