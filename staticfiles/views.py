@@ -434,6 +434,8 @@ def device_data_view(request, device_id):
                 'name': device.name,
                 'tank_capacity_liters': device.tank_capacity_liters,
                 'pump_present': device.pump_present,
+                'overload_current_amps': device.overload_current_amps,
+                'dry_run_current_amps': device.dry_run_current_amps,
                 'tank_names': device.get_tank_names(),
                 'tank_1_reading_id': device.tank_1_reading_id,
                 'tank_1_name': device.tank_1_name,

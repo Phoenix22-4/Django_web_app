@@ -30,6 +30,10 @@ class Device(models.Model):
     # --- NEW FIELDS FOR ADMIN ---
     tank_capacity_liters = models.PositiveIntegerField(default=1000, help_text="Total capacity of the main user tank in Liters.")
     pump_present = models.BooleanField(default=True, help_text="Set to False if this is a monitor-only device with no pump.")
+    
+    # --- SYSTEM PARAMETERS ---
+    overload_current_amps = models.FloatField(default=15.0, help_text="Current threshold for overload detection (Amps)")
+    dry_run_current_amps = models.FloatField(default=2.0, help_text="Current threshold for dry run detection (Amps)")
 
     # --- TANK CONFIGURATION FIELDS (Auto-populated from IoT data) ---
     tank_1_reading_id = models.CharField(max_length=100, blank=True, null=True, help_text="Reading ID for Tank 1 (auto-detected from IoT data)")

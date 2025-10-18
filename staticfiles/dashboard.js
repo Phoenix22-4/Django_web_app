@@ -20,18 +20,13 @@ document.addEventListener('DOMContentLoaded', function() {
         websocketLight: document.getElementById('websocket-light'),
         deviceStatus: document.getElementById('device-status'),
         deviceLight: document.getElementById('device-light'),
-        overheadWater: document.getElementById('overhead-water'),
-        overheadLevelText: document.getElementById('overhead-level'),
-        undergroundWater: document.getElementById('underground-water'),
-        undergroundLevelText: document.getElementById('underground-level'),
         pumpStatusText: document.getElementById('pump-status-text'),
         pumpCurrentText: document.getElementById('pump-current-text'),
         pumpMotor: document.getElementById('pump-motor'),
         pumpOnBtn: document.getElementById('pump-on'),
         pumpOffBtn: document.getElementById('pump-off'),
-        overheadStatusMsg: document.getElementById('overhead-status-msg'),
-        undergroundStatusMsg: document.getElementById('underground-status-msg'),
-        tanksContainer: document.querySelector('.tanks-container')
+        tanksContainer: document.querySelector('.tank-system-container'),
+        statusMessagesContainer: document.getElementById('status-messages-box')
     };
 
     Object.entries(elements).forEach(([key, element]) => {
@@ -56,21 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
             updateConnectionStatus('device', 'Online', 'online');
 
             // Handle dynamic system data
-            if (data.system_data) {
-                updateDynamicSystemData(data.system_data);
-            }
-
-            const pumpIsOn = data.pump_status;
-            safeUpdate(elements.pumpStatusText, pumpIsOn ? "ON" : "OFF");
-            
-            // --- THIS IS THE KEY FOR THE ANIMATION ---
-            // This line adds the 'active' class when the pump is on.
-            safeClassToggle(elements.pumpMotor, 'active', pumpIsOn);
-            
-            safeClassToggle(elements.pumpMotor, 'online', pumpIsOn);
-            safeClassToggle(elements.pumpMotor, 'offline', !pumpIsOn);
-
-            safeUpdate(elements.pumpCurrentText, `${data.pump_current?.toFixed(1) || '0.0'} A`);
+            updateDynamicSystemData(data);
 
         } catch (error) {
             console.error("Error processing message:", error);
@@ -106,12 +87,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Dynamic system data update function
-    function updateDynamicSystemData(systemData) {
+    function updateDynamicSystemData(data) {
         if (!elements.tanksContainer) return;
         
         // Extract level data and create tanks
         const levelData = [];
-        for (const [key, value] of Object.entries(systemData)) {
+        for (const [key, value] of Object.entries(data)) {
             if (key.endsWith('_level')) {
                 levelData.push({
                     reading_id: key,
@@ -124,19 +105,22 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update tanks with level data
         updateDynamicTanks(levelData);
         
-        // Update pump status from system data
-        if (systemData.pump_status !== undefined) {
-            const pumpIsOn = systemData.pump_status;
+        // Update pump status
+        if (data.pump_status !== undefined) {
+            const pumpIsOn = data.pump_status;
             safeUpdate(elements.pumpStatusText, pumpIsOn ? "ON" : "OFF");
             safeClassToggle(elements.pumpMotor, 'active', pumpIsOn);
             safeClassToggle(elements.pumpMotor, 'online', pumpIsOn);
             safeClassToggle(elements.pumpMotor, 'offline', !pumpIsOn);
         }
         
-        // Update pump current from system data
-        if (systemData.pump_current !== undefined) {
-            safeUpdate(elements.pumpCurrentText, `${systemData.pump_current.toFixed(1)} A`);
+        // Update pump current
+        if (data.pump_current !== undefined) {
+            safeUpdate(elements.pumpCurrentText, `${data.pump_current.toFixed(1)} A`);
         }
+        
+        // Update status messages
+        updateStatusMessages(data);
     }
     
     // Get tank name from reading ID using device data
@@ -279,29 +263,54 @@ document.addEventListener('DOMContentLoaded', function() {
         safeClassUpdate(lightElement, `status-light ${state}`);
     }
 
-    function updateStatusMessages(overhead, underground) {
-        if (elements.overheadStatusMsg) {
-            if (overhead >= 95) {
-                elements.overheadStatusMsg.textContent = "Overhead Tank: FULL";
-                elements.overheadStatusMsg.style.color = "blue";
-            } else {
-                elements.overheadStatusMsg.textContent = `Overhead Tank: ${overhead}%`;
-                elements.overheadStatusMsg.style.color = "";
+    function updateStatusMessages(data) {
+        if (!elements.statusMessagesContainer) return;
+        
+        const messages = [];
+        
+        // Tank level messages
+        for (const [key, value] of Object.entries(data)) {
+            if (key.endsWith('_level')) {
+                const tankName = getTankNameFromReadingId(key);
+                if (value >= 95) {
+                    messages.push(`${tankName}: FULL`);
+                } else if (value < 10) {
+                    messages.push(`${tankName}: CRITICAL!`);
+                } else if (value < 25) {
+                    messages.push(`${tankName}: Low`);
+                } else {
+                    messages.push(`${tankName}: ${value}%`);
+                }
             }
         }
-
-        if (elements.undergroundStatusMsg) {
-            if (underground < 10) {
-                elements.undergroundStatusMsg.textContent = "Underground: CRITICAL!";
-                elements.undergroundStatusMsg.style.color = "red";
-            } else if (underground < 25) {
-                elements.undergroundStatusMsg.textContent = "Underground: Low";
-                elements.undergroundStatusMsg.style.color = "orange";
+        
+        // System status
+        if (data.system_status) {
+            messages.push(`System: ${data.system_status}`);
+        }
+        
+        // Pump status
+        if (data.pump_status !== undefined) {
+            messages.push(`Pump: ${data.pump_status ? 'ON' : 'OFF'}`);
+        }
+        
+        // Current status
+        if (data.pump_current !== undefined && window.deviceData) {
+            const current = data.pump_current;
+            const overloadThreshold = window.deviceData.overload_current_amps || 15;
+            const dryRunThreshold = window.deviceData.dry_run_current_amps || 2;
+            
+            if (current > overloadThreshold) {
+                messages.push(`Current: OVERLOAD (${current.toFixed(1)}A)`);
+            } else if (current < dryRunThreshold && data.pump_status) {
+                messages.push(`Current: DRY RUN (${current.toFixed(1)}A)`);
             } else {
-                elements.undergroundStatusMsg.textContent = `Underground Tank: ${underground}%`;
-                elements.undergroundStatusMsg.style.color = "";
+                messages.push(`Current: ${current.toFixed(1)}A`);
             }
         }
+        
+        // Update status messages container
+        elements.statusMessagesContainer.innerHTML = messages.map(msg => `<p>${msg}</p>`).join('');
     }
 
     function slugify(text) {
