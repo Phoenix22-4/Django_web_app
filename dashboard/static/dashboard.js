@@ -23,10 +23,10 @@ document.addEventListener('DOMContentLoaded', function() {
         pumpStatusText: document.getElementById('pump-status-text'),
         pumpCurrentText: document.getElementById('pump-current-text'),
         pumpMotor: document.getElementById('pump-motor'),
-        pumpOnBtn: document.getElementById('pump-on'),
-        pumpOffBtn: document.getElementById('pump-off'),
+        pumpOnBtn: document.getElementById('pump-on-btn'),
+        pumpOffBtn: document.getElementById('pump-off-btn'),
         tanksContainer: document.querySelector('.tank-system-container'),
-        statusMessagesContainer: document.getElementById('status-messages-box')
+        statusMessagesContainer: document.getElementById('status-message')
     };
 
     Object.entries(elements).forEach(([key, element]) => {

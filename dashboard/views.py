@@ -551,11 +551,25 @@ def device_data_api(request, device_id):
                 'timestamp': None
             })
         
+        # Extract data from system_data JSONField
+        system_data = latest_reading.system_data or {}
+        
+        # Create tank_data from system_data
+        tank_data = []
+        for key, value in system_data.items():
+            if key.endswith('_level'):
+                tank_name = key.replace('_level', '').replace('_', ' ').title()
+                tank_data.append({
+                    'name': tank_name,
+                    'level': value,
+                    'capacity': '1000L'  # Default capacity
+                })
+        
         return JsonResponse({
             'status': 'success',
-            'tank_data': latest_reading.tank_data or [],
-            'pump_status': latest_reading.pump_status,
-            'pump_current_amps': latest_reading.pump_current_amps,
+            'tank_data': tank_data,
+            'pump_status': system_data.get('pump_status', False),
+            'pump_current_amps': system_data.get('pump_current', 0.0),
             'timestamp': latest_reading.timestamp.isoformat()
         })
         
