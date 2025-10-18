@@ -21,10 +21,10 @@ class DeviceAdmin(admin.ModelAdmin):
         ('Hardware Configuration', {
             'fields': ('tank_capacity_liters', 'pump_present')
         }),
-        ('Tank Configuration (Auto-detected from IoT data)', {
-            'fields': ('tank_1_name', 'tank_2_name', 'tank_3_name', 'tank_4_name'),
-            'description': 'Tanks are automatically detected from IoT data. Enter names for tanks that have readings.'
-        }),
+        # ('Tank Configuration (Auto-detected from IoT data)', {
+        #     'fields': ('tank_1_name', 'tank_2_name', 'tank_3_name', 'tank_4_name'),
+        #     'description': 'Tanks are automatically detected from IoT data. Enter names for tanks that have readings.'
+        # }),
         ('Date Information', {
             'fields': ('created_at',),
             'classes': ('collapse',)
