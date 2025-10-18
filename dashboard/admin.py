@@ -11,7 +11,7 @@ import json
 
 class DeviceAdmin(admin.ModelAdmin):
     list_display = ('device_id', 'name', 'owner', 'created_at', 'pump_present', 'tank_capacity_liters')
-    readonly_fields = ('device_id', 'created_at')
+    readonly_fields = ('device_id', 'created_at', 'tank_1_reading_id', 'tank_2_reading_id', 'tank_3_reading_id', 'tank_4_reading_id')
     search_fields = ('device_id', 'name', 'owner__username')
     list_filter = ('owner', 'pump_present')
     fieldsets = (
@@ -20,6 +20,10 @@ class DeviceAdmin(admin.ModelAdmin):
         }),
         ('Hardware Configuration', {
             'fields': ('tank_capacity_liters', 'pump_present')
+        }),
+        ('System Parameters', {
+            'fields': ('overload_current_amps', 'dry_run_current_amps'),
+            'description': 'Current thresholds for pump protection and status messages.'
         }),
         ('Tank Configuration (Auto-detected from IoT data)', {
             'fields': (
@@ -170,14 +174,7 @@ class WaterReadingAdmin(admin.ModelAdmin):
         method.admin_order_field = f'system_data__{key}'
         return method
 
-# --- NEW: ADMINS for Profile and new models ---
-class ProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'phone_number')
-
-class AutomationRuleAdmin(admin.ModelAdmin):
-    list_display = ('name', 'device', 'start_time', 'end_time', 'monitor_tank_name', 'min_level', 'max_level', 'enabled')
-    list_filter = ('device', 'enabled')
-
+# --- NEW: ADMINS for new models ---
 class DailyWaterUsageAdmin(admin.ModelAdmin):
     list_display = ('date', 'device', 'total_user_water_liters', 'total_power_kwh')
     list_filter = ('device',)
@@ -186,6 +183,4 @@ class DailyWaterUsageAdmin(admin.ModelAdmin):
 
 admin.site.register(Device, DeviceAdmin)
 admin.site.register(WaterReading, WaterReadingAdmin)
-admin.site.register(Profile, ProfileAdmin)
-admin.site.register(AutomationRule, AutomationRuleAdmin)
 admin.site.register(DailyWaterUsage, DailyWaterUsageAdmin)
