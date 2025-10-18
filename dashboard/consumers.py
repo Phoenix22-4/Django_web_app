@@ -127,13 +127,19 @@ def process_and_save_data(topic, payload_str):
 # MQTT callbacks
 def on_connect(client, userdata, flags, rc, properties=None):
     try:
-        client.subscribe(MQTT_WILDCARD_DATA_TOPIC)
-        print(f"Connected to MQTT with result code {rc}; subscribed to {MQTT_WILDCARD_DATA_TOPIC}")
+        if rc == 0:
+            print("🔗 MQTT Successfully connected to AWS IoT broker!")
+            print(f"📡 Subscribed to topic: {MQTT_WILDCARD_DATA_TOPIC}")
+            print("✅ Ready to receive data from devices...")
+            client.subscribe(MQTT_WILDCARD_DATA_TOPIC)
+        else:
+            print(f"❌ MQTT Connection failed with result code {rc}")
     except Exception as e:
-        print(f"MQTT on_connect error: {e}")
+        print(f"❌ MQTT on_connect error: {e}")
 
 # This function runs when a message arrives from ANY device.
 def on_message(client, userdata, msg):
+    print(f"📨 Message received from topic: {msg.topic}")
     device_id, payload = async_to_sync(process_and_save_data)(msg.topic, msg.payload.decode())
     
     if device_id and payload:

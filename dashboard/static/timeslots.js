@@ -30,7 +30,12 @@ function initializeTimeslotToggles() {
 
 function loadAutomationRules() {
     // Load existing automation rules from the server
-    fetch('/api/device_data/{{ device.device_id }}/')
+    const deviceId = window.deviceId || document.getElementById('device-id')?.content;
+    if (!deviceId) {
+        console.error('Device ID not found');
+        return;
+    }
+    fetch(`/api/device_data/${deviceId}/`)
         .then(response => response.json())
         .then(data => {
             if (data.automation_rules) {

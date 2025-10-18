@@ -73,6 +73,11 @@ def dashboard_view(request, device_id):
     # Get automation rules
     automation_rules = device.rules.all()
     
+    # Debug logging
+    print(f"🔍 Dashboard view for device: {device_id}")
+    print(f"📊 Latest reading: {last_reading}")
+    print(f"📈 Total readings: {device.readings.count()}")
+    
     return render(request, 'dashboard.html', {
         'device': device,
         'last_reading': last_reading,

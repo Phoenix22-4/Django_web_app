@@ -5,6 +5,10 @@
 
 {% block content %}
 <meta name="device-id" id="device-id" content="{{ device.device_id }}">
+<script>
+    // Make device_id available to JavaScript
+    window.deviceId = "{{ device.device_id }}";
+</script>
 
 <!-- Clean Header with Connection Status in Center -->
 <div class="dashboard-header">
