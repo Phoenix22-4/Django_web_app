@@ -28,4 +28,8 @@ urlpatterns = [
     # --- NEW: PUSH NOTIFICATION URLs ---
     path('api/register_fcm_token/', views.register_fcm_token, name='register_fcm_token'),
     path('api/test_notification/', views.test_notification, name='test_notification'),
+    
+    # --- NEW: LIVE DATA AND NOTIFICATION PREFERENCE URLs ---
+    path('api/device_data/<str:device_id>/', views.device_data_api, name='device_data_api'),
+    path('api/notification-preference/', views.notification_preference_api, name='notification_preference_api'),
 ]
