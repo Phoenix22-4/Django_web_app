@@ -41,34 +41,35 @@ def process_and_save_data(topic, payload_str):
         # Skip logging for existing devices to reduce noise
 
         # --- MODIFIED: Save new dynamic data format ---
+        # Remove thing_id from payload as it's not needed in system_data
+        system_data = {k: v for k, v in payload.items() if k != 'thing_id'}
+        
         reading = WaterReading.objects.create(
             device=device,
-            tank_data=payload.get('tanks', []), # Expects [{"name": "Tank 1", "level": 80}]
-            pump_status=payload.get('pump_status', False),
-            pump_current_amps=payload.get('pump_current_amps', 0.0)
+            system_data=system_data  # Store all dynamic data from IoT
         )
         
-        # --- AUTO-TANK DETECTION: Update tank names based on IoT data ---
-        tanks_data = payload.get('tanks', [])
-        if tanks_data:
+        # --- AUTO-READING ID DETECTION: Update reading IDs based on IoT data ---
+        # Look for level-related fields in the payload
+        level_fields = [key for key in payload.keys() if key.endswith('_level')]
+        
+        if level_fields:
             # Get available tank slots
             available_slots = device.get_available_tank_slots()
             
-            # Auto-assign tank names for tanks with data but no names
-            for i, tank_data in enumerate(tanks_data):
+            # Auto-assign reading IDs for level fields
+            for i, level_field in enumerate(level_fields):
                 if i < len(available_slots):
                     slot_num = available_slots[i]
-                    tank_name_field = f'tank_{slot_num}_name'
-                    current_name = getattr(device, tank_name_field, None)
+                    reading_id_field = f'tank_{slot_num}_reading_id'
+                    current_reading_id = getattr(device, reading_id_field, None)
                     
-                    # Only auto-assign if no name is set and we have tank data
-                    if not current_name and tank_data.get('level') is not None:
-                        # Auto-generate name based on tank data or use default
-                        auto_name = tank_data.get('name', f'Tank {slot_num}')
-                        setattr(device, tank_name_field, auto_name)
-                        print(f"🔧 AUTO-ASSIGNED: {device.device_id} - {tank_name_field} = '{auto_name}'")
+                    # Only auto-assign if no reading_id is set
+                    if not current_reading_id:
+                        setattr(device, reading_id_field, level_field)
+                        print(f"🔧 AUTO-ASSIGNED READING ID: {device.device_id} - {reading_id_field} = '{level_field}'")
             
-            # Save device if any tank names were updated
+            # Save device if any reading IDs were updated
             device.save()
         
         # Skip data save logging to reduce noise - only log errors
