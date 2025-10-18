@@ -21,55 +21,30 @@ else:
 
 # AquaSavvy device information for AI training
 DEVICE_INFO = """
-AquaSavvy Water Management System:
+You are AquaSavvy AI Assistant for water management systems. 
 
-System Overview:
-- Smart water monitoring and control system
-- Real-time tank level monitoring
-- Automated pump control
-- WebSocket connectivity for live updates
-- Mobile-responsive dashboard
+RESPONSE STYLE:
+- Be BRIEF and PRECISE (max 2-3 sentences)
+- Answer directly to the question asked
+- Use bullet points for multiple items
+- No lengthy explanations unless specifically requested
 
-Device Components:
-1. Water Tanks (Overhead/Underground)
-   - Level sensors for real-time monitoring
-   - Visual indicators for tank status
-   - Support for multiple tanks (up to 4)
+SYSTEM CAPABILITIES:
+- Tank level monitoring (Overhead/Underground)
+- Pump control and automation
+- 4 timeslots for scheduling
+- Real-time WebSocket updates
+- Dashboard with charts and controls
 
-2. Pump System
-   - Automated pump control
-   - Real-time status monitoring
-   - Current and power usage tracking
-   - Visual pump icon with animation
+COMMON QUERIES:
+- Tank levels: "Tank at X% - Normal/Low/High"
+- Pump status: "Pump ON/OFF - Running X minutes"
+- Automation: "Rule active/inactive - Next run at X"
+- Issues: "Check [specific component] - [brief solution]"
 
-3. Automation System
-   - 4 configurable timeslots
-   - Rule-based automation
-   - Tank level thresholds
-   - Time-based scheduling
+SUPPORT: contact:vision072025@gmail.com | WhatsApp: +254 702 715070
 
-4. Dashboard Features
-   - Real-time charts (pump runtime, power usage)
-   - Tank level visualization
-   - Connection status indicators
-   - Automation rule management
-
-Troubleshooting Guide:
-- Connection Issues: Check WebSocket status, verify device connectivity
-- Pump Problems: Check power supply, verify pump status indicators
-- Tank Monitoring: Ensure sensors are clean and properly connected
-- Automation: Verify rule configuration and time settings
-
-Maintenance Tips:
-- Regular sensor cleaning
-- Pump maintenance checks
-- System updates and monitoring
-- Backup power considerations
-
-Support Information:
-- Email: contact:vision072025@gmail.com
-- WhatsApp: +254 702 715070
-- System Documentation: Available in dashboard
+Keep responses concise and actionable.
 """
 
 # Custom Login/Logout Views
@@ -107,10 +82,11 @@ def dashboard_view(request, device_id):
 @csrf_exempt
 @require_http_methods(["POST"])
 def ai_chat_view(request):
-    """Handle AI chat requests"""
+    """Handle AI chat requests with streaming support"""
     try:
         data = json.loads(request.body)
         user_message = data.get('message', '')
+        stream = data.get('stream', False)
         
         if not user_message:
             return JsonResponse({'error': 'No message provided'}, status=400)
@@ -125,21 +101,50 @@ def ai_chat_view(request):
         
         # Initialize Gemini model with device information
         model = genai.GenerativeModel(
-            'gemini-2.5-flash',  # Using Gemini 1.5 Flash for speed and performance
+            'gemini-2.0-flash-exp',  # Using latest model for better performance
             system_instruction=DEVICE_INFO
         )
         
-        # Generate response
-        response = model.generate_content(user_message)
-        
-        return JsonResponse({
-            'reply': response.text,
-            'status': 'success'
-        })
+        if stream:
+            # For streaming responses
+            response = model.generate_content(
+                user_message,
+                stream=True
+            )
+            
+            # Create streaming response
+            def generate_stream():
+                full_response = ""
+                for chunk in response:
+                    if chunk.text:
+                        full_response += chunk.text
+                        yield f"data: {json.dumps({'chunk': chunk.text, 'status': 'streaming'})}\n\n"
+                
+                # Send final complete response
+                yield f"data: {json.dumps({'reply': full_response, 'status': 'complete'})}\n\n"
+                yield "data: [DONE]\n\n"
+            
+            from django.http import StreamingHttpResponse
+            return StreamingHttpResponse(
+                generate_stream(),
+                content_type='text/event-stream',
+                headers={
+                    'Cache-Control': 'no-cache',
+                    'Connection': 'keep-alive',
+                }
+            )
+        else:
+            # For non-streaming responses (fallback)
+            response = model.generate_content(user_message)
+            
+            return JsonResponse({
+                'reply': response.text,
+                'status': 'success'
+            })
         
     except Exception as e:
         # Provide a helpful fallback response
-        fallback_response = f"I'm sorry, I'm having trouble processing your request right now. Error: {str(e)}. Please try again or contact support at contact:vision072025@gmail.com"
+        fallback_response = f"I'm having trouble processing your request. Error: {str(e)}. Please try again or contact support at contact:vision072025@gmail.com"
         
         return JsonResponse({
             'reply': fallback_response,
