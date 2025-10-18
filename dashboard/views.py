@@ -512,3 +512,74 @@ def test_notification(request):
             'error': f'Error sending test notification: {str(e)}',
             'status': 'error'
         }, status=500)
+
+@login_required
+def device_data_api(request, device_id):
+    """API endpoint for live device data updates"""
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'error', 'message': 'Not authenticated'}, status=401)
+    
+    try:
+        device = get_object_or_404(Device, device_id=device_id)
+        
+        # Check if user owns this device or is superuser
+        if device.owner != request.user and not request.user.is_superuser:
+            return JsonResponse({'status': 'error', 'message': 'Access denied'}, status=403)
+        
+        # Get latest reading
+        latest_reading = WaterReading.objects.filter(device=device).order_by('-timestamp').first()
+        
+        if not latest_reading:
+            return JsonResponse({
+                'status': 'success',
+                'tank_data': [],
+                'pump_status': False,
+                'pump_current_amps': 0.0,
+                'timestamp': None
+            })
+        
+        return JsonResponse({
+            'status': 'success',
+            'tank_data': latest_reading.tank_data or [],
+            'pump_status': latest_reading.pump_status,
+            'pump_current_amps': latest_reading.pump_current_amps,
+            'timestamp': latest_reading.timestamp.isoformat()
+        })
+        
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+@login_required
+def notification_preference_api(request):
+    """API endpoint for push notification preferences"""
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'error', 'message': 'Not authenticated'}, status=401)
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            enabled = data.get('enabled', False)
+            device_id = data.get('device_id')
+            
+            if device_id:
+                device = get_object_or_404(Device, device_id=device_id)
+                if device.owner != request.user and not request.user.is_superuser:
+                    return JsonResponse({'status': 'error', 'message': 'Access denied'}, status=403)
+                
+                # Update or create notification preference
+                from .models import Profile
+                profile, created = Profile.objects.get_or_create(user=request.user)
+                profile.push_notifications = enabled
+                profile.save()
+                
+                return JsonResponse({
+                    'status': 'success',
+                    'message': f'Notifications {"enabled" if enabled else "disabled"} for device {device_id}'
+                })
+            else:
+                return JsonResponse({'status': 'error', 'message': 'Device ID required'}, status=400)
+                
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
