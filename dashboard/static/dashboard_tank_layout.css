@@ -187,7 +187,8 @@
 .pump-body {
     width: 20px;
     height: 20px;
-    background: #dc3545;
+    background: url('../images/images (1).png') no-repeat center center;
+    background-size: contain;
     border-radius: 3px;
     position: relative;
     transition: all 0.3s ease;
@@ -196,7 +197,8 @@
 .pump-motor {
     width: 100%;
     height: 100%;
-    background: #dc3545;
+    background: url('../images/images (1).png') no-repeat center center;
+    background-size: contain;
     border-radius: 3px;
 }
 
@@ -338,6 +340,28 @@
     font-weight: 600;
     color: #495057;
     text-align: right;
+}
+
+/* Pump Image in System Parameters */
+.pump-image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 15px;
+    padding: 10px;
+}
+
+.system-pump-image {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    filter: grayscale(0.3);
+    transition: all 0.3s ease;
+}
+
+.system-pump-image:hover {
+    filter: grayscale(0);
+    transform: scale(1.1);
 }
 
 /* Push Notification Button */
