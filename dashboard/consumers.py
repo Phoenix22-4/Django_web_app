@@ -128,14 +128,30 @@ def process_and_save_data(topic, payload_str):
 def on_connect(client, userdata, flags, rc, properties=None):
     try:
         if rc == 0:
-            print("🔗 MQTT Successfully connected to AWS IoT broker!")
+            print("🔗 MQTT Successfully connected to AWS IoT Core!")
             print(f"📡 Subscribed to topic: {MQTT_WILDCARD_DATA_TOPIC}")
             print("✅ Ready to receive data from devices...")
             client.subscribe(MQTT_WILDCARD_DATA_TOPIC)
         else:
             print(f"❌ MQTT Connection failed with result code {rc}")
+            # Common error codes
+            error_messages = {
+                1: "Connection refused - incorrect protocol version",
+                2: "Connection refused - invalid client identifier", 
+                3: "Connection refused - server unavailable",
+                4: "Connection refused - bad username or password",
+                5: "Connection refused - not authorised"
+            }
+            if rc in error_messages:
+                print(f"💡 Error details: {error_messages[rc]}")
     except Exception as e:
         print(f"❌ MQTT on_connect error: {e}")
+
+def on_disconnect(client, userdata, rc):
+    if rc != 0:
+        print(f"⚠️ MQTT Unexpected disconnection (rc={rc}). Will attempt to reconnect...")
+    else:
+        print("🔌 MQTT Disconnected normally")
 
 # This function runs when a message arrives from ANY device.
 def on_message(client, userdata, msg):
@@ -157,42 +173,60 @@ def on_log(client, userdata, level, buf):
 
 class MqttClient:
     def __init__(self):
-        # --- *** CHANGE 1: Specify "websockets" transport ---
-        self.client = mqtt.Client(
-            client_id="AquaGuard_Backend", 
-            transport="websockets"
-        )
-        
+        # Use standard MQTT over TLS (more reliable than WebSockets)
+        self.client = mqtt.Client(client_id="AquaGuard_Backend")
         self.client.on_connect = on_connect
         self.client.on_message = on_message
+        self.client.on_disconnect = on_disconnect
         self.client.on_log = on_log
         
         BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         certs_dir = os.path.join(BASE_DIR, "certs")
 
+        # Check if certificate files exist
+        ca_cert = os.path.join(certs_dir, "AmazonRootCA1.pem")
+        device_cert = os.path.join(certs_dir, "7355e09287fa3fab0fbd2c16eaee80bedd61b592e42dd5b6697f59c2de643149-certificate.pem.crt")
+        device_key = os.path.join(certs_dir, "7355e09287fa3fab0fbd2c16eaee80bedd61b592e42dd5b6697f59c2de643149-private.pem.key")
+        
+        if not all(os.path.exists(f) for f in [ca_cert, device_cert, device_key]):
+            print("❌ Certificate files missing:")
+            for cert_file, path in [("CA Certificate", ca_cert), ("Device Certificate", device_cert), ("Device Key", device_key)]:
+                if not os.path.exists(path):
+                    print(f"   - {cert_file}: {path}")
+            raise FileNotFoundError("Required certificate files are missing")
+
+        # Configure TLS for secure connection
         self.client.tls_set(
-            ca_certs=os.path.join(certs_dir, "AmazonRootCA1.pem"),
-            certfile=os.path.join(certs_dir, "7355e09287fa3fab0fbd2c16eaee80bedd61b592e42dd5b6697f59c2de643149-certificate.pem.crt"),
-            keyfile=os.path.join(certs_dir, "7355e09287fa3fab0fbd2c16eaee80bedd61b592e42dd5b6697f59c2de643149-private.pem.key"),
+            ca_certs=ca_cert,
+            certfile=device_cert,
+            keyfile=device_key,
             tls_version=ssl.PROTOCOL_TLSv1_2
         )
 
     def start(self):
-        print("Web app is attempting to connect to AWS...")
+        print("Web app is attempting to connect to AWS IoT Core...")
         
-        # --- *** CHANGE 2: Connect directly to port 443 (required for websockets) ---
-        # The "60" is the keepalive interval, not the port.
         try:
-            self.client.connect(MQTT_SERVER, 443, 60)
+            # Use standard MQTT port 8883 with TLS
+            self.client.connect(MQTT_SERVER, MQTT_PORT, 60)
+            print("✅ MQTT connection initiated successfully")
+            self.client.loop_start()
+            return True
         except Exception as e:
-            print(f"FATAL: WebSocket connection failed: {e}")
-
-        self.client.loop_start()
+            print(f"❌ FATAL: MQTT connection failed: {e}")
+            print("🔍 Check your certificates and network connectivity")
+            print("📋 Troubleshooting steps:")
+            print("   1. Verify certificate files exist in /certs/ directory")
+            print("   2. Check AWS IoT Core endpoint is correct")
+            print("   3. Ensure device certificates are valid and not expired")
+            print("   4. Verify network connectivity to AWS IoT Core")
+            return False
 
 # --- This function ensures we only ever have one connection to AWS ---
 def get_mqtt_client():
     global mqtt_listener_client
     if mqtt_listener_client is None:
+        print("🔧 Creating new MQTT client instance...")
         mqtt_listener_client = MqttClient()
     return mqtt_listener_client
 
