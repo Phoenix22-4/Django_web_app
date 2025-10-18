@@ -1,0 +1,85 @@
+/* Clean Dashboard Layout - Clean Design Styles */
+
+/* Dashboard Header */
+.dashboard-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+.dashboard-title { font-size: 24px; font-weight: 600; margin: 0; }
+.header-center { flex: 1; display: flex; justify-content: center; }
+.connection-status { display: flex; gap: 30px; }
+.status-item { display: flex; align-items: center; gap: 8px; }
+.status-label { font-weight: 500; }
+.status-text { font-weight: 600; }
+.status-dot { width: 12px; height: 12px; border-radius: 50%; background: #ff4757; animation: pulse 2s infinite; }
+.status-dot.online { background: #2ed573; }
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+.header-right { display: flex; align-items: center; gap: 15px; }
+.welcome-text { font-weight: 500; }
+.header-actions { display: flex; gap: 10px; }
+.action-btn { width: 40px; height: 40px; border: none; border-radius: 8px; background: rgba(255,255,255,0.2); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
+.action-btn:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); }
+.action-btn.logout { background: rgba(255,71,87,0.8); }
+
+/* Main Dashboard Grid */
+.dashboard-grid { display: flex; flex-direction: column; gap: 20px; }
+.dashboard-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+.dashboard-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid #e1e8ed; transition: all 0.3s ease; }
+.dashboard-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+.card-title { font-size: 18px; font-weight: 600; margin: 0 0 15px 0; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 8px; }
+
+/* Chart Card */
+.chart-card { min-height: 250px; }
+.chart-container { height: 200px; position: relative; }
+
+/* Tank Gauge Card */
+.tank-gauge-card { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.tank-gauge { display: flex; justify-content: center; align-items: center; }
+.gauge-circle { width: 120px; height: 120px; border-radius: 50%; background: conic-gradient(#3498db 0deg, #3498db 270deg, #ecf0f1 270deg, #ecf0f1 360deg); display: flex; align-items: center; justify-content: center; position: relative; }
+.gauge-fill { width: 100px; height: 100px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; }
+.gauge-text { font-size: 24px; font-weight: bold; color: #2c3e50; }
+
+/* Pump Status Card */
+.pump-status-card { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.pump-container { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+.pump-icon { width: 60px; height: 40px; display: flex; align-items: center; justify-content: center; }
+.pump-rectangle { width: 50px; height: 30px; background: #34495e; border-radius: 4px; position: relative; transition: all 0.3s ease; }
+.pump-rectangle.active { background: #27ae60; box-shadow: 0 0 20px rgba(39, 174, 96, 0.5); }
+
+/* Tanks Card */
+.tanks-container { display: flex; flex-direction: column; gap: 15px; }
+.tank-item { display: flex; align-items: center; gap: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px; }
+.tank-name { font-weight: 600; min-width: 120px; color: #2c3e50; }
+.tank-level-bar { flex: 1; height: 20px; background: #ecf0f1; border-radius: 10px; overflow: hidden; }
+.level-fill { height: 100%; background: linear-gradient(90deg, #3498db, #2980b9); border-radius: 10px; transition: width 0.5s ease; }
+.tank-percentage { font-weight: 600; color: #2c3e50; min-width: 40px; text-align: right; }
+
+/* Parameters Card */
+.parameters-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+.param-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f8f9fa; border-radius: 8px; }
+.param-label { font-weight: 500; color: #7f8c8d; }
+.param-value { font-weight: 600; color: #2c3e50; }
+
+/* Status Card */
+.status-messages { display: flex; flex-direction: column; gap: 15px; }
+.status-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f8f9fa; border-radius: 8px; }
+.status-label { font-weight: 500; color: #7f8c8d; }
+.status-value { font-weight: 600; color: #2c3e50; }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .dashboard-header { flex-direction: column; gap: 15px; text-align: center; }
+    .connection-status { flex-direction: column; gap: 10px; }
+    .dashboard-row { grid-template-columns: 1fr; }
+    .parameters-grid { grid-template-columns: 1fr; }
+}
+
+/* Memory Optimization */
+.dashboard-card { contain: layout style paint; }
+.chart-container canvas { max-width: 100%; height: auto; }
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .dashboard-card { background: #2c3e50; color: white; border-color: #34495e; }
+    .card-title { color: white; border-color: #3498db; }
+    .tank-item, .param-item, .status-item { background: #34495e; }
+    .param-label, .status-label { color: #bdc3c7; }
+    .param-value, .status-value { color: white; }
+}

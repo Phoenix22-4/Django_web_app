@@ -1,0 +1,45 @@
+/* Tank Layout CSS - Tank Visualization Styles */
+
+/* Tank System Styles */
+.tank-system-container { min-height: 400px; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.tank-grid { display: flex; flex-direction: column; align-items: center; gap: 30px; position: relative; width: 100%; max-width: 300px; }
+.tank-grid-1 { flex-direction: column; align-items: center; }
+.tank-grid-2 { flex-direction: row; justify-content: space-around; align-items: center; }
+.tank-grid-3 { flex-direction: column; align-items: center; }
+.tank-grid-4 { flex-direction: column; align-items: center; }
+
+/* Tank Element Styles */
+.tank-element { display: flex; flex-direction: column; align-items: center; gap: 8px; position: relative; }
+.tank-visual { position: relative; display: flex; flex-direction: column; align-items: center; }
+.tank-body { width: 60px; height: 100px; background: #f8f9fa; border: 2px solid #6c757d; border-radius: 6px; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.tank-capacity { position: absolute; top: 3px; left: 50%; transform: translateX(-50%); font-size: 8px; font-weight: bold; color: #495057; z-index: 2; background: rgba(255,255,255,0.8); padding: 1px 3px; border-radius: 2px; }
+.water-level { background: linear-gradient(to top, #007bff, #0056b3); width: 100%; transition: height 0.5s ease; border-radius: 0 0 4px 4px; animation: waterWave 2s ease-in-out infinite; }
+@keyframes waterWave { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-1px); } }
+.tank-pipe { width: 15px; height: 2px; background: #6c757d; margin-top: 3px; border-radius: 1px; }
+.tank-info { text-align: center; }
+.tank-name { font-weight: 600; font-size: 10px; color: #495057; margin-bottom: 1px; }
+.tank-percentage { font-weight: bold; font-size: 12px; color: #007bff; }
+
+/* Tank Visualization Styles */
+.tanks-visualization { display: flex; flex-direction: column; align-items: center; width: 100%; position: relative; margin: 20px 0; }
+.tank-wrapper { display: flex; flex-direction: column; align-items: center; margin: 10px 0; }
+.tank-title, .tank-info { font-weight: bold; background-color: rgba(255, 255, 255, 0.9); padding: 5px 10px; border-radius: 5px; font-size: 0.9rem; }
+.tank-title { margin-bottom: 8px; }
+.tank-info { margin-top: 8px; }
+.tank { position: relative; }
+.tank.underground { height: 200px; width: 120px; }
+.tank.overhead { height: 150px; width: 100px; }
+.tank-frame { width: 100%; height: 100%; border: 3px solid #6c757d; border-radius: 5px; position: relative; overflow: hidden; background-color: #e9ecef; }
+.water-level { position: absolute; bottom: 0; left: 0; width: 100%; background-color: #23c5ee; transition: height 0.5s ease-in-out; }
+
+/* Responsive Tank Layout */
+@media (min-width: 768px) {
+    .tanks-visualization { flex-direction: row; justify-content: center; align-items: flex-end; gap: 30px; margin: 40px 0; }
+    .tank.underground { height: 250px; width: 150px; }
+    .tank.overhead { height: 180px; width: 120px; }
+}
+
+@media (min-width: 992px) {
+    .tank.underground { height: 300px; width: 180px; }
+    .tank.overhead { height: 220px; width: 140px; }
+}

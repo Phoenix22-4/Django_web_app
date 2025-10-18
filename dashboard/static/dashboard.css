@@ -1,4 +1,6 @@
-/* ==================== BASE & LAYOUT ==================== */
+/* ====================
+   BASE & LAYOUT
+   ==================== */
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -31,42 +33,249 @@ body::before {
     margin: 0 auto;
 }
 
-/* ==================== HEADER ==================== */
+/* ====================
+   HEADER & NAVIGATION
+   ==================== */
 .header {
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
     align-items: center;
-    background-color: rgba(11, 210, 236, 0.95);
-    padding: 15px;
+    background-color: rgba(11, 160, 236, 0.95);
+    padding: 15px 30px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
-.heading { 
-    margin: 0 0 10px 0; 
-    color: #0f1ee7;
-    text-align: center;
-    font-size: 1.5rem;
+.header-left {
+    display: flex;
+    flex-direction: column;
 }
 
-.user-info { display: flex; align-items: center; gap: 20px; }
-.logout-link, .nav-link { text-decoration: none; color: #007bff; font-weight: bold; font-size: 0.9rem; transition: color 0.2s; }
-.logout-link:hover, .nav-link:hover { color: #0056b3; }
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    margin: 0;
+}
 
-/* ==================== DEVICE LIST PAGE ==================== */
-.device-list-container { text-align: center; }
-.device-grid { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin-top: 20px; }
-.device-card { display: flex; flex-direction: column; justify-content: center; align-items: center; width: 220px; height: 160px; background-color: #08f714; color: #0402ff; text-decoration: none; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: transform 0.2s, box-shadow 0.2s; text-align: center; padding: 15px; }
-.device-card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.3); }
-.device-card h3 { margin: 0 0 10px 0; font-size: 1.3rem; }
-.device-card p { margin: 0; font-size: 0.8rem; opacity: 0.8; }
+.subtitle {
+    font-size: 14px;
+    color: rgba(255,255,255,0.8);
+    margin: 0;
+}
 
-/* ==================== DASHBOARD PAGE ==================== */
-.dashboard-container { display: flex; flex-direction: column; align-items: center; gap: 20px; }
-.status-row { display: flex; justify-content: center; gap: 20px; margin: 15px 0; flex-wrap: wrap; }
-.status-indicator { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; background-color: rgba(253, 189, 12, 0.9); padding: 8px 12px; border-radius: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-.status-light { width: 12px; height: 12px; border-radius: 50%; transition: all 0.3s; }
-.status-light.online { background-color: #28a745; box-shadow: 0 0 8px #28a745; }
-.status-light.offline { background-color: #dc3545; box-shadow: 0 0 8px #dc3545; }
+.header-center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.connection-status {
+    display: flex;
+    gap: 30px;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-label {
+    font-weight: 500;
+    color: white;
+}
+
+.status-text {
+    font-weight: 600;
+    color: white;
+}
+
+.status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #ff4757;
+    animation: pulse 2s infinite;
+}
+
+.status-dot.online {
+    background: #2ed573;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.welcome-text {
+    font-weight: 500;
+    color: white;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.action-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+    background: rgba(255,255,255,0.3);
+    transform: translateY(-2px);
+}
+
+.action-btn.logout {
+    background: rgba(255,71,87,0.8);
+}
+
+/* ====================
+   DEVICE LIST PAGE
+   ==================== */
+.device-list-container {
+    text-align: center;
+}
+
+.device-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.device-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border: 1px solid #e1e8ed;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+}
+
+.device-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.device-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.device-card-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+}
+
+.device-card-meta {
+    flex: 1;
+    margin-left: 15px;
+}
+
+.device-card-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0 0 5px 0;
+}
+
+.device-card-sub {
+    font-size: 14px;
+    color: #7f8c8d;
+    margin: 0;
+}
+
+.device-card-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.device-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 8px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #6c757d;
+}
+
+/* ====================
+   DASHBOARD PAGE
+   ==================== */
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.status-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 15px 0;
+    flex-wrap: wrap;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    background-color: rgba(253, 189, 12, 0.9);
+    padding: 8px 12px;
+    border-radius: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.status-light {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    transition: all 0.3s;
+}
+
+.status-light.online {
+    background-color: #28a745;
+    box-shadow: 0 0 8px #28a745;
+}
+
+.status-light.offline {
+    background-color: #dc3545;
+    box-shadow: 0 0 8px #dc3545;
+}
 
 /* --- NEW: STYLES FOR THE COMBINED ROW --- */
 .controls-status-row {
@@ -91,54 +300,244 @@ body::before {
     gap: 15px;
 }
 
-.pump-controls-container h2, .status-box h3 { margin: 0 0 10px 0; font-size: 1.2rem; color: #333; }
-.pump-buttons { display: flex; gap: 15px; width: 100%; justify-content: center; }
-.control-button { padding: 10px 20px; font-size: 1rem; font-weight: bold; color: #fff; border: none; border-radius: 5px; cursor: pointer; transition: all 0.2s; flex: 1; max-width: 120px; }
-.control-button.on { background-color: #28a745; }
-.control-button.off { background-color: #dc3545; }
-.control-button:hover { transform: translateY(-2px); opacity: 0.9; }
-.pump-status { display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 0.9rem; font-weight: bold; }
-.pump-status p { margin: 0; }
+.pump-controls-container h2, .status-box h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.2rem;
+    color: #333;
+}
 
-.tanks-visualization { display: flex; flex-direction: column; align-items: center; width: 100%; position: relative; margin: 20px 0; }
-.tank-wrapper { display: flex; flex-direction: column; align-items: center; margin: 10px 0; }
-.tank-title, .tank-info { font-weight: bold; background-color: rgba(255, 255, 255, 0.9); padding: 5px 10px; border-radius: 5px; font-size: 0.9rem; }
-.tank-title { margin-bottom: 8px; }
-.tank-info { margin-top: 8px; }
-.tank { position: relative; }
-.tank.underground { height: 200px; width: 120px; }
-.tank.overhead { height: 150px; width: 100px; }
-.tank-frame { width: 100%; height: 100%; border: 3px solid #6c757d; border-radius: 5px; position: relative; overflow: hidden; background-color: #e9ecef; }
-.water-level { position: absolute; bottom: 0; left: 0; width: 100%; background-color: #23c5ee; transition: height 0.5s ease-in-out; }
+.pump-buttons {
+    display: flex;
+    gap: 15px;
+    width: 100%;
+    justify-content: center;
+}
 
-.pipe-and-pump { display: flex; align-items: center; justify-content: center; width: 100%; margin: 15px 0; }
-.pipe-horizontal { height: 15px; background-color: #44a7fd; border-radius: 5px; flex: 1; max-width: 80px; }
-.pump { position: relative; width: 60px; height: 60px; color: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.8rem; box-shadow: 0 0 8px rgba(0,0,0,0.5); border: 4px solid #34526d; margin: 0 10px; }
-.pump.online { background-color: #f01111; }
-.pump.offline { background-color: #16961ce1; }
-.pump.active .fa-water { animation: pump-on 1s infinite; }
-@keyframes pump-on { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+.control-button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex: 1;
+    max-width: 120px;
+}
 
-.status-box { padding: 12px; background-color: #e5f507; border-radius: 5px; border: 1px solid #dee2e6; width: 100%; box-sizing: border-box; }
-.status-box p { margin: 4px 0; font-weight: bold; font-size: 0.9rem; }
+.control-button.on {
+    background-color: #28a745;
+}
 
-/* ==================== FOOTER ==================== */
-.site-footer { text-align: center; padding: 15px; background-color: rgba(11, 209, 209, 0.9); color: #0d14ec; font-size: 0.8rem; margin-top: auto; }
+.control-button.off {
+    background-color: #dc3545;
+}
 
-/* ==================== RESPONSIVE DESIGN ==================== */
+.control-button:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
+}
+
+.pump-status {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.pump-status p {
+    margin: 0;
+}
+
+.pipe-and-pump {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin: 15px 0;
+}
+
+.pipe-horizontal {
+    height: 15px;
+    background-color: #44a7fd;
+    border-radius: 5px;
+    flex: 1;
+    max-width: 80px;
+}
+
+.pump {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.8rem;
+    box-shadow: 0 0 8px rgba(0,0,0,0.5);
+    border: 4px solid #34526d;
+    margin: 0 10px;
+}
+
+.pump.online {
+    background-color: #f01111;
+}
+
+.pump.offline {
+    background-color: #16961ce1;
+}
+
+.pump.active .fa-water {
+    animation: pump-on 1s infinite;
+}
+
+@keyframes pump-on {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.status-box {
+    padding: 12px;
+    background-color: #e5f507;
+    border-radius: 5px;
+    border: 1px solid #dee2e6;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.status-box p {
+    margin: 4px 0;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+/* ====================
+   LOGIN PAGE
+   ==================== */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.login-card {
+    background: white;
+    border-radius: 12px;
+    padding: 40px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+}
+
+.login-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #2c3e50;
+    text-align: center;
+    margin: 0 0 30px 0;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.login-btn {
+    width: 100%;
+    padding: 12px;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.login-btn:hover {
+    background: #2980b9;
+    transform: translateY(-1px);
+}
+
+/* ====================
+   FOOTER
+   ==================== */
+.site-footer {
+    text-align: center;
+    padding: 15px;
+    background-color: rgba(11, 209, 209, 0.9);
+    color: #0d14ec;
+    font-size: 0.8rem;
+    margin-top: auto;
+}
+
+/* ====================
+   RESPONSIVE DESIGN
+   ==================== */
 @media (min-width: 768px) {
-    .header { flex-direction: row; justify-content: space-between; padding: 15px 30px; }
-    .heading { margin: 0; text-align: left; font-size: 1.8rem; }
-    .tanks-visualization { flex-direction: row; justify-content: center; align-items: flex-end; gap: 30px; margin: 40px 0; }
-    .tank.underground { height: 250px; width: 150px; }
-    .tank.overhead { height: 180px; width: 120px; }
-    .pipe-and-pump { position: relative; margin: 0; width: auto; }
-    .pipe-horizontal { width: 80px; height: 20px; }
-    .pump { width: 70px; height: 70px; font-size: 2rem; }
+    .header {
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 15px 30px;
+    }
+    
+    .heading {
+        margin: 0;
+        text-align: left;
+        font-size: 1.8rem;
+    }
+    
+    .pipe-and-pump {
+        position: relative;
+        margin: 0;
+        width: auto;
+    }
+    
+    .pipe-horizontal {
+        width: 80px;
+        height: 20px;
+    }
+    
+    .pump {
+        width: 70px;
+        height: 70px;
+        font-size: 2rem;
+    }
 }
 
 @media (min-width: 992px) {
-    .tank.underground { height: 300px; width: 180px; }
-    .tank.overhead { height: 220px; width: 140px; }
-    .pump { width: 80px; height: 80px; font-size: 2.5rem; }
+    .pump {
+        width: 80px;
+        height: 80px;
+        font-size: 2.5rem;
+    }
 }
