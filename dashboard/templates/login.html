@@ -13,13 +13,13 @@
     <div class="login-container">
         <form method="post">
             {% csrf_token %} {{ form.as_p }}
-            <button type="submit" class="control-button on">Login</button>
+            <div class="button-row">
+                <button type="submit" class="control-button on">Login</button>
+                <a href="{% url 'public_home' %}" class="nav-button home-button" title="Back to Home">
+                    <i class="fas fa-home"></i> Home
+                </a>
+            </div>
         </form>
-        <div style="margin-top:12px; text-align:center;">
-            <a href="{% url 'public_home' %}" class="nav-button home-button" title="Back to Home">
-                <i class="fas fa-home"></i>
-            </a>
-        </div>
     </div>
 </body>
 </html>
@@ -61,5 +61,19 @@
     .home-button:hover {
         background-color: #0056b3;
         color: white;
+    }
+    .button-row {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        align-items: center;
+        margin-top: 15px;
+    }
+    .button-row .control-button {
+        flex: 1;
+    }
+    .button-row .home-button {
+        flex: 1;
+        text-align: center;
     }
 </style>
