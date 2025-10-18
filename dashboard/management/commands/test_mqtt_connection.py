@@ -18,7 +18,7 @@ class Command(BaseCommand):
         self.stdout.write("🔍 Testing MQTT connection to AWS IoT Core...")
         
         # Configuration
-        MQTT_SERVER = "a32641ary7fmuf-ats.iot.me-central-1.amazonaws.com"
+        MQTT_SERVER = "a2hspl06jd48n2-ats.iot.me-central-1.amazonaws.com"
         MQTT_PORT = 8883
         
         # Check certificate files
