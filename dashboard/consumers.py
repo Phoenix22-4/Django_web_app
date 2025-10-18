@@ -124,7 +124,7 @@ def process_and_save_data(topic, payload_str):
         print(f"ERROR: Could not process message. Reason: {e}")
     return None, None
 
-# MQTT callbacks
+# --- MQTT Callbacks ---
 def on_connect(client, userdata, flags, rc, properties=None):
     try:
         if rc == 0:
@@ -150,14 +150,20 @@ def on_message(client, userdata, msg):
             {"type": "device.message", "message": payload}
         )
 
-# --- (Rest of MqttClient, get_mqtt_client, and DashboardConsumer stay the same) ---
-# ... (Keep the rest of your file from MqttClient class downwards) ...
+# --- NEW: Add this function for debugging ---
+def on_log(client, userdata, level, buf):
+    print(f"MQTT DEBUG LOG: {buf}")
+
+
 class MqttClient:
     def __init__(self):
         # The web app has one, fixed ID ("the mail van").
         self.client = mqtt.Client(client_id="AquaGuard_Backend")
         self.client.on_connect = on_connect
         self.client.on_message = on_message
+        
+        # --- ADD THIS LINE TO ENABLE DEBUG LOGS ---
+        self.client.on_log = on_log
         
         BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         certs_dir = os.path.join(BASE_DIR, "certs")
@@ -171,7 +177,19 @@ class MqttClient:
 
     def start(self):
         print("Web app is attempting to connect to AWS...")
-        self.client.connect(MQTT_SERVER, MQTT_PORT, 60)
+        
+        # --- MODIFIED: Try connecting on port 443 first ---
+        try:
+            # Try port 443 (firewall-friendly)
+            self.client.connect(MQTT_SERVER, 443, 60)
+        except Exception as e:
+            print(f"Could not connect on port 443 ({e}), trying 8883...")
+            try:
+                # Fallback to 8883
+                self.client.connect(MQTT_SERVER, MQTT_PORT, 60)
+            except Exception as e2:
+                print(f"FATAL: Could not connect on 8883 either: {e2}")
+        
         self.client.loop_start()
 
 # --- This function ensures we only ever have one connection to AWS ---
@@ -218,4 +236,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
 
     @sync_to_async
     def user_owns_device(self):
+        # Also allow superusers to connect to any device
+        if self.user.is_superuser:
+            return Device.objects.filter(device_id=self.device_id).exists()
         return Device.objects.filter(owner=self.user, device_id=self.device_id).exists()
