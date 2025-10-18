@@ -1207,6 +1207,148 @@ body::before {
 }
 
 /* ====================
+   TANK ANIMATIONS
+   ==================== */
+.tank-visual {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.tank-image {
+    position: relative;
+    width: 80px;
+    height: 120px;
+}
+
+.tank-body {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border: 3px solid #007bff;
+    border-radius: 10px;
+    background: linear-gradient(to bottom, #e3f2fd 0%, #e3f2fd 100%);
+    overflow: hidden;
+}
+
+.tank-capacity {
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    font-weight: bold;
+    color: #007bff;
+    z-index: 3;
+}
+
+.water-level {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(to top, #2196f3 0%, #64b5f6 100%);
+    transition: height 0.5s ease-in-out;
+    border-radius: 0 0 7px 7px;
+    animation: waterWave 2s ease-in-out infinite;
+}
+
+@keyframes waterWave {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-2px); }
+}
+
+.tank-info {
+    text-align: center;
+}
+
+.tank-name {
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.tank-percentage {
+    font-size: 14px;
+    font-weight: bold;
+    color: #007bff;
+}
+
+/* ====================
+   PUMP ANIMATIONS
+   ==================== */
+.pump-visual {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.pump-icon {
+    position: relative;
+    width: 100px;
+    height: 80px;
+    transition: all 0.3s ease;
+}
+
+.pump-body {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #666 0%, #888 100%);
+    border-radius: 10px;
+    border: 2px solid #555;
+}
+
+.pump-motor {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #333 0%, #555 100%);
+    border-radius: 50%;
+    border: 2px solid #222;
+}
+
+.pump-pipe {
+    position: absolute;
+    top: 30px;
+    right: 10px;
+    width: 30px;
+    height: 20px;
+    background: linear-gradient(135deg, #444 0%, #666 100%);
+    border-radius: 5px;
+}
+
+.pump-status-indicator {
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    font-weight: bold;
+    color: #dc3545;
+    transition: color 0.3s ease;
+}
+
+.pump-icon.pump-running .pump-motor {
+    animation: pumpRotate 1s linear infinite;
+}
+
+.pump-icon.pump-running .pump-status-indicator {
+    color: #28a745;
+}
+
+@keyframes pumpRotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.status-on {
+    color: #28a745 !important;
+}
+
+/* ====================
    RESPONSIVE DESIGN
    ==================== */
 @media (max-width: 768px) {
