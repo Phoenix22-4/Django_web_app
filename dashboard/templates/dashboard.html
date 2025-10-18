@@ -74,7 +74,7 @@
                             <div class="pump-motor"></div>
                             <div class="pump-pipe"></div>
                         </div>
-                        <div class="pump-status-indicator" id="pump-status-indicator">OFF</div>
+                        <div class="pump-status-indicator" id="pump-status-indicator">⭕</div>
                     </div>
                 </div>
                 <div class="pump-controls">
@@ -330,11 +330,11 @@ function initializePumpAnimation() {
     window.updatePumpStatus = function(isOn) {
         if (isOn) {
             pumpIcon.classList.add('pump-running');
-            pumpStatusIndicator.textContent = 'ON';
+            pumpStatusIndicator.textContent = '🟢';
             pumpStatusIndicator.classList.add('status-on');
         } else {
             pumpIcon.classList.remove('pump-running');
-            pumpStatusIndicator.textContent = 'OFF';
+            pumpStatusIndicator.textContent = '⭕';
             pumpStatusIndicator.classList.remove('status-on');
         }
     };

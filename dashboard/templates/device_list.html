@@ -14,6 +14,7 @@
         <h1>Your AquaSavvy Solution Devices</h1>
         <div class="user-info">
             <span>Welcome, {{ user.username }}!</span>
+            <a href="{% url 'password_change' %}" class="nav-button icon-btn" title="Change Password"><i class="fas fa-key"></i></a>
             <a href="{% url 'public_home' %}" class="nav-button icon-btn" title="Documentation" rel="noopener"><i class="fas fa-book"></i></a>
             <a href="{% url 'logout' %}" class="nav-button icon-btn danger" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
         </div>
