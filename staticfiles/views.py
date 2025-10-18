@@ -411,9 +411,7 @@ def device_data_view(request, device_id):
             readings_data.append({
                 'id': reading.id,
                 'timestamp': reading.timestamp.isoformat(),
-                'pump_status': reading.pump_status,
-                'pump_current_amps': reading.pump_current_amps,
-                'tank_data': reading.tank_data
+                'system_data': reading.system_data
             })
         
         rules_data = []
@@ -437,9 +435,13 @@ def device_data_view(request, device_id):
                 'tank_capacity_liters': device.tank_capacity_liters,
                 'pump_present': device.pump_present,
                 'tank_names': device.get_tank_names(),
+                'tank_1_reading_id': device.tank_1_reading_id,
                 'tank_1_name': device.tank_1_name,
+                'tank_2_reading_id': device.tank_2_reading_id,
                 'tank_2_name': device.tank_2_name,
+                'tank_3_reading_id': device.tank_3_reading_id,
                 'tank_3_name': device.tank_3_name,
+                'tank_4_reading_id': device.tank_4_reading_id,
                 'tank_4_name': device.tank_4_name
             },
             'readings': readings_data,

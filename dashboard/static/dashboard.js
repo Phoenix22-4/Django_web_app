@@ -55,16 +55,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             updateConnectionStatus('device', 'Online', 'online');
 
-            // Handle dynamic tanks if available
-            if (data.tanks && Array.isArray(data.tanks)) {
-                updateDynamicTanks(data.tanks);
-            } else {
-                // Fallback to old overhead/underground system
-                safeStyleUpdate(elements.overheadWater, 'height', `${data.overhead_level || 0}%`);
-                safeUpdate(elements.overheadLevelText, `${data.overhead_level || 0}%`);
-                safeStyleUpdate(elements.undergroundWater, 'height', `${data.underground_level || 0}%`);
-                safeUpdate(elements.undergroundLevelText, `${data.underground_level || 0}%`);
-                updateStatusMessages(data.overhead_level || 0, data.underground_level || 0);
+            // Handle dynamic system data
+            if (data.system_data) {
+                updateDynamicSystemData(data.system_data);
             }
 
             const pumpIsOn = data.pump_status;
@@ -110,6 +103,57 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => {
                 console.error('Error loading device data:', error);
             });
+    }
+
+    // Dynamic system data update function
+    function updateDynamicSystemData(systemData) {
+        if (!elements.tanksContainer) return;
+        
+        // Extract level data and create tanks
+        const levelData = [];
+        for (const [key, value] of Object.entries(systemData)) {
+            if (key.endsWith('_level')) {
+                levelData.push({
+                    reading_id: key,
+                    level: value,
+                    name: getTankNameFromReadingId(key)
+                });
+            }
+        }
+        
+        // Update tanks with level data
+        updateDynamicTanks(levelData);
+        
+        // Update pump status from system data
+        if (systemData.pump_status !== undefined) {
+            const pumpIsOn = systemData.pump_status;
+            safeUpdate(elements.pumpStatusText, pumpIsOn ? "ON" : "OFF");
+            safeClassToggle(elements.pumpMotor, 'active', pumpIsOn);
+            safeClassToggle(elements.pumpMotor, 'online', pumpIsOn);
+            safeClassToggle(elements.pumpMotor, 'offline', !pumpIsOn);
+        }
+        
+        // Update pump current from system data
+        if (systemData.pump_current !== undefined) {
+            safeUpdate(elements.pumpCurrentText, `${systemData.pump_current.toFixed(1)} A`);
+        }
+    }
+    
+    // Get tank name from reading ID using device data
+    function getTankNameFromReadingId(readingId) {
+        if (!window.deviceData) return readingId;
+        
+        // Check which tank slot has this reading ID
+        for (let i = 1; i <= 4; i++) {
+            const readingIdField = `tank_${i}_reading_id`;
+            const nameField = `tank_${i}_name`;
+            
+            if (window.deviceData[readingIdField] === readingId) {
+                return window.deviceData[nameField] || readingId;
+            }
+        }
+        
+        return readingId;
     }
 
     // Dynamic tank update function
