@@ -23,7 +23,6 @@ urlpatterns = [
     path('api/iot_data/', views.aws_iot_data_endpoint, name='aws_iot_data'),
     path('api/pump_control/', views.pump_control_view, name='pump_control'),
     path('api/device_command/', views.device_command_view, name='device_command'),
-    path('api/device_data/<str:device_id>/', views.device_data_view, name='device_data'),
     
     # --- NEW: PUSH NOTIFICATION URLs ---
     path('api/register_fcm_token/', views.register_fcm_token, name='register_fcm_token'),
