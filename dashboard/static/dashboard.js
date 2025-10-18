@@ -50,6 +50,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             updateConnectionStatus('device', 'Online', 'online');
 
+            // Update status message with WebSocket data
+            updateStatusMessage(data);
+
             // Handle dynamic system data
             updateDynamicSystemData(data);
 
@@ -261,6 +264,33 @@ document.addEventListener('DOMContentLoaded', function() {
         
         safeUpdate(statusElement, text);
         safeClassUpdate(lightElement, `status-light ${state}`);
+        
+        // Add blue color for visibility
+        if (statusElement) {
+            statusElement.classList.add('connection-status');
+        }
+    }
+
+    function updateStatusMessage(data) {
+        const statusElement = elements.statusMessagesContainer;
+        if (statusElement && data) {
+            const timestamp = new Date().toLocaleTimeString();
+            let statusText = `Last update: ${timestamp}`;
+            
+            if (data.pump_status !== undefined) {
+                statusText += ` | Pump: ${data.pump_status ? 'ON' : 'OFF'}`;
+            }
+            
+            if (data.pump_current !== undefined) {
+                statusText += ` | Current: ${data.pump_current}A`;
+            }
+            
+            if (data.system_status) {
+                statusText += ` | Status: ${data.system_status}`;
+            }
+            
+            statusElement.textContent = statusText;
+        }
     }
 
     function updateStatusMessages(data) {
