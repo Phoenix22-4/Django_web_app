@@ -11,7 +11,7 @@ from django.utils import timezone
 from datetime import datetime
 
 # --- MQTT Setup ---
-MQTT_SERVER = "a32641ary7fmuf-ats.iot.me-central-1.amazonaws.com"
+MQTT_SERVER = "a2hspl06jd48n2-ats.iot.me-central-1.amazonaws.com"
 MQTT_PORT = 8883 # This is the standard MQTT port, but we will use 443 for WebSockets
 MQTT_WILDCARD_DATA_TOPIC = "devices/+/data"
 MQTT_COMMAND_TOPIC_FORMAT = "devices/{}/commands"
