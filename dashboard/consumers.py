@@ -112,13 +112,13 @@ def process_and_save_data(topic, payload_str):
         # Add the automation status to the payload
         payload['automation_mode'] = automation_mode_message
         
-        # Only forward if owner is assigned
+        # Forward data regardless of owner assignment (for admin monitoring)
         if device.owner:
-            print(f"SUCCESS: Saved data for device '{device_id}' owned by '{device.owner}'.")
-            return device_id, payload
+            print(f"SUCCESS: Saved data for device '{device_id}' owned by '{device.owner.username}'.")
         else:
-            print(f"Data received for unassigned device '{device_id}'. Stored, but not forwarded.")
-            return None, None
+            print(f"Data received for unassigned device '{device_id}'. Stored and available for admin assignment.")
+        
+        return device_id, payload
 
     except Exception as e:
         print(f"ERROR: Could not process message. Reason: {e}")

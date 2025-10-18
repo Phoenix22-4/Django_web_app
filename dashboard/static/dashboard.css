@@ -1226,9 +1226,11 @@ body::before {
     width: 100%;
     height: 100%;
     border: 3px solid #007bff;
-    border-radius: 10px;
+    border-radius: 0; /* Remove border radius for rectangular shape */
     background: linear-gradient(to bottom, #e3f2fd 0%, #e3f2fd 100%);
     overflow: hidden;
+    /* Add some depth to make it look like a real tank */
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .tank-capacity {
@@ -1249,8 +1251,10 @@ body::before {
     width: 100%;
     background: linear-gradient(to top, #2196f3 0%, #64b5f6 100%);
     transition: height 0.5s ease-in-out;
-    border-radius: 0 0 7px 7px;
+    border-radius: 0; /* Remove border radius for rectangular water level */
     animation: waterWave 2s ease-in-out infinite;
+    /* Add some transparency to make it look more like water */
+    opacity: 0.8;
 }
 
 @keyframes waterWave {
@@ -1376,6 +1380,116 @@ body::before {
     box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
     color: white;
     text-decoration: none;
+}
+
+/* ====================
+   PASSWORD CHANGE FORM
+   ==================== */
+.password-change-form {
+    max-width: 500px;
+    margin: 0 auto;
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.password-change-form h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #007bff;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #333;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #0056b3, #004085);
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #6c757d, #5a6268);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #5a6268, #495057);
+    transform: translateY(-2px);
+}
+
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.error {
+    color: #dc3545;
+    font-size: 14px;
+    margin-top: 5px;
 }
 
 /* ====================
