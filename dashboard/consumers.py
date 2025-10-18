@@ -17,6 +17,8 @@ MQTT_WILDCARD_DATA_TOPIC = "devices/+/data"
 MQTT_COMMAND_TOPIC_FORMAT = "devices/{}/commands"
 
 mqtt_listener_client = None
+mqtt_connection_attempts = 0
+MAX_CONNECTION_ATTEMPTS = 5
 
 # --- Helper function to send commands ---
 def send_pump_command(device_id, command):
@@ -126,14 +128,19 @@ def process_and_save_data(topic, payload_str):
 
 # --- MQTT Callbacks ---
 def on_connect(client, userdata, flags, rc, properties=None):
+    global mqtt_connection_attempts
+    
     try:
         if rc == 0:
             print("🔗 MQTT Successfully connected to AWS IoT Core!")
             print(f"📡 Subscribed to topic: {MQTT_WILDCARD_DATA_TOPIC}")
             print("✅ Ready to receive data from devices...")
             client.subscribe(MQTT_WILDCARD_DATA_TOPIC)
+            mqtt_connection_attempts = 0  # Reset counter on successful connection
         else:
-            print(f"❌ MQTT Connection failed with result code {rc}")
+            mqtt_connection_attempts += 1
+            print(f"❌ MQTT Connection failed with result code {rc} (attempt {mqtt_connection_attempts}/{MAX_CONNECTION_ATTEMPTS})")
+            
             # Common error codes
             error_messages = {
                 1: "Connection refused - incorrect protocol version",
@@ -144,12 +151,43 @@ def on_connect(client, userdata, flags, rc, properties=None):
             }
             if rc in error_messages:
                 print(f"💡 Error details: {error_messages[rc]}")
+                
+            if mqtt_connection_attempts >= MAX_CONNECTION_ATTEMPTS:
+                print("🛑 Maximum connection attempts reached. Stopping reconnection attempts.")
+                print("🔧 Please check your AWS IoT Core configuration and certificates.")
+                # Stop the client to prevent endless reconnection attempts
+                try:
+                    client.loop_stop()
+                    client.disconnect()
+                except:
+                    pass
     except Exception as e:
         print(f"❌ MQTT on_connect error: {e}")
 
 def on_disconnect(client, userdata, rc):
     if rc != 0:
-        print(f"⚠️ MQTT Unexpected disconnection (rc={rc}). Will attempt to reconnect...")
+        # Detailed error messages for common disconnect codes
+        error_messages = {
+            1: "Connection refused - incorrect protocol version",
+            2: "Connection refused - invalid client identifier", 
+            3: "Connection refused - server unavailable",
+            4: "Connection refused - bad username or password",
+            5: "Connection refused - not authorised",
+            6: "Connection refused - not authorised (certificate issue)",
+            7: "Connection refused - not authorised (policy/permission issue)"
+        }
+        
+        error_msg = error_messages.get(rc, f"Unknown error code {rc}")
+        print(f"⚠️ MQTT Disconnection (rc={rc}): {error_msg}")
+        
+        if rc in [5, 6, 7]:
+            print("🔍 Authentication/Authorization issue detected!")
+            print("💡 Possible causes:")
+            print("   - Certificate files missing or corrupted")
+            print("   - AWS IoT Core policy doesn't allow this connection")
+            print("   - Certificate has expired")
+            print("   - Wrong AWS IoT Core endpoint")
+            print("   - Device not registered in AWS IoT Core")
     else:
         print("🔌 MQTT Disconnected normally")
 
@@ -194,6 +232,14 @@ class MqttClient:
                 if not os.path.exists(path):
                     print(f"   - {cert_file}: {path}")
             raise FileNotFoundError("Required certificate files are missing")
+        
+        # Check certificate file sizes (basic validation)
+        for cert_file, path in [("CA Certificate", ca_cert), ("Device Certificate", device_cert), ("Device Key", device_key)]:
+            file_size = os.path.getsize(path)
+            if file_size < 100:  # Certificates should be at least 100 bytes
+                print(f"⚠️ Warning: {cert_file} seems too small ({file_size} bytes): {path}")
+            else:
+                print(f"✅ {cert_file} found ({file_size} bytes): {path}")
 
         # Configure TLS for secure connection
         self.client.tls_set(
