@@ -42,6 +42,9 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log("WebSocket connection established");
         updateConnectionStatus('websocket', 'Online', 'online');
         updateConnectionStatus('device', 'Connecting...', 'connecting');
+        
+        // Load device data to get tank names
+        loadDeviceData();
     };
 
     socket.onmessage = function(e) {
@@ -93,6 +96,22 @@ document.addEventListener('DOMContentLoaded', function() {
         updateConnectionStatus('websocket', 'Error', 'error');
     };
 
+    // Load device data to get tank names
+    function loadDeviceData() {
+        fetch(`/api/device_data/${deviceId}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    console.log('Device data loaded:', data.device);
+                    // Store device data globally for tank name mapping
+                    window.deviceData = data.device;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading device data:', error);
+            });
+    }
+
     // Dynamic tank update function
     function updateDynamicTanks(tanks) {
         if (!elements.tanksContainer) return;
@@ -100,8 +119,17 @@ document.addEventListener('DOMContentLoaded', function() {
         // Keep track of which tanks we've seen
         let seenTankSlugs = [];
 
-        tanks.forEach(tank => {
-            const tankSlug = slugify(tank.name);
+        tanks.forEach((tank, index) => {
+            // Use device tank names if available, otherwise use tank.name from data
+            let displayName = tank.name;
+            if (window.deviceData) {
+                const tankNameField = `tank_${index + 1}_name`;
+                if (window.deviceData[tankNameField]) {
+                    displayName = window.deviceData[tankNameField];
+                }
+            }
+            
+            const tankSlug = slugify(displayName);
             seenTankSlugs.push(tankSlug);
             
             let tankWrapper = document.getElementById(`tank-wrapper-${tankSlug}`);
@@ -112,10 +140,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 tankWrapper.className = 'tank-wrapper';
                 tankWrapper.id = `tank-wrapper-${tankSlug}`;
                 
-                const tankTypeClass = tank.name.toLowerCase().includes('underground') ? 'underground' : 'overhead';
+                const tankTypeClass = displayName.toLowerCase().includes('underground') ? 'underground' : 'overhead';
                 
                 tankWrapper.innerHTML = `
-                    <div class="tank-title">${tank.name}</div>
+                    <div class="tank-title">${displayName}</div>
                     <div class="tank ${tankTypeClass}">
                         <div class="tank-frame">
                             <div class="water-level" id="tank-level-${tankSlug}"></div>
@@ -152,21 +180,30 @@ document.addEventListener('DOMContentLoaded', function() {
         if (statusContainer) {
             statusContainer.innerHTML = '';
             
-            tanks.forEach(tank => {
+            tanks.forEach((tank, index) => {
+                // Use device tank names if available
+                let displayName = tank.name;
+                if (window.deviceData) {
+                    const tankNameField = `tank_${index + 1}_name`;
+                    if (window.deviceData[tankNameField]) {
+                        displayName = window.deviceData[tankNameField];
+                    }
+                }
+                
                 let p = document.createElement('p');
-                p.id = `status-msg-${slugify(tank.name)}`;
+                p.id = `status-msg-${slugify(displayName)}`;
                 
                 if (tank.level < 10) {
-                    p.textContent = `${tank.name}: CRITICAL!`;
+                    p.textContent = `${displayName}: CRITICAL!`;
                     p.style.color = "red";
                 } else if (tank.level < 25) {
-                    p.textContent = `${tank.name}: Low`;
+                    p.textContent = `${displayName}: Low`;
                     p.style.color = "orange";
                 } else if (tank.level > 95) {
-                    p.textContent = `${tank.name}: FULL`;
+                    p.textContent = `${displayName}: FULL`;
                     p.style.color = "blue";
                 } else {
-                    p.textContent = `${tank.name}: ${tank.level}%`;
+                    p.textContent = `${displayName}: ${tank.level}%`;
                     p.style.color = "";
                 }
                 statusContainer.appendChild(p);

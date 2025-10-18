@@ -48,6 +48,29 @@ def process_and_save_data(topic, payload_str):
             pump_current_amps=payload.get('pump_current_amps', 0.0)
         )
         
+        # --- AUTO-TANK DETECTION: Update tank names based on IoT data ---
+        tanks_data = payload.get('tanks', [])
+        if tanks_data:
+            # Get available tank slots
+            available_slots = device.get_available_tank_slots()
+            
+            # Auto-assign tank names for tanks with data but no names
+            for i, tank_data in enumerate(tanks_data):
+                if i < len(available_slots):
+                    slot_num = available_slots[i]
+                    tank_name_field = f'tank_{slot_num}_name'
+                    current_name = getattr(device, tank_name_field, None)
+                    
+                    # Only auto-assign if no name is set and we have tank data
+                    if not current_name and tank_data.get('level') is not None:
+                        # Auto-generate name based on tank data or use default
+                        auto_name = tank_data.get('name', f'Tank {slot_num}')
+                        setattr(device, tank_name_field, auto_name)
+                        print(f"🔧 AUTO-ASSIGNED: {device.device_id} - {tank_name_field} = '{auto_name}'")
+            
+            # Save device if any tank names were updated
+            device.save()
+        
         # Skip data save logging to reduce noise - only log errors
 
         # --- DATA DELETION LOGIC (from old file) ---
