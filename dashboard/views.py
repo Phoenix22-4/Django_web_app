@@ -405,7 +405,7 @@ def device_data_view(request, device_id):
         
         # Get device shadow from AWS IoT (optional - don't fail if not available)
         try:
-        shadow_data = aws_iot_manager.get_device_shadow(device_id)
+            shadow_data = aws_iot_manager.get_device_shadow(device_id)
         except Exception as e:
             print(f"⚠️ Could not get device shadow for {device_id}: {e}")
             shadow_data = None
