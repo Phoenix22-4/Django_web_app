@@ -503,6 +503,58 @@ body::before {
 /* ====================
    RESPONSIVE DESIGN
    ==================== */
+@media (max-width: 767px) {
+    .header {
+        flex-direction: column;
+        text-align: center;
+        padding: 10px 15px;
+    }
+    
+    .header-center {
+        margin: 10px 0;
+    }
+    
+    .connection-status {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .controls-status-row {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .pump-controls-container, .status-messages-container {
+        max-width: 100%;
+    }
+    
+    .tanks-visualization {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .pipe-and-pump {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .pump {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+    }
+    
+    .device-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .device-card {
+        width: 100%;
+        max-width: 300px;
+        margin: 0 auto;
+    }
+}
+
 @media (min-width: 768px) {
     .header {
         flex-direction: row;

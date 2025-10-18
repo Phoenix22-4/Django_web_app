@@ -1,4 +1,4 @@
-// Expandable Timeslots JavaScript
+// Expandable Timeslots JavaScript with Green Grid Rectangle
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize timeslot toggles
     initializeTimeslotToggles();
@@ -14,12 +14,12 @@ function initializeTimeslotToggles() {
             const form = document.querySelector(`.timeslot-form[data-slot="${slot}"]`);
             
             if (form.classList.contains('hidden')) {
-                // Expand
+                // Expand - show form
                 form.classList.remove('hidden');
                 this.textContent = '-';
                 this.classList.add('expanded');
             } else {
-                // Collapse
+                // Collapse - hide form
                 form.classList.add('hidden');
                 this.textContent = '+';
                 this.classList.remove('expanded');
