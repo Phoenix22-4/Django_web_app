@@ -12,7 +12,7 @@ from datetime import datetime
 
 # --- MQTT Setup ---
 MQTT_SERVER = "a32641ary7fmuf-ats.iot.me-central-1.amazonaws.com"
-MQTT_PORT = 8883
+MQTT_PORT = 8883 # This is the standard MQTT port, but we will use 443 for WebSockets
 MQTT_WILDCARD_DATA_TOPIC = "devices/+/data"
 MQTT_COMMAND_TOPIC_FORMAT = "devices/{}/commands"
 
@@ -150,19 +150,21 @@ def on_message(client, userdata, msg):
             {"type": "device.message", "message": payload}
         )
 
-# --- NEW: Add this function for debugging ---
+# --- Add this function for debugging ---
 def on_log(client, userdata, level, buf):
     print(f"MQTT DEBUG LOG: {buf}")
 
 
 class MqttClient:
     def __init__(self):
-        # The web app has one, fixed ID ("the mail van").
-        self.client = mqtt.Client(client_id="AquaGuard_Backend")
+        # --- *** CHANGE 1: Specify "websockets" transport ---
+        self.client = mqtt.Client(
+            client_id="AquaGuard_Backend", 
+            transport="websockets"
+        )
+        
         self.client.on_connect = on_connect
         self.client.on_message = on_message
-        
-        # --- ADD THIS LINE TO ENABLE DEBUG LOGS ---
         self.client.on_log = on_log
         
         BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -178,18 +180,13 @@ class MqttClient:
     def start(self):
         print("Web app is attempting to connect to AWS...")
         
-        # --- MODIFIED: Try connecting on port 443 first ---
+        # --- *** CHANGE 2: Connect directly to port 443 (required for websockets) ---
+        # The "60" is the keepalive interval, not the port.
         try:
-            # Try port 443 (firewall-friendly)
             self.client.connect(MQTT_SERVER, 443, 60)
         except Exception as e:
-            print(f"Could not connect on port 443 ({e}), trying 8883...")
-            try:
-                # Fallback to 8883
-                self.client.connect(MQTT_SERVER, MQTT_PORT, 60)
-            except Exception as e2:
-                print(f"FATAL: Could not connect on 8883 either: {e2}")
-        
+            print(f"FATAL: WebSocket connection failed: {e}")
+
         self.client.loop_start()
 
 # --- This function ensures we only ever have one connection to AWS ---
