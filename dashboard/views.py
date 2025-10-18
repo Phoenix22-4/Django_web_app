@@ -140,7 +140,7 @@ def ai_chat_view(request):
             return JsonResponse({
                 'reply': response.text,
                 'status': 'success'
-            })to my railway brsnch
+            })
         
     except Exception as e:
         # Provide a helpful fallback response
