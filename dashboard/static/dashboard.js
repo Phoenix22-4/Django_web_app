@@ -2,58 +2,42 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log("DOM fully loaded and parsed");
 
-    // --- 1. Get Elements ---
     const deviceIdElement = document.getElementById('device-id');
     if (!deviceIdElement) {
         console.error("ERROR: Device ID meta tag not found!");
         return;
     }
     const deviceId = deviceIdElement.getAttribute('content');
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-    
-    // --- Sockets ---
+    console.log(`Device ID: ${deviceId}`);
+
     const socketProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const socketURL = `${socketProtocol}//${window.location.host}/ws/dashboard/${deviceId}/`;
     console.log(`Connecting to WebSocket: ${socketURL}`);
     const socket = new WebSocket(socketURL);
 
-    // --- Element Selectors ---
     const elements = {
         websocketStatus: document.getElementById('websocket-status'),
         websocketLight: document.getElementById('websocket-light'),
         deviceStatus: document.getElementById('device-status'),
         deviceLight: document.getElementById('device-light'),
+        overheadWater: document.getElementById('overhead-water'),
+        overheadLevelText: document.getElementById('overhead-level'),
+        undergroundWater: document.getElementById('underground-water'),
+        undergroundLevelText: document.getElementById('underground-level'),
         pumpStatusText: document.getElementById('pump-status-text'),
         pumpCurrentText: document.getElementById('pump-current-text'),
         pumpMotor: document.getElementById('pump-motor'),
-        pumpLed: document.getElementById('pump-led'),
         pumpOnBtn: document.getElementById('pump-on'),
         pumpOffBtn: document.getElementById('pump-off'),
-        autoModeStatus: document.getElementById('auto-mode-status'),
-        statusMessageBox: document.getElementById('status-messages-box'),
-        tanksContainer: document.querySelector('.tanks-container'),
-        // Automation Modal
-        modal: document.getElementById('rule-modal'),
-        modalTitle: document.getElementById('modal-title'),
-        modalForm: document.getElementById('rule-form'),
-        modalCancel: document.getElementById('modal-cancel'),
-        addRuleBtn: document.getElementById('add-rule-btn'),
-        rulesList: document.getElementById('automation-rules-list'),
-        // Modal Form Fields
-        ruleId: document.getElementById('rule-id'),
-        ruleName: document.getElementById('rule-name'),
-        ruleStartTime: document.getElementById('rule-start-time'),
-        ruleEndTime: document.getElementById('rule-end-time'),
-        ruleMonitorTank: document.getElementById('rule-monitor-tank'),
-        ruleMinLevel: document.getElementById('rule-min-level'),
-        ruleMaxLevel: document.getElementById('rule-max-level')
+        overheadStatusMsg: document.getElementById('overhead-status-msg'),
+        undergroundStatusMsg: document.getElementById('underground-status-msg'),
+        tanksContainer: document.querySelector('.tanks-container')
     };
-    
-    // --- Chart Context ---
-    let pumpChart = null;
-    let powerChart = null;
 
-    // --- 2. WebSocket Handlers ---
+    Object.entries(elements).forEach(([key, element]) => {
+        if (!element) console.error(`Missing element: ${key}`);
+    });
+
     socket.onopen = function(e) {
         console.log("WebSocket connection established");
         updateConnectionStatus('websocket', 'Online', 'online');
@@ -68,31 +52,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
             updateConnectionStatus('device', 'Online', 'online');
 
-            // --- 1. DYNAMIC TANK UPDATE ---
+            // Handle dynamic tanks if available
             if (data.tanks && Array.isArray(data.tanks)) {
                 updateDynamicTanks(data.tanks);
+            } else {
+                // Fallback to old overhead/underground system
+                safeStyleUpdate(elements.overheadWater, 'height', `${data.overhead_level || 0}%`);
+                safeUpdate(elements.overheadLevelText, `${data.overhead_level || 0}%`);
+                safeStyleUpdate(elements.undergroundWater, 'height', `${data.underground_level || 0}%`);
+                safeUpdate(elements.undergroundLevelText, `${data.underground_level || 0}%`);
+                updateStatusMessages(data.overhead_level || 0, data.underground_level || 0);
             }
 
-            // --- 2. PUMP STATUS (if pump exists) ---
-            if (elements.pumpMotor) {
-                const pumpIsOn = data.pump_status;
-                safeUpdate(elements.pumpStatusText, pumpIsOn ? "ON" : "OFF");
-                safeClassToggle(elements.pumpMotor, 'active', pumpIsOn);
-                safeClassToggle(elements.pumpMotor, 'online', pumpIsOn);
-                safeClassToggle(elements.pumpMotor, 'offline', !pumpIsOn);
-                safeClassToggle(elements.pumpLed, 'led-on', pumpIsOn);
-                safeClassToggle(elements.pumpLed, 'led-off', !pumpIsOn);
-                safeUpdate(elements.pumpCurrentText, `${data.pump_current_amps?.toFixed(1) || '0.0'} A`);
-            }
+            const pumpIsOn = data.pump_status;
+            safeUpdate(elements.pumpStatusText, pumpIsOn ? "ON" : "OFF");
+            
+            // --- THIS IS THE KEY FOR THE ANIMATION ---
+            // This line adds the 'active' class when the pump is on.
+            safeClassToggle(elements.pumpMotor, 'active', pumpIsOn);
+            
+            safeClassToggle(elements.pumpMotor, 'online', pumpIsOn);
+            safeClassToggle(elements.pumpMotor, 'offline', !pumpIsOn);
 
-            // --- 3. AUTOMATION & STATUS MESSAGES ---
-            safeUpdate(elements.autoModeStatus, data.automation_mode || 'System Auto-Mode');
-            updateStatusMessages(data.tanks);
-
-            // --- 4. UPDATE CHARTS (with dummy data for now) ---
-            // In a real app, this data would come from a separate API call or be part of the payload
-            updatePumpChart([80, 20]); // 80% off, 20% on
-            updatePowerChart([0,0,0,0,0, 0.5, 0.5, 0.4, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0.1,0.1,0]);
+            safeUpdate(elements.pumpCurrentText, `${data.pump_current?.toFixed(1) || '0.0'} A`);
 
         } catch (error) {
             console.error("Error processing message:", error);
@@ -111,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
         updateConnectionStatus('websocket', 'Error', 'error');
     };
 
-    // --- 3. DYNAMIC TANK UI FUNCTION ---
+    // Dynamic tank update function
     function updateDynamicTanks(tanks) {
         if (!elements.tanksContainer) return;
         
@@ -160,211 +142,87 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Populate tank dropdown in modal
-        if (elements.ruleMonitorTank) {
-            elements.ruleMonitorTank.innerHTML = ''; // Clear old options
+        // Update status messages for dynamic tanks
+        updateDynamicStatusMessages(tanks);
+    }
+
+    function updateDynamicStatusMessages(tanks) {
+        // Clear existing status messages
+        const statusContainer = document.getElementById('status-messages-box');
+        if (statusContainer) {
+            statusContainer.innerHTML = '';
+            
             tanks.forEach(tank => {
-                elements.ruleMonitorTank.innerHTML += `<option value="${tank.name}">${tank.name}</option>`;
-            });
-        }
-    }
-
-    function updateStatusMessages(tanks) {
-        if (!elements.statusMessageBox) return;
-        elements.statusMessageBox.innerHTML = ''; // Clear old messages
-
-        tanks.forEach(tank => {
-            let p = document.createElement('p');
-            p.id = `status-msg-${slugify(tank.name)}`;
-            
-            if (tank.level < 10) {
-                p.textContent = `${tank.name}: CRITICAL!`;
-                p.style.color = "red";
-            } else if (tank.level < 25) {
-                p.textContent = `${tank.name}: Low`;
-                p.style.color = "orange";
-            } else if (tank.level > 95) {
-                p.textContent = `${tank.name}: FULL`;
-                p.style.color = "blue";
-            } else {
-                p.textContent = `${tank.name}: ${tank.level}%`;
-                p.style.color = "";
-            }
-            elements.statusMessageBox.appendChild(p);
-        });
-    }
-
-    // --- 4. PUMP CONTROL LISTENERS ---
-    if (elements.pumpOnBtn) {
-        elements.pumpOnBtn.addEventListener('click', () => {
-            socket.send(JSON.stringify({command: 'PUMP_ON'}));
-        });
-    }
-    if (elements.pumpOffBtn) {
-        elements.pumpOffBtn.addEventListener('click', () => {
-            socket.send(JSON.stringify({command: 'PUMP_OFF'}));
-        });
-    }
-
-    // --- 5. AUTOMATION MODAL LOGIC ---
-    function openRuleModal(rule = null) {
-        elements.modalForm.reset(); // Clear the form
-        if (rule) {
-            // Edit mode
-            safeUpdate(elements.modalTitle, 'Edit Automation Rule');
-            elements.ruleId.value = rule.id;
-            elements.ruleName.value = rule.name;
-            elements.ruleStartTime.value = rule.start_time;
-            elements.ruleEndTime.value = rule.end_time;
-            elements.ruleMonitorTank.value = rule.monitor_tank_name;
-            elements.ruleMinLevel.value = rule.min_level;
-            elements.ruleMaxLevel.value = rule.max_level;
-        } else {
-            // Create mode
-            safeUpdate(elements.modalTitle, 'Create New Automation Rule');
-            elements.ruleId.value = ''; // No ID yet
-        }
-        elements.modal.classList.remove('hidden');
-    }
-
-    function closeRuleModal() {
-        elements.modal.classList.add('hidden');
-    }
-
-    if (elements.addRuleBtn) elements.addRuleBtn.addEventListener('click', () => openRuleModal());
-    if (elements.modalCancel) elements.modalCancel.addEventListener('click', closeRuleModal);
-
-    if (elements.modalForm) {
-        elements.modalForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const ruleData = {
-                id: elements.ruleId.value || null,
-                device_id: deviceId,
-                name: elements.ruleName.value,
-                start_time: elements.ruleStartTime.value,
-                end_time: elements.ruleEndTime.value,
-                monitor_tank_name: elements.ruleMonitorTank.value,
-                min_level: elements.ruleMinLevel.value,
-                max_level: elements.ruleMaxLevel.value,
-                enabled: true
-            };
-            
-            try {
-                const response = await fetch('/api/save_rule/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-                    body: JSON.stringify(ruleData)
-                });
-                const result = await response.json();
-                if (result.status === 'success') {
-                    closeRuleModal();
-                    // You would ideally refresh the list of rules here
-                    window.location.reload(); // Simple way to refresh
-                } else {
-                    alert('Error saving rule: ' + result.error);
-                }
-            } catch (err) {
-                alert('Network error saving rule.');
-            }
-        });
-    }
-
-    // Add listeners for existing Edit/Delete buttons
-    elements.rulesList.querySelectorAll('.edit-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const ruleItem = e.currentTarget.closest('.rule-item');
-            // This is complex, as the data is not in the JS. 
-            // A full implementation would fetch rule data or embed it in HTML.
-            // For now, let's just open the modal in "create" mode.
-            openRuleModal();
-        });
-    });
-    
-    elements.rulesList.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            if (confirm('Are you sure you want to delete this rule?')) {
-                const ruleItem = e.currentTarget.closest('.rule-item');
-                const ruleId = ruleItem.dataset.ruleId;
+                let p = document.createElement('p');
+                p.id = `status-msg-${slugify(tank.name)}`;
                 
-                try {
-                    const response = await fetch('/api/delete_rule/', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-                        body: JSON.stringify({ id: ruleId })
-                    });
-                    const result = await response.json();
-                    if (result.status === 'success') {
-                        ruleItem.remove(); // Remove from UI
-                    } else {
-                        alert('Error deleting rule: ' + result.error);
-                    }
-                } catch (err) {
-                    alert('Network error deleting rule.');
+                if (tank.level < 10) {
+                    p.textContent = `${tank.name}: CRITICAL!`;
+                    p.style.color = "red";
+                } else if (tank.level < 25) {
+                    p.textContent = `${tank.name}: Low`;
+                    p.style.color = "orange";
+                } else if (tank.level > 95) {
+                    p.textContent = `${tank.name}: FULL`;
+                    p.style.color = "blue";
+                } else {
+                    p.textContent = `${tank.name}: ${tank.level}%`;
+                    p.style.color = "";
                 }
-            }
-        });
-    });
-
-
-    // --- 6. CHART INITIALIZATION ---
-    function initCharts() {
-        if (document.getElementById('pumpRuntimeChart')) {
-            const pumpCtx = document.getElementById('pumpRuntimeChart').getContext('2d');
-            pumpChart = new Chart(pumpCtx, {
-                type: 'pie',
-                data: {
-                    labels: ['Off', 'On'],
-                    datasets: [{ data: [1, 0], backgroundColor: ['#6c757d', '#28a745'], borderWidth: 2 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-        }
-        
-        if (document.getElementById('powerUsageChart')) {
-            const powerCtx = document.getElementById('powerUsageChart').getContext('2d');
-            powerChart = new Chart(powerCtx, {
-                type: 'bar',
-                data: {
-                    labels: Array.from({length: 24}, (_, i) => `${String(i).padStart(2, '0')}:00`),
-                    datasets: [{ label: 'Avg. Current (Amps)', data: Array(24).fill(0), backgroundColor: '#007bff' }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+                statusContainer.appendChild(p);
             });
         }
     }
-    
-    function updatePumpChart(data) {
-        if (pumpChart) {
-            pumpChart.data.datasets[0].data = data;
-            pumpChart.update();
-        }
-    }
-    
-    function updatePowerChart(data) {
-        if (powerChart) {
-            powerChart.data.datasets[0].data = data;
-            powerChart.update();
-        }
-    }
-    
-    initCharts(); // Create charts on page load
-    
-    // --- 7. HELPER FUNCTIONS ---
+
     function safeUpdate(element, value) {
         if (element) element.textContent = value;
     }
+
     function safeStyleUpdate(element, style, value) {
         if (element) element.style[style] = value;
     }
+
+    function safeClassUpdate(element, className) {
+        if (element) element.className = className;
+    }
+
     function safeClassToggle(element, className, state) {
         if (element) element.classList.toggle(className, state);
     }
+
     function updateConnectionStatus(type, text, state) {
         const statusElement = type === 'websocket' ? elements.websocketStatus : elements.deviceStatus;
         const lightElement = type === 'websocket' ? elements.websocketLight : elements.deviceLight;
+        
         safeUpdate(statusElement, text);
-        if (lightElement) lightElement.className = `status-light ${state}`;
+        safeClassUpdate(lightElement, `status-light ${state}`);
     }
+
+    function updateStatusMessages(overhead, underground) {
+        if (elements.overheadStatusMsg) {
+            if (overhead >= 95) {
+                elements.overheadStatusMsg.textContent = "Overhead Tank: FULL";
+                elements.overheadStatusMsg.style.color = "blue";
+            } else {
+                elements.overheadStatusMsg.textContent = `Overhead Tank: ${overhead}%`;
+                elements.overheadStatusMsg.style.color = "";
+            }
+        }
+
+        if (elements.undergroundStatusMsg) {
+            if (underground < 10) {
+                elements.undergroundStatusMsg.textContent = "Underground: CRITICAL!";
+                elements.undergroundStatusMsg.style.color = "red";
+            } else if (underground < 25) {
+                elements.undergroundStatusMsg.textContent = "Underground: Low";
+                elements.undergroundStatusMsg.style.color = "orange";
+            } else {
+                elements.undergroundStatusMsg.textContent = `Underground Tank: ${underground}%`;
+                elements.undergroundStatusMsg.style.color = "";
+            }
+        }
+    }
+
     function slugify(text) {
         return text.toString().toLowerCase()
             .replace(/\s+/g, '-')       // Replace spaces with -
@@ -372,5 +230,19 @@ document.addEventListener('DOMContentLoaded', function() {
             .replace(/\-\-+/g, '-')     // Replace multiple - with single -
             .replace(/^-+/, '')        // Trim - from start of text
             .replace(/-+$/, '');       // Trim - from end of text
+    }
+
+    if (elements.pumpOnBtn) {
+        elements.pumpOnBtn.addEventListener('click', () => {
+            socket.send(JSON.stringify({command: 'PUMP_ON'}));
+            console.log("PUMP_ON command sent");
+        });
+    }
+
+    if (elements.pumpOffBtn) {
+        elements.pumpOffBtn.addEventListener('click', () => {
+            socket.send(JSON.stringify({command: 'PUMP_OFF'}));
+            console.log("PUMP_OFF command sent");
+        });
     }
 });
