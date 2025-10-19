@@ -260,6 +260,30 @@ body {
     color: #ef4444;
 }
 
+/* Pump Status Text Styling */
+#pump-status-text {
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+#pump-current-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-shadow: 0 0 5px rgba(0,0,0,0.3);
+}
+
+/* Pump Button Enhanced Styling */
+#pump-toggle-btn {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+}
+
+#pump-toggle-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+}
+
 @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }

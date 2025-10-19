@@ -324,13 +324,29 @@ document.addEventListener('DOMContentLoaded', function() {
         const pumpStatusText = document.getElementById('pump-status-text');
         const pumpCurrentText = document.getElementById('pump-current-text');
         const pumpSvg = document.getElementById('pump-svg');
+        const pumpToggleBtn = document.getElementById('pump-toggle-btn');
         
         if (pumpStatusText) {
             safeUpdate(pumpStatusText, pumpIsOn ? "ON" : "OFF");
+            // Add color coding
+            pumpStatusText.style.color = pumpIsOn ? '#10b981' : '#ef4444';
+            pumpStatusText.style.fontWeight = 'bold';
         }
         
         if (pumpCurrentText) {
             safeUpdate(pumpCurrentText, `${pumpCurrent.toFixed(1)}A`);
+            // Add color coding based on current
+            pumpCurrentText.style.color = pumpCurrent > 2.0 ? '#10b981' : '#ef4444';
+            pumpCurrentText.style.fontWeight = 'bold';
+        }
+        
+        // Update pump button to reflect current state
+        if (pumpToggleBtn) {
+            safeUpdate(pumpToggleBtn, pumpIsOn ? "Turn OFF" : "Turn ON");
+            // Update button colors
+            pumpToggleBtn.className = pumpIsOn ? 
+                'bg-red-600 text-white font-bold py-2 px-4 rounded-lg w-32 transition-colors' : 
+                'bg-green-600 text-white font-bold py-2 px-4 rounded-lg w-32 transition-colors';
         }
         
         // Update pump animation - THIS IS THE KEY FOR THE ANIMATION
@@ -350,6 +366,19 @@ document.addEventListener('DOMContentLoaded', function() {
             safeClassToggle(pumpMotor, 'active', pumpIsOn);
             safeClassToggle(pumpMotor, 'online', pumpIsOn);
             safeClassToggle(pumpMotor, 'offline', !pumpIsOn);
+        }
+        
+        // Update pump status in status messages
+        const pumpStatusMsg = document.querySelector('#pump-status-message span');
+        if (pumpStatusMsg) {
+            safeUpdate(pumpStatusMsg, pumpIsOn ? "ON" : "OFF");
+            pumpStatusMsg.style.color = pumpIsOn ? '#10b981' : '#ef4444';
+        }
+        
+        const currentStatusMsg = document.querySelector('#current-status-message span');
+        if (currentStatusMsg) {
+            safeUpdate(currentStatusMsg, `${pumpCurrent.toFixed(1)}A`);
+            currentStatusMsg.style.color = pumpCurrent > 2.0 ? '#10b981' : '#ef4444';
         }
         
         console.log(`Pump status: ${pumpIsOn ? 'ON' : 'OFF'}, Current: ${pumpCurrent}A`);
@@ -476,13 +505,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- MANUAL BUTTON UI ---
+    // --- MANUAL BUTTON UI (Now handled by live updates) ---
     function updateManualButtonUI() {
-        if (elements.pumpToggleButton) {
-            elements.pumpToggleButton.innerText = pumpIsOn ? 'Turn OFF' : 'Turn ON';
-            elements.pumpToggleButton.classList.toggle('bg-red-600', pumpIsOn);
-            elements.pumpToggleButton.classList.toggle('bg-green-600', !pumpIsOn);
-        }
+        // This function is now handled by updatePumpStatusLive()
+        // The button state is updated automatically with live data
     }
 
     // --- SOLENOID TOGGLE HANDLER ---
@@ -679,20 +705,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function handleManualPumpToggle() {
-        manualOverride = true;
-        pumpIsOn = !pumpIsOn;
-        updateManualButtonUI();
+        // Get current pump status from live data
+        const currentPumpStatus = window.lastData ? window.lastData.pump_status : false;
+        const newPumpStatus = !currentPumpStatus;
         
         // Send command via WebSocket to AWS IoT Core (Based on working code)
         if (socket && socket.readyState === WebSocket.OPEN) {
-            const command = pumpIsOn ? 'PUMP_ON' : 'PUMP_OFF';
+            const command = newPumpStatus ? 'PUMP_ON' : 'PUMP_OFF';
             socket.send(JSON.stringify({command: command}));
             console.log(`${command} command sent`);
         } else {
             console.error('❌ WebSocket not connected, cannot send command');
         }
         
-        console.log(`Pump ${pumpIsOn ? 'ON' : 'OFF'} (manual override)`);
+        console.log(`Pump command sent: ${newPumpStatus ? 'ON' : 'OFF'}`);
     }
 
     function handleTimeslotActivate() {
