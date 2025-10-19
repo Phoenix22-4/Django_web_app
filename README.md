@@ -37,12 +37,13 @@ AquaSavvy Kenya is a comprehensive IoT-driven water management system designed s
 - **Reliable command delivery** with error handling
 
 ### 📱 Phase 5: Push Notifications ✅ COMPLETE
-- **Firebase Cloud Messaging** integration
+- **Browser-based notifications** (no Firebase required)
 - **Tank level alerts** for low/high water levels
 - **Pump status notifications** for start/stop events
-- **System alerts** for connection issues
+- **Solenoid valve status** notifications
+- **System alerts** for connection issues and safety
 - **Welcome notifications** after login
-- **FCM token management** with automatic registration
+- **Test notification** functionality in dashboard
 
 ### 🤖 Phase 6: AI-Powered Assistance ✅ COMPLETE
 - **Google Gemini AI** integration for intelligent responses
@@ -50,6 +51,15 @@ AquaSavvy Kenya is a comprehensive IoT-driven water management system designed s
 - **Troubleshooting assistance** with contextual help
 - **Maintenance recommendations** based on usage patterns
 - **AWS IoT configuration guidance** for technical support
+
+### 🔧 Phase 7: Advanced Dashboard & Solenoid Control ✅ COMPLETE
+- **Modern dark theme** dashboard with advanced UI
+- **Dynamic tank visualization** with smooth animations
+- **Solenoid valve control** for individual tank management
+- **Enhanced connection status** with blue indicators
+- **Real-time charts** for water usage and pump runtime
+- **Mode selection** (Auto/Timeslot) with visual feedback
+- **Safety alerts** for source tank low and dry run detection
 
 ## 🏗️ System Architecture
 
@@ -73,14 +83,18 @@ AquaSavvy Kenya is a comprehensive IoT-driven water management system designed s
 ## 📱 User Interface
 
 ### Dashboard Features
-- **Dynamic tank visualization** with real-time water levels
+- **Advanced dark theme** with modern UI design
+- **Dynamic tank visualization** with smooth animations and real-time water levels
 - **Interactive pump controls** with AWS IoT command delivery
+- **Solenoid valve control** for individual tank management (up to 4 valves)
 - **Automation timeslots** with 4-slot rule management
-- **Real-time status messages** and system health
-- **Analytics charts** for pump runtime and power usage
+- **Real-time status messages** and system health monitoring
+- **Live analytics charts** for water usage and pump runtime
+- **Mode selection** (Auto/Timeslot) with visual feedback
+- **Safety alerts** for source tank low and dry run detection
 - **Floating AI chat** for instant assistance
 - **Push notification controls** with test functionality
-- **AWS IoT connection status** monitoring
+- **Enhanced connection status** with blue indicators for better visibility
 
 ### Public Homepage
 - **Professional landing page** with system overview
@@ -124,6 +138,18 @@ class Profile(models.Model):
     fcm_token = models.TextField(blank=True, null=True)
     push_notifications_enabled = models.BooleanField(default=True)
     last_notification_sent = models.DateTimeField(blank=True, null=True)
+
+# Solenoid valve configuration
+class Device(models.Model):
+    # ... existing fields ...
+    solenoid_1_reading_id = models.CharField(max_length=100, blank=True, null=True)
+    solenoid_1_name = models.CharField(max_length=100, blank=True, null=True)
+    solenoid_2_reading_id = models.CharField(max_length=100, blank=True, null=True)
+    solenoid_2_name = models.CharField(max_length=100, blank=True, null=True)
+    solenoid_3_reading_id = models.CharField(max_length=100, blank=True, null=True)
+    solenoid_3_name = models.CharField(max_length=100, blank=True, null=True)
+    solenoid_4_reading_id = models.CharField(max_length=100, blank=True, null=True)
+    solenoid_4_name = models.CharField(max_length=100, blank=True, null=True)
 ```
 
 ### AWS IoT Integration
