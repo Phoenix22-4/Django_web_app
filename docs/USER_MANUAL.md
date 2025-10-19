@@ -18,19 +18,24 @@ Your intelligent water management system that keeps your water supply monitored,
 - **System Name**: Shows your device name (e.g., "AquaSavvy: Main Tank")
 - **Connection Status**: 
   - 🟢 Green = Connected to AWS IoT
+  - 🔵 Blue = Connecting/Online (enhanced visibility)
   - 🔴 Red = Disconnected
-  - 🟡 Yellow = Connecting
 
-#### **Main Dashboard Grid**
+#### **Main Dashboard Grid - Advanced Design**
 
-**Left Side - Charts (Light Blue Cards)**
-- **Pump Runtime**: Shows how long your pump ran in the last 24 hours
-- **Power Usage**: Displays electricity consumption for the same period
+**Left Column - Controls & Analytics**
+- **Operation Mode**: Auto/Timeslot mode selection
+- **Water Usage Chart**: Real-time water consumption in liters
+- **Pump Runtime Chart**: Live pump operation tracking
+- **Timeslot Settings**: Configure automated pump control
+- **System Status**: Live system monitoring with safety alerts
+- **Test Notifications**: Button to test push notification system
 
-**Right Side - Tanks (Yellow Cards)**
-- **Tank Levels**: Visual representation of your water tanks
-- **Percentage**: Exact water level percentage
-- **Status**: Dynamic tank support (1-4+ tanks automatically detected)
+**Right Column - Live Tank Status**
+- **Tank Display**: Dynamic tank visualization (1-4 tanks)
+- **Tank Levels**: Real-time percentage display
+- **Main Pump**: Central pump control with visual status
+- **Solenoid Valves**: Individual valve control (when configured)
 
 #### **Control Section (Bottom)**
 
@@ -96,15 +101,23 @@ Your intelligent water management system that keeps your water supply monitored,
 ### 5. **Understanding Tank Display**
 
 #### **Visual Indicators**
-- **Water Level**: Blue fill shows current tank level
+- **Water Level**: Blue fill shows current tank level with smooth animations
 - **Percentage**: Exact level displayed numerically
-- **Tank Type**: Dynamic tank names (Overhead, Underground, Storage, etc.)
+- **Tank Type**: Dynamic tank names (Source, Storage, Overhead, Underground, etc.)
+- **Capacity**: Tank capacity displayed on each tank
 
 #### **Dynamic Layout**
-- **1 Tank**: Single large display
-- **2 Tanks**: Side-by-side layout
-- **3 Tanks**: 2x2 grid with one empty space
-- **4+ Tanks**: 2x2 grid, all spaces filled
+- **1 Tank**: Single centered display
+- **2 Tanks**: Side-by-side layout with pump in center
+- **3 Tanks**: Triangular layout with pump in center
+- **4 Tanks**: 2x2 grid with pump in center
+
+#### **Solenoid Valve Control**
+- **Individual Control**: Each valve can be controlled separately
+- **Visual Status**: ON/OFF status clearly displayed
+- **Toggle Buttons**: Easy ON/OFF control for each valve
+- **Auto-Detection**: Valves appear automatically when configured by admin
+- **Gap Spacing**: 20px gap between pump and valve controls
 
 ### 6. **AWS IoT Integration** ☁️
 
@@ -130,24 +143,58 @@ Your intelligent water management system that keeps your water supply monitored,
 
 #### **Setting Up Notifications**
 1. Allow notifications when prompted by your browser
-2. Your FCM token is automatically registered
+2. Your notification token is automatically registered
 3. You'll receive a welcome notification
 4. All alerts will be sent to your device
+5. Use the "Test Notifications" button to verify setup
 
 #### **Types of Notifications**
 - **Tank Level Alerts**: Low/high water level warnings
 - **Pump Status**: When pump starts/stops
+- **Solenoid Valve Status**: When valves are activated/deactivated
 - **System Alerts**: Connection issues or errors
 - **Automation Updates**: Rule execution notifications
 - **Welcome Messages**: After login
+- **Safety Alerts**: Source tank low, dry run detection
 
 #### **Managing Notifications**
-- Test notifications using the test button
+- Test notifications using the "Test Notifications" button in the dashboard
 - Notifications work even when browser is closed
 - Click notifications to open dashboard
 - Dismiss notifications manually
+- Browser-based notifications (no Firebase required)
 
-### 8. **Monitoring Your System**
+### 8. **Solenoid Valve Control** 🔧
+
+#### **Understanding Solenoid Valves**
+- **Purpose**: Control water flow to individual tanks
+- **Configuration**: Set up by administrator in Django admin
+- **Auto-Detection**: Valves appear automatically when configured
+- **Individual Control**: Each valve operates independently
+
+#### **Using Solenoid Valves**
+1. **Valve Display**: Valves appear below the main pump when configured
+2. **Status Indicators**: 
+   - 🟢 Green = Valve ON (water flowing)
+   - 🔴 Red = Valve OFF (water blocked)
+3. **Control Buttons**: 
+   - Click "Turn ON" to open valve
+   - Click "Turn OFF" to close valve
+4. **Real-time Updates**: Status updates immediately via WebSocket
+
+#### **Valve Configuration (Admin Only)**
+- **Reading IDs**: Automatically detected from IoT data
+- **Naming**: Admin assigns names to each valve
+- **Maximum**: Up to 4 solenoid valves supported
+- **Activation**: Valves only appear when named by admin
+
+#### **Best Practices**
+- **Sequential Filling**: Use valves to fill tanks one by one
+- **Water Conservation**: Control flow to prevent overflow
+- **Maintenance**: Regular valve operation prevents sticking
+- **Monitoring**: Watch valve status for proper operation
+
+### 9. **Monitoring Your System**
 
 #### **Real-time Updates**
 - All data updates automatically via WebSocket
@@ -162,7 +209,7 @@ Your intelligent water management system that keeps your water supply monitored,
 - **Power Usage**: Real-time consumption data
 - **AWS IoT Status**: Cloud connection status
 
-### 9. **Troubleshooting Common Issues**
+### 10. **Troubleshooting Common Issues**
 
 #### **Connection Problems**
 - Check your internet connection
@@ -192,7 +239,7 @@ Your intelligent water management system that keeps your water supply monitored,
 - Check Firebase configuration
 - Contact support for persistent issues
 
-### 10. **Mobile Usage**
+### 11. **Mobile Usage**
 
 #### **Responsive Design**
 - Works on phones and tablets
@@ -208,7 +255,7 @@ Your intelligent water management system that keeps your water supply monitored,
 - Swipe to navigate between sections
 - Notifications open app automatically
 
-### 11. **Getting Support**
+### 12. **Getting Support**
 
 #### **AI Assistant**
 - Available 24/7 in the chat widget
@@ -229,7 +276,7 @@ Your intelligent water management system that keeps your water supply monitored,
 - Backup procedures documented in system
 - Device shadow maintains last known state
 
-### 12. **Best Practices**
+### 13. **Best Practices**
 
 #### **Regular Monitoring**
 - Check dashboard daily

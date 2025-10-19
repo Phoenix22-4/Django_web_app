@@ -45,6 +45,16 @@ class Device(models.Model):
     tank_4_reading_id = models.CharField(max_length=100, blank=True, null=True, help_text="Reading ID for Tank 4 (auto-detected from IoT data)")
     tank_4_name = models.CharField(max_length=100, blank=True, null=True, help_text="Name for Tank 4 (enter only if reading_id exists)")
 
+    # --- SOLENOID VALVE CONFIGURATION FIELDS (Auto-populated from IoT data) ---
+    solenoid_1_reading_id = models.CharField(max_length=100, blank=True, null=True, help_text="Reading ID for Solenoid Valve 1 (auto-detected from IoT data)")
+    solenoid_1_name = models.CharField(max_length=100, blank=True, null=True, help_text="Name for Solenoid Valve 1 (enter only if reading_id exists)")
+    solenoid_2_reading_id = models.CharField(max_length=100, blank=True, null=True, help_text="Reading ID for Solenoid Valve 2 (auto-detected from IoT data)")
+    solenoid_2_name = models.CharField(max_length=100, blank=True, null=True, help_text="Name for Solenoid Valve 2 (enter only if reading_id exists)")
+    solenoid_3_reading_id = models.CharField(max_length=100, blank=True, null=True, help_text="Reading ID for Solenoid Valve 3 (auto-detected from IoT data)")
+    solenoid_3_name = models.CharField(max_length=100, blank=True, null=True, help_text="Name for Solenoid Valve 3 (enter only if reading_id exists)")
+    solenoid_4_reading_id = models.CharField(max_length=100, blank=True, null=True, help_text="Reading ID for Solenoid Valve 4 (auto-detected from IoT data)")
+    solenoid_4_name = models.CharField(max_length=100, blank=True, null=True, help_text="Name for Solenoid Valve 4 (enter only if reading_id exists)")
+
     # --- NEW FIELDS FOR NOTIFICATION COOLDOWN ---
     last_alert_type = models.CharField(max_length=50, blank=True, null=True)
     last_alert_sent_at = models.DateTimeField(blank=True, null=True)
@@ -64,6 +74,24 @@ class Device(models.Model):
         for i in range(1, 5):
             tank_name = getattr(self, f'tank_{i}_name', None)
             if not tank_name:
+                available.append(i)
+        return available
+
+    def get_solenoid_names(self):
+        """Get list of solenoid valve names that have been set"""
+        solenoid_names = []
+        for i in range(1, 5):
+            solenoid_name = getattr(self, f'solenoid_{i}_name', None)
+            if solenoid_name:
+                solenoid_names.append(solenoid_name)
+        return solenoid_names
+    
+    def get_available_solenoid_slots(self):
+        """Get list of available solenoid valve slots (1-4) that don't have names yet"""
+        available = []
+        for i in range(1, 5):
+            solenoid_name = getattr(self, f'solenoid_{i}_name', None)
+            if not solenoid_name:
                 available.append(i)
         return available
 

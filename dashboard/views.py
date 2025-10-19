@@ -391,6 +391,49 @@ def device_command_view(request):
             'status': 'error'
         }, status=500)
 
+@csrf_exempt
+@require_http_methods(["POST"])
+def solenoid_control_view(request):
+    """Manual solenoid valve control"""
+    try:
+        data = json.loads(request.body)
+        device_id = data.get('device_id')
+        solenoid_index = data.get('solenoid_index')
+        solenoid_name = data.get('solenoid_name')
+        solenoid_on = data.get('solenoid_on', False)
+        
+        if not device_id or solenoid_index is None:
+            return JsonResponse({'error': 'Device ID and solenoid index required'}, status=400)
+        
+        # Check if user owns the device
+        device = get_object_or_404(Device, device_id=device_id, owner=request.user)
+        
+        # Send command to device
+        command_data = {
+            'solenoid_index': solenoid_index,
+            'solenoid_name': solenoid_name,
+            'solenoid_on': solenoid_on
+        }
+        
+        success = aws_iot_manager.send_manual_command(device_id, 'solenoid_control', command_data)
+        
+        if success:
+            return JsonResponse({
+                'status': 'success',
+                'message': f'Solenoid {solenoid_index} (${solenoid_name}) {"turned ON" if solenoid_on else "turned OFF"} successfully'
+            })
+        else:
+            return JsonResponse({
+                'error': 'Failed to send solenoid command to device',
+                'status': 'error'
+            }, status=500)
+            
+    except Exception as e:
+        return JsonResponse({
+            'error': f'Error controlling solenoid: {str(e)}',
+            'status': 'error'
+        }, status=500)
+
 @login_required
 def device_data_view(request, device_id):
     """Get device data and readings"""
@@ -448,7 +491,16 @@ def device_data_view(request, device_id):
                 'tank_3_reading_id': device.tank_3_reading_id,
                 'tank_3_name': device.tank_3_name,
                 'tank_4_reading_id': device.tank_4_reading_id,
-                'tank_4_name': device.tank_4_name
+                'tank_4_name': device.tank_4_name,
+                'solenoid_names': device.get_solenoid_names(),
+                'solenoid_1_reading_id': device.solenoid_1_reading_id,
+                'solenoid_1_name': device.solenoid_1_name,
+                'solenoid_2_reading_id': device.solenoid_2_reading_id,
+                'solenoid_2_name': device.solenoid_2_name,
+                'solenoid_3_reading_id': device.solenoid_3_reading_id,
+                'solenoid_3_name': device.solenoid_3_name,
+                'solenoid_4_reading_id': device.solenoid_4_reading_id,
+                'solenoid_4_name': device.solenoid_4_name
             },
             'readings': readings_data,
             'automation_rules': rules_data,
@@ -565,11 +617,25 @@ def device_data_api(request, device_id):
                     'capacity': '1000L'  # Default capacity
                 })
         
+        # Create solenoid_data from system_data
+        solenoid_data = []
+        for key, value in system_data.items():
+            if key.endswith('_solenoid'):
+                solenoid_name = key.replace('_solenoid', '').replace('_', ' ').title()
+                solenoid_data.append({
+                    'name': solenoid_name,
+                    'isOn': bool(value),
+                    'index': len(solenoid_data) + 1
+                })
+        
         return JsonResponse({
             'status': 'success',
             'tank_data': tank_data,
+            'solenoid_data': solenoid_data,
             'pump_status': system_data.get('pump_status', False),
             'pump_current_amps': system_data.get('pump_current', 0.0),
+            'water_usage': system_data.get('water_usage', 0.0),
+            'pump_runtime': system_data.get('pump_runtime', 0.0),
             'timestamp': latest_reading.timestamp.isoformat()
         })
         

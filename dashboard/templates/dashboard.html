@@ -21,12 +21,12 @@
         <div class="connection-status">
             <div class="status-item">
                 <span class="status-label">WebSocket:</span>
-                <span id="websocket-status" class="status-text">Connecting...</span>
+                <span id="websocket-status" class="status-text connection-status">Connecting...</span>
                 <div id="websocket-light" class="status-dot offline"></div>
             </div>
             <div class="status-item">
                 <span class="status-label">Device:</span>
-                <span id="device-status" class="status-text">Offline</span>
+                <span id="device-status" class="status-text connection-status">Offline</span>
                 <div id="device-light" class="status-dot offline"></div>
             </div>
         </div>
@@ -41,73 +41,88 @@
     </div>
 </div>
 
-<!-- Main Dashboard Grid - Tank.jpeg Layout -->
+<!-- Main Dashboard Grid - New Advanced Design -->
 <div class="dashboard-grid" id="dashboard-container" data-device-id="{{ device.device_id }}">
-    <!-- Main Content Row -->
-    <div class="main-content-row">
-        <!-- Left Column: Tank System -->
-        <div class="tank-system-column">
-            <!-- Tank Levels Section -->
-            <div class="dashboard-card tanks-card">
-                <h3 class="card-title">Tank Levels</h3>
-                <div class="tank-system-container" id="tank-system-container">
-                    <!-- Dynamic tank grid will be populated here -->
-            </div>
-        </div>
-        
-            <!-- Status Message -->
-            <div class="dashboard-card status-message-card">
-                <div class="status-message" id="status-message">
-                    System monitoring active...
-                </div>
-            </div>
-        </div>
-        
-        <!-- Center Column: Usage Graphs -->
-        <div class="usage-graphs-column">
-            <!-- Water Usage Chart -->
-            <div class="dashboard-card usage-chart-card">
-                <h3 class="card-title">Water Usage</h3>
-                <div class="chart-label">NMPG 1</div>
-                <div class="chart-container">
-                    <canvas id="waterUsageChart"></canvas>
-        </div>
-    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <!-- Left Column: Analytics and Controls -->
+        <div class="md:col-span-1 bg-gray-800 p-4 rounded-lg shadow-lg flex flex-col space-y-4">
+            <h2 class="text-2xl font-semibold text-center">Controls & Analytics</h2>
 
-            <!-- Pump Usage Chart -->
-            <div class="dashboard-card usage-chart-card">
-                <h3 class="card-title">Pump Usage</h3>
-                <div class="chart-label">NMPG 1</div>
-                <div class="chart-container">
-                    <canvas id="pumpUsageChart"></canvas>
+            <!-- Mode Selection -->
+            <div class="bg-gray-700 p-3 rounded-lg">
+                <h3 class="text-lg font-semibold mb-2 text-center">Operation Mode</h3>
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="mode-auto" class="mode-btn mode-btn-active p-2 rounded-lg">Auto</button>
+                    <button id="mode-timeslot" class="mode-btn p-2 rounded-lg bg-gray-600">Timeslot</button>
+                </div>
+            </div>
+            
+            <!-- Charts -->
+            <div class="space-y-4">
+                <div>
+                    <h3 class="text-xl text-center">Water Usage (Litres)</h3>
+                    <canvas id="waterUsageChart"></canvas>
+                </div>
+                <div>
+                    <h3 class="text-xl text-center">Pump Runtimes</h3>
+                    <canvas id="pumpRuntimeChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Timeslot Controls -->
+            <div id="timeslot-controls" class="bg-gray-700 p-3 rounded-lg hidden">
+                <h3 class="text-lg font-semibold mb-2 text-center">Timeslot Settings (Tanks 2,3,4)</h3>
+                <button id="timeslot-activate-btn" class="w-full p-2 rounded-lg text-white font-bold timeslot-btn-inactive mb-2">Deactivated</button>
+                <div id="timeslot-form" class="hidden space-y-2">
+                    <label for="min-level">Pump ON below (%):</label>
+                    <input type="number" id="min-level" class="w-full p-1 bg-gray-800 rounded" value="20">
+                    <label for="max-level">Pump OFF at (%):</label>
+                    <input type="number" id="max-level" class="w-full p-1 bg-gray-800 rounded" value="95">
+                    <div class="flex gap-2">
+                        <button id="save-timeslot" class="flex-1 bg-blue-600 p-1 rounded">Save</button>
+                        <button id="close-timeslot" class="flex-1 bg-gray-500 p-1 rounded">Close</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Messages -->
+            <div id="status-messages" class="bg-gray-700 p-4 rounded-lg text-center">
+                <h3 class="text-lg font-semibold mb-3 underline">System Status</h3>
+                <div id="safety-status-message" class="mb-2 text-red-400 text-lg font-bold hidden"></div>
+                <div id="mode-status-message" class="mb-2">Mode: <span class="font-bold">Auto</span></div>
+                <div id="pump-status-message" class="mb-2 text-base">Pump: <span class="font-bold">...</span></div>
+                <div id="current-status-message" class="mb-3 text-base">Current: <span class="font-bold">0A</span></div>
+                <div id="tank-status-messages" class="grid grid-cols-2 gap-2 text-sm"></div>
+                
+                <!-- Push Notification Test Button -->
+                <div class="mt-4">
+                    <button id="test-notification-btn" class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 transition-colors">
+                        Test Notifications
+                    </button>
                 </div>
             </div>
         </div>
-        
-        <!-- Right Column: Parameters and Controls -->
-        <div class="parameters-column">
-        <!-- System Parameters -->
-        <div class="dashboard-card parameters-card">
-            <h3 class="card-title">System Parameters</h3>
-                <div class="parameters-table">
-                    <table id="system-parameters-table">
-                        <tbody>
-                            <!-- Dynamic parameters will be populated here -->
-                        </tbody>
-                    </table>
-                </div>
-                <!-- Pump Image in System Parameters -->
-                <div class="pump-image-container">
-                    <div class="system-pump-image">💧</div>
-            </div>
-        </div>
-        
-            <!-- Push Notification Activation -->
-            <div class="dashboard-card notification-card">
-                <button id="activate-feedback-btn" class="activate-feedback-btn">
-                    <span class="btn-text">Activate Feedback</span>
-                    <span class="btn-status">OFF</span>
+
+        <!-- Right Column for Tanks -->
+        <div class="md:col-span-2 bg-gray-800 p-4 rounded-lg shadow-lg flex flex-col items-center justify-center">
+            <h2 class="text-2xl font-semibold mb-6">Live Tank Status</h2>
+            <div id="tanks-wrapper" class="grid grid-cols-2 gap-x-8 gap-y-6 mb-8"></div>
+            <div class="flex flex-col items-center space-y-4">
+                <h3 class="text-xl">Main Pump (Fills Tanks 2,3,4)</h3>
+                <svg id="pump-svg" class="pump-svg" width="100" height="100" viewBox="0 0 100 100">
+                    <g id="pump-body"><path d="M20 85 V 35 H 30 V 25 H 70 V 35 H 80 V 85 H 20 Z" fill="#6b7280" stroke-width="4"/><circle cx="50" cy="55" r="28" fill="#374151" stroke-width="4"/></g>
+                    <path id="pump-motor" d="M50 40 L 50 70 M 35 55 L 65 55" stroke="#9ca3af" stroke-width="6" stroke-linecap="round"/>
+                </svg>
+                <div id="pump-status-text" class="text-lg font-medium">...</div>
+                <button id="pump-toggle-btn" class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg w-32 transition-colors">
+                    Turn ON
                 </button>
+            </div>
+            
+            <!-- Solenoid Valves Section -->
+            <div id="solenoid-valves-section" class="mt-8 hidden">
+                <h3 class="text-xl mb-4">Solenoid Valves</h3>
+                <div id="solenoid-valves-container" class="grid grid-cols-2 gap-4"></div>
             </div>
         </div>
     </div>
@@ -233,274 +248,99 @@
     </div>
 </div>
 
-
 <footer class="site-footer">
     <p>AquaSavvy Solutions | email: contact:vision072025@gmail.com | WhatsApp: +254 702 715070</p>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
 <script>
-// Dynamic tank grid setup and live data updates
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize all components
-    initializeTankSystem();
-    initializeSystemParameters();
-    initializeUsageCharts();
-    initializePushNotifications();
-    initializeTimeslots();
-    
-    // Start live data updates
-    startLiveDataUpdates();
-});
+// Advanced Multi-Tank Dashboard JavaScript
+const NUM_TANKS = 4;
+const NUM_SOLENOIDS = 4;
 
-function initializeTankSystem() {
-    const tankContainer = document.getElementById('tank-system-container');
-    const tankData = {{ last_reading.tank_data|safe|default:"[]" }};
-    const pumpStatus = {{ last_reading.pump_status|default:"false" }};
+// --- STATE MANAGEMENT ---
+let tankLevels = [];
+let pumpIsOn = false;
+let currentMode = 'auto';
+let manualOverride = false;
+let isTimeslotActive = false;
+let timeslotSettings = { min: 20, max: 95 };
+let simulatedCurrent = 0.0;
+let solenoidStates = {};
+
+// --- DOM ELEMENTS ---
+const pumpSvg = document.getElementById('pump-svg');
+const pumpStatusText = document.getElementById('pump-status-text');
+const pumpToggleButton = document.getElementById('pump-toggle-btn');
+const modeAutoBtn = document.getElementById('mode-auto');
+const modeTimeslotBtn = document.getElementById('mode-timeslot');
+const modeStatusMsg = document.querySelector('#mode-status-message span');
+const pumpStatusMsg = document.querySelector('#pump-status-message span');
+const currentStatusMsg = document.querySelector('#current-status-message span');
+const safetyStatusMsg = document.getElementById('safety-status-message');
+const timeslotControls = document.getElementById('timeslot-controls');
+const timeslotActivateBtn = document.getElementById('timeslot-activate-btn');
+const timeslotForm = document.getElementById('timeslot-form');
+const tanksWrapper = document.getElementById('tanks-wrapper');
+const solenoidValvesSection = document.getElementById('solenoid-valves-section');
+const solenoidValvesContainer = document.getElementById('solenoid-valves-container');
+
+// --- DYNAMIC HTML CREATION ---
+function createTanks() {
+    const tankNames = {{ device.get_tank_names|safe|default:"[]" }};
     
-    // Clear container
-    tankContainer.innerHTML = '';
+    tanksWrapper.innerHTML = '';
     
-    if (tankData.length === 0) {
-        tankContainer.innerHTML = '<div class="no-data">Waiting for tank data...</div>';
+    if (tankNames.length === 0) {
+        tanksWrapper.innerHTML = '<div class="col-span-2 text-center text-gray-400">No tanks configured</div>';
         return;
     }
     
-    // Create tank grid based on number of tanks (1-4 max)
-    const numTanks = Math.min(tankData.length, 4);
-    const gridClass = `tank-grid-${numTanks}`;
+    tankNames.forEach((tankName, index) => {
+        const tankDiv = document.createElement('div');
+        tankDiv.className = 'flex flex-col items-center';
+        tankDiv.innerHTML = `
+            <div class="text-center font-semibold mb-1">${index === 0 ? 'Tank 1 (Source)' : `Tank ${index + 1}`}</div>
+            <div id="tank-level-text-${index + 1}" class="text-center text-2xl font-bold mb-2">0%</div>
+            <div class="tank-container">
+                <div id="water-${index + 1}" class="water"></div>
+            </div>
+        `;
+        tanksWrapper.appendChild(tankDiv);
+    });
+}
+
+function createSolenoidValves() {
+    const solenoidNames = {{ device.get_solenoid_names|safe|default:"[]" }};
     
-    const tankGrid = document.createElement('div');
-    tankGrid.className = `tank-grid ${gridClass}`;
-    
-    // Add tanks based on tank.jpeg layout
-    if (numTanks === 1) {
-        // Single tank - centered
-        const tankElement = createTankElement(tankData[0], 0);
-        tankGrid.appendChild(tankElement);
-    } else if (numTanks === 2) {
-        // Two tanks - side by side with pump in center
-        const leftTank = createTankElement(tankData[0], 0);
-        const rightTank = createTankElement(tankData[1], 1);
-        tankGrid.appendChild(leftTank);
-        tankGrid.appendChild(rightTank);
-        
-        // Add pump in center
-        const pumpElement = createPumpElement();
-        tankGrid.appendChild(pumpElement);
-    } else if (numTanks === 3) {
-        // Three tanks - one above, two below with pump in center
-        const topTank = createTankElement(tankData[0], 0);
-        const leftTank = createTankElement(tankData[1], 1);
-        const rightTank = createTankElement(tankData[2], 2);
-        
-        tankGrid.appendChild(topTank);
-        tankGrid.appendChild(leftTank);
-        tankGrid.appendChild(rightTank);
-        
-        // Add pump in center
-        const pumpElement = createPumpElement();
-        tankGrid.appendChild(pumpElement);
-    } else if (numTanks === 4) {
-        // Four tanks - 2x2 grid with pump in center
-        tankData.forEach((tank, index) => {
-            const tankElement = createTankElement(tank, index);
-            tankGrid.appendChild(tankElement);
-        });
-        
-        // Add pump in center
-        const pumpElement = createPumpElement();
-        tankGrid.appendChild(pumpElement);
+    if (solenoidNames.length === 0) {
+        solenoidValvesSection.classList.add('hidden');
+        return;
     }
     
-    tankContainer.appendChild(tankGrid);
-}
-
-function createTankElement(tank, index) {
-    const tankDiv = document.createElement('div');
-    tankDiv.className = 'tank-element';
-    tankDiv.innerHTML = `
-        <div class="tank-visual">
-            <div class="tank-body">
-                <div class="tank-capacity">${tank.capacity || '1000L'}</div>
-                <div class="water-level" id="water-level-${tank.name.replace(/\s+/g, '-').toLowerCase()}" style="height: ${tank.level}%"></div>
-            </div>
-            <div class="tank-pipe"></div>
-        </div>
-        <div class="tank-info">
-            <div class="tank-name">${tank.name}</div>
-            <div class="tank-percentage" id="tank-percent-${tank.name.replace(/\s+/g, '-').toLowerCase()}">${tank.level}%</div>
-        </div>
-    `;
-    return tankDiv;
-}
-
-function createPumpElement() {
-    const pumpDiv = document.createElement('div');
-    pumpDiv.className = 'pump-element';
-    pumpDiv.innerHTML = `
-        <div class="pump-visual">
-            <div class="pump-circle">
-                <div class="pump-icon" id="pump-icon">
-                    <div class="pump-body">
-                        <div class="pump-motor"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="pump-pipes">
-                <div class="pump-pipe-in"></div>
-                <div class="pump-pipe-out"></div>
-            </div>
-        </div>
-        <div class="pump-controls">
-            <button id="pump-on-btn" class="pump-btn on-btn">ON</button>
-            <button id="pump-off-btn" class="pump-btn off-btn">OFF</button>
-        </div>
-    `;
-    return pumpDiv;
-}
-
-function initializeSystemParameters() {
-    const tableBody = document.getElementById('system-parameters-table');
-    const tankData = {{ last_reading.tank_data|safe|default:"[]" }};
-    const pumpCurrent = {{ last_reading.pump_current_amps|default:"0.0" }};
+    solenoidValvesSection.classList.remove('hidden');
+    solenoidValvesContainer.innerHTML = '';
     
-    // Clear table
-    tableBody.innerHTML = '';
-    
-    // Add tank level parameters
-    tankData.forEach(tank => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td class="param-label">${tank.name} Level:</td>
-            <td class="param-value" id="param-${tank.name.replace(/\s+/g, '-').toLowerCase()}">${tank.level}%</td>
+    solenoidNames.forEach((solenoidName, index) => {
+        const solenoidDiv = document.createElement('div');
+        solenoidDiv.className = 'bg-gray-700 p-3 rounded-lg text-center';
+        solenoidDiv.innerHTML = `
+            <h4 class="font-semibold mb-2">${solenoidName}</h4>
+            <div id="solenoid-status-${index + 1}" class="text-sm mb-2">OFF</div>
+            <button id="solenoid-toggle-${index + 1}" class="bg-red-600 text-white px-3 py-1 rounded text-sm">
+                Turn ON
+            </button>
         `;
-        tableBody.appendChild(row);
-    });
-    
-    // Add pump current parameter
-    const pumpRow = document.createElement('tr');
-    pumpRow.innerHTML = `
-        <td class="param-label">Pump Current:</td>
-        <td class="param-value" id="param-pump-current">${pumpCurrent}A</td>
-    `;
-    tableBody.appendChild(pumpRow);
-}
-
-function initializeUsageCharts() {
-    // Initialize water usage chart
-    const waterCtx = document.getElementById('waterUsageChart').getContext('2d');
-    window.waterChart = new Chart(waterCtx, {
-        type: 'line',
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'Water Usage (L)',
-                data: [],
-                borderColor: '#3498db',
-                backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
-    });
-    
-    // Initialize pump usage chart
-    const pumpCtx = document.getElementById('pumpUsageChart').getContext('2d');
-    window.pumpChart = new Chart(pumpCtx, {
-        type: 'line',
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'Pump Usage (A)',
-                data: [],
-                borderColor: '#e74c3c',
-                backgroundColor: 'rgba(231, 76, 60, 0.1)',
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
+        solenoidValvesContainer.appendChild(solenoidDiv);
     });
 }
 
-function initializePushNotifications() {
-    const feedbackBtn = document.getElementById('activate-feedback-btn');
-    let notificationsEnabled = false;
-    
-    feedbackBtn.addEventListener('click', function() {
-        notificationsEnabled = !notificationsEnabled;
-        
-        if (notificationsEnabled) {
-            this.classList.add('active');
-            this.querySelector('.btn-status').textContent = 'ON';
-            this.querySelector('.btn-text').textContent = 'Feedback Active';
-            
-            // Request notification permission
-            if ('Notification' in window) {
-                Notification.requestPermission();
-            }
-        } else {
-            this.classList.remove('active');
-            this.querySelector('.btn-status').textContent = 'OFF';
-            this.querySelector('.btn-text').textContent = 'Activate Feedback';
-        }
-        
-        // Save preference to backend
-        fetch('/api/notification-preference/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            },
-            body: JSON.stringify({
-                enabled: notificationsEnabled,
-                device_id: window.deviceId
-            })
-        });
-    });
-}
-
-function startLiveDataUpdates() {
-    // Update data every 5 seconds
-    setInterval(updateLiveData, 5000);
-    
-    // Initial update
-    updateLiveData();
-}
-
-function updateLiveData() {
-    fetch(`/api/device_data/${window.deviceId}/`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                updateTankLevels(data.tank_data);
-                updatePumpStatus(data.pump_status, data.pump_current_amps);
-                updateSystemParameters(data);
-                updateUsageCharts(data);
-                updateStatusMessage(data);
-            }
-        })
-        .catch(error => {
-            console.error('Error updating live data:', error);
-        });
-}
-
+// --- LIVE DATA UPDATES ---
 function updateTankLevels(tankData) {
-    tankData.forEach(tank => {
-        const levelElement = document.getElementById(`water-level-${tank.name.replace(/\s+/g, '-').toLowerCase()}`);
-        const percentElement = document.getElementById(`tank-percent-${tank.name.replace(/\s+/g, '-').toLowerCase()}`);
+    tankData.forEach((tank, index) => {
+        const levelElement = document.getElementById(`water-${index + 1}`);
+        const percentElement = document.getElementById(`tank-level-text-${index + 1}`);
         
         if (levelElement && percentElement) {
             levelElement.style.height = `${tank.level}%`;
@@ -510,200 +350,242 @@ function updateTankLevels(tankData) {
 }
 
 function updatePumpStatus(isOn, current) {
-    const pumpIcon = document.getElementById('pump-icon');
-    if (pumpIcon) {
-        if (isOn) {
-            pumpIcon.classList.add('pump-running');
-        } else {
-            pumpIcon.classList.remove('pump-running');
-        }
-    }
+    pumpSvg.classList.toggle('pump-on', isOn);
+    pumpSvg.classList.toggle('pump-off', !isOn);
+    pumpStatusText.innerText = isOn ? 'ON' : 'OFF';
+    pumpStatusMsg.innerText = isOn ? 'ON' : 'OFF';
+    pumpStatusMsg.className = isOn ? 'font-bold text-green-400' : 'font-bold text-red-400';
+    currentStatusMsg.innerText = `${current.toFixed(1)}A`;
     
-    // Update pump current parameter
-    const currentElement = document.getElementById('param-pump-current');
-    if (currentElement) {
-        currentElement.textContent = `${current}A`;
-    }
+    updateManualButtonUI();
 }
 
-function updateSystemParameters(data) {
-    // Update tank level parameters
-    data.tank_data.forEach(tank => {
-        const paramElement = document.getElementById(`param-${tank.name.replace(/\s+/g, '-').toLowerCase()}`);
-        if (paramElement) {
-            paramElement.textContent = `${tank.level}%`;
-        }
-    });
-}
-
-function updateUsageCharts(data) {
-    const now = new Date().toLocaleTimeString();
-    
-    // Update water usage chart
-    if (window.waterChart) {
-        const totalUsage = data.tank_data.reduce((sum, tank) => sum + (tank.usage || 0), 0);
-        window.waterChart.data.labels.push(now);
-        window.waterChart.data.datasets[0].data.push(totalUsage);
+function updateSolenoidValves(solenoidData) {
+    solenoidData.forEach((solenoid, index) => {
+        const statusElement = document.getElementById(`solenoid-status-${index + 1}`);
+        const toggleButton = document.getElementById(`solenoid-toggle-${index + 1}`);
         
-        // Keep only last 20 data points
-        if (window.waterChart.data.labels.length > 20) {
-            window.waterChart.data.labels.shift();
-            window.waterChart.data.datasets[0].data.shift();
+        if (statusElement && toggleButton) {
+            statusElement.textContent = solenoid.isOn ? 'ON' : 'OFF';
+            toggleButton.textContent = solenoid.isOn ? 'Turn OFF' : 'Turn ON';
+            toggleButton.className = solenoid.isOn ? 
+                'bg-green-600 text-white px-3 py-1 rounded text-sm' : 
+                'bg-red-600 text-white px-3 py-1 rounded text-sm';
         }
-        
-        window.waterChart.update();
-    }
-    
-    // Update pump usage chart
-    if (window.pumpChart) {
-        window.pumpChart.data.labels.push(now);
-        window.pumpChart.data.datasets[0].data.push(data.pump_current_amps || 0);
-        
-        // Keep only last 20 data points
-        if (window.pumpChart.data.labels.length > 20) {
-            window.pumpChart.data.labels.shift();
-            window.pumpChart.data.datasets[0].data.shift();
-        }
-        
-        window.pumpChart.update();
-    }
-}
-
-function updateStatusMessage(data) {
-    const statusElement = document.getElementById('status-message');
-    if (statusElement) {
-        const timestamp = new Date().toLocaleTimeString();
-        statusElement.textContent = `Last update: ${timestamp} | Pump: ${data.pump_status ? 'ON' : 'OFF'} | Current: ${data.pump_current_amps}A`;
-    }
-}
-
-function initializeTimeslots() {
-    const timeslotToggles = document.querySelectorAll('.timeslot-toggle');
-    
-    timeslotToggles.forEach(toggle => {
-        toggle.addEventListener('click', function() {
-            const slot = this.getAttribute('data-slot');
-            const form = document.querySelector(`.timeslot-form[data-slot="${slot}"]`);
-            const isHidden = form.classList.contains('hidden');
-            
-            if (isHidden) {
-                // Show form
-                form.classList.remove('hidden');
-                this.textContent = '-';
-                this.style.background = '#dc3545';
-            } else {
-                // Hide form
-                form.classList.add('hidden');
-                this.textContent = '+';
-                this.style.background = '#007bff';
-            }
-        });
-    });
-    
-    // Handle timeslot actions
-    document.querySelectorAll('.save-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const slot = this.closest('.timeslot').getAttribute('data-slot');
-            saveTimeslotRule(slot);
-        });
-    });
-    
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const slot = this.closest('.timeslot').getAttribute('data-slot');
-            deleteTimeslotRule(slot);
-        });
-    });
-    
-    document.querySelectorAll('.activate-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const slot = this.closest('.timeslot').getAttribute('data-slot');
-            activateTimeslotRule(slot);
-        });
     });
 }
 
-function saveTimeslotRule(slot) {
-    const form = document.querySelector(`.timeslot-form[data-slot="${slot}"]`);
-    const ruleName = form.querySelector('.rule-name').value;
-    const startTime = form.querySelector('.start-time').value;
-    const endTime = form.querySelector('.end-time').value;
-    const tankSelect = form.querySelector('.tank-select').value;
-    const minLevel = form.querySelector('.min-level').value;
-    const maxLevel = form.querySelector('.max-level').value;
+function updateManualButtonUI() {
+    pumpToggleButton.innerText = pumpIsOn ? 'Turn OFF' : 'Turn ON';
+    pumpToggleButton.classList.toggle('bg-red-600', pumpIsOn);
+    pumpToggleButton.classList.toggle('bg-green-600', !pumpIsOn);
+}
+
+// --- MODE MANAGEMENT ---
+function setMode(newMode) {
+    currentMode = newMode;
+    manualOverride = false;
     
-    // Send to backend
-    fetch('/api/save_rule/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    modeAutoBtn.classList.toggle('mode-btn-active', newMode === 'auto');
+    modeAutoBtn.classList.toggle('bg-gray-600', newMode !== 'auto');
+    modeTimeslotBtn.classList.toggle('mode-btn-active', newMode === 'timeslot');
+    modeTimeslotBtn.classList.toggle('bg-gray-600', newMode !== 'timeslot');
+
+    timeslotControls.classList.toggle('hidden', newMode !== 'timeslot');
+}
+
+// --- CHARTING LOGIC ---
+function createChart(canvasId, label) {
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    return new Chart(ctx, {
+        type: 'line',
+        data: { 
+            labels: [], 
+            datasets: [{ 
+                label: label, 
+                data: [], 
+                borderColor: '#3b82f6', 
+                backgroundColor: 'rgba(59, 130, 246, 0.2)', 
+                borderWidth: 2, 
+                fill: true, 
+                tension: 0.4 
+            }] 
         },
-        body: JSON.stringify({
-            slot: slot,
-            rule_name: ruleName,
-            start_time: startTime,
-            end_time: endTime,
-            tank: tankSelect,
-            min_level: minLevel,
-            max_level: maxLevel
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            alert('Rule saved successfully!');
-        } else {
-            alert('Error saving rule: ' + data.message);
+        options: {
+            scales: { 
+                x: { ticks: { color: '#9ca3af' }, grid: { color: '#374151' } }, 
+                y: { beginAtZero: true, ticks: { color: '#9ca3af' }, grid: { color: '#374151' } } 
+            },
+            plugins: { legend: { labels: { color: '#d1d5db' } } }
         }
     });
 }
 
-function deleteTimeslotRule(slot) {
-    if (confirm('Are you sure you want to delete this rule?')) {
-        fetch('/api/delete_rule/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            },
-            body: JSON.stringify({ slot: slot })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                // Clear form
-                const form = document.querySelector(`.timeslot-form[data-slot="${slot}"]`);
-                form.querySelectorAll('input, select').forEach(input => input.value = '');
-                alert('Rule deleted successfully!');
+const waterUsageChart = createChart('waterUsageChart', 'Litres per Second');
+const pumpRuntimeChart = createChart('pumpRuntimeChart', 'Seconds Active');
+
+function addDataToChart(chart, label, data) {
+    chart.data.labels.push(label);
+    chart.data.datasets[0].data.push(data);
+    if (chart.data.labels.length > 30) { 
+        chart.data.labels.shift(); 
+        chart.data.datasets[0].data.shift(); 
+    }
+    chart.update();
+}
+
+function getCurrentTime() {
+    const now = new Date();
+    return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+}
+
+// --- EVENT LISTENERS ---
+function setupEventListeners() {
+    modeAutoBtn.addEventListener('click', () => setMode('auto'));
+    modeTimeslotBtn.addEventListener('click', () => setMode('timeslot'));
+    
+    pumpToggleButton.addEventListener('click', handleManualPumpToggle);
+    timeslotActivateBtn.addEventListener('click', handleTimeslotActivate);
+    
+    document.getElementById('save-timeslot').addEventListener('click', handleSaveTimeslot);
+    document.getElementById('close-timeslot').addEventListener('click', () => timeslotForm.classList.add('hidden'));
+    
+    // Test notification button
+    const testNotificationBtn = document.getElementById('test-notification-btn');
+    if (testNotificationBtn) {
+        testNotificationBtn.addEventListener('click', () => {
+            if (window.pushNotificationManager) {
+                window.pushNotificationManager.testNotification();
+            } else {
+                console.error('Push notification manager not available');
             }
         });
     }
 }
 
-function activateTimeslotRule(slot) {
-    // Deactivate all other timeslots first
-    document.querySelectorAll('.activate-btn').forEach(btn => {
-        btn.style.background = '#007bff';
-        btn.textContent = 'Activate';
-    });
+function handleManualPumpToggle() {
+    manualOverride = true;
+    pumpIsOn = !pumpIsOn;
+    updateManualButtonUI();
     
-    // Activate current slot
-    const currentBtn = document.querySelector(`.timeslot[data-slot="${slot}"] .activate-btn`);
-    currentBtn.style.background = '#28a745';
-    currentBtn.textContent = 'Active';
-    
-    alert(`Timeslot ${slot} activated!`);
+    // Send command via WebSocket
+    if (window.socket && window.socket.readyState === WebSocket.OPEN) {
+        window.socket.send(JSON.stringify({
+            command: pumpIsOn ? 'PUMP_ON' : 'PUMP_OFF'
+        }));
+    }
 }
+
+function handleTimeslotActivate() {
+    if (!isTimeslotActive) {
+        timeslotForm.classList.remove('hidden');
+    } else {
+        isTimeslotActive = false;
+        timeslotActivateBtn.innerText = 'Deactivated';
+        timeslotActivateBtn.classList.replace('timeslot-btn-active', 'timeslot-btn-inactive');
+    }
+}
+
+function handleSaveTimeslot() {
+    timeslotSettings.min = parseInt(document.getElementById('min-level').value) || 20;
+    timeslotSettings.max = parseInt(document.getElementById('max-level').value) || 95;
+    isTimeslotActive = true;
+    timeslotActivateBtn.innerText = `Active (Min: ${timeslotSettings.min}%, Max: ${timeslotSettings.max}%)`;
+    timeslotActivateBtn.classList.replace('timeslot-btn-inactive', 'timeslot-btn-active');
+    timeslotForm.classList.add('hidden');
+}
+
+// --- WEBSOCKET CONNECTION ---
+function initializeWebSocket() {
+    const deviceId = window.deviceId;
+    const socketProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const socketURL = `${socketProtocol}//${window.location.host}/ws/dashboard/${deviceId}/`;
+    
+    window.socket = new WebSocket(socketURL);
+    
+    window.socket.onopen = function(e) {
+        console.log("WebSocket connection established");
+        updateConnectionStatus('websocket', 'Online', 'online');
+        updateConnectionStatus('device', 'Connecting...', 'connecting');
+    };
+    
+    window.socket.onmessage = function(e) {
+        try {
+            const data = JSON.parse(e.data);
+            console.log("Received data:", data);
+            
+            updateConnectionStatus('device', 'Online', 'online');
+            
+            // Update tank levels
+            if (data.tank_data) {
+                updateTankLevels(data.tank_data);
+            }
+            
+            // Update pump status
+            if (data.pump_status !== undefined) {
+                updatePumpStatus(data.pump_status, data.pump_current || 0);
+            }
+            
+            // Update solenoid valves
+            if (data.solenoid_data) {
+                updateSolenoidValves(data.solenoid_data);
+            }
+            
+            // Update charts
+            addDataToChart(waterUsageChart, getCurrentTime(), data.water_usage || 0);
+            addDataToChart(pumpRuntimeChart, getCurrentTime(), data.pump_runtime || 0);
+            
+        } catch (error) {
+            console.error("Error processing message:", error);
+            updateConnectionStatus('device', 'Error', 'error');
+        }
+    };
+    
+    window.socket.onclose = function(e) {
+        console.log("WebSocket connection closed");
+        updateConnectionStatus('websocket', 'Offline', 'offline');
+        updateConnectionStatus('device', 'Disconnected', 'offline');
+    };
+    
+    window.socket.onerror = function(error) {
+        console.error("WebSocket error:", error);
+        updateConnectionStatus('websocket', 'Error', 'error');
+    };
+}
+
+function updateConnectionStatus(type, text, state) {
+    const statusElement = type === 'websocket' ? 
+        document.getElementById('websocket-status') : 
+        document.getElementById('device-status');
+    const lightElement = type === 'websocket' ? 
+        document.getElementById('websocket-light') : 
+        document.getElementById('device-light');
+    
+    if (statusElement) {
+        statusElement.textContent = text;
+        statusElement.className = `status-text connection-status ${state}`;
+    }
+    
+    if (lightElement) {
+        lightElement.className = `status-dot ${state}`;
+    }
+}
+
+// --- INITIALIZATION ---
+document.addEventListener('DOMContentLoaded', () => {
+    createTanks();
+    createSolenoidValves();
+    setupEventListeners();
+    initializeWebSocket();
+});
 </script>
-<script src="{% static 'dashboard.js' %}"></script>
-<script src="{% static 'timeslots.js' %}"></script>
 
 <!-- AquaSavvy AI Chat Widget -->
 <link rel="stylesheet" href="{% static 'aquasavvy-chat.css' %}">
 <script src="{% static 'aquasavvy-chat.js' %}"></script>
 
-<!-- Tank Layout CSS -->
+<!-- Push Notifications -->
+<script src="{% static 'push_notifications.js' %}"></script>
 
 <!-- Dashboard Clean CSS -->
 <link rel="stylesheet" href="{% static 'dashboard_clean.css' %}">
