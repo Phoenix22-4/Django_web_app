@@ -193,17 +193,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- DYNAMIC SYSTEM DATA UPDATE ---
     function updateDynamicSystemData(data) {
+        console.log("Updating system data:", data);
+        
         // Extract level data and create tanks
         const levelData = [];
         for (const [key, value] of Object.entries(data)) {
             if (key.endsWith('_level')) {
                 levelData.push({
                     reading_id: key,
-                    level: value,
+                    level: Math.round(value), // Round to whole number
                     name: getTankNameFromReadingId(key)
                 });
             }
         }
+        
+        console.log("Level data:", levelData);
         
         // Update tanks with level data
         updateTankLevels(levelData);
@@ -224,7 +228,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update charts
         updateCharts(data);
     }
-
+    
     // --- TANK NAME MAPPING ---
     function getTankNameFromReadingId(readingId) {
         if (!window.deviceData) return readingId;
@@ -244,13 +248,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- TANK LEVEL UPDATES ---
     function updateTankLevels(tankData) {
+        console.log("Updating tank levels:", tankData);
+        
         tankData.forEach((tank, index) => {
             const levelElement = document.getElementById(`water-${index + 1}`);
             const percentElement = document.getElementById(`tank-level-text-${index + 1}`);
             
             if (levelElement && percentElement) {
-                levelElement.style.height = `${tank.level}%`;
-                percentElement.textContent = `${tank.level}%`;
+                // Ensure level is between 0 and 100
+                const level = Math.max(0, Math.min(100, tank.level));
+                
+                levelElement.style.height = `${level}%`;
+                levelElement.style.transition = 'height 0.5s ease-in-out';
+                percentElement.textContent = `${level}%`;
+                
+                // Add visual feedback
+                percentElement.style.color = level > 80 ? '#10b981' : level > 50 ? '#f59e0b' : '#ef4444';
+                percentElement.style.fontWeight = 'bold';
+                percentElement.style.fontSize = '1.5rem';
+                
+                console.log(`Tank ${index + 1}: ${level}%`);
+            } else {
+                console.warn(`Tank elements not found for index ${index + 1}`);
             }
         });
     }
@@ -260,22 +279,37 @@ document.addEventListener('DOMContentLoaded', function() {
         pumpIsOn = isOn;
         simulatedCurrent = current;
         
+        console.log(`Pump status: ${isOn ? 'ON' : 'OFF'}, Current: ${current}A`);
+        
         if (elements.pumpSvg) {
             elements.pumpSvg.classList.toggle('pump-on', isOn);
             elements.pumpSvg.classList.toggle('pump-off', !isOn);
+            
+            // Add visual animation
+            if (isOn) {
+                elements.pumpSvg.style.animation = 'pumpRotate 2s linear infinite';
+            } else {
+                elements.pumpSvg.style.animation = 'none';
+            }
         }
         
         if (elements.pumpStatusText) {
             elements.pumpStatusText.innerText = isOn ? 'ON' : 'OFF';
+            elements.pumpStatusText.style.color = isOn ? '#10b981' : '#ef4444';
+            elements.pumpStatusText.style.fontWeight = 'bold';
+            elements.pumpStatusText.style.fontSize = '1.2rem';
         }
         
         if (elements.pumpStatusMsg) {
             elements.pumpStatusMsg.innerText = isOn ? 'ON' : 'OFF';
             elements.pumpStatusMsg.className = isOn ? 'font-bold text-green-400' : 'font-bold text-red-400';
+            elements.pumpStatusMsg.style.fontSize = '1.1rem';
         }
         
         if (elements.currentStatusMsg) {
             elements.currentStatusMsg.innerText = `${current.toFixed(1)}A`;
+            elements.currentStatusMsg.style.color = current > 2.0 ? '#10b981' : '#ef4444';
+            elements.currentStatusMsg.style.fontWeight = 'bold';
         }
         
         updateManualButtonUI();
@@ -330,11 +364,27 @@ document.addEventListener('DOMContentLoaded', function() {
         currentMode = newMode;
         manualOverride = false;
         
+        console.log(`Setting mode to: ${newMode}`);
+        
         if (elements.modeAutoBtn && elements.modeTimeslotBtn) {
-            elements.modeAutoBtn.classList.toggle('mode-btn-active', newMode === 'auto');
-            elements.modeAutoBtn.classList.toggle('bg-gray-600', newMode !== 'auto');
-            elements.modeTimeslotBtn.classList.toggle('mode-btn-active', newMode === 'timeslot');
-            elements.modeTimeslotBtn.classList.toggle('bg-gray-600', newMode !== 'timeslot');
+            // Reset both buttons
+            elements.modeAutoBtn.classList.remove('mode-btn-active', 'bg-gray-600');
+            elements.modeTimeslotBtn.classList.remove('mode-btn-active', 'bg-gray-600');
+            
+            // Set active button
+            if (newMode === 'auto') {
+                elements.modeAutoBtn.classList.add('mode-btn-active');
+                elements.modeAutoBtn.style.backgroundColor = '#10b981';
+                elements.modeAutoBtn.style.color = 'white';
+                elements.modeTimeslotBtn.style.backgroundColor = '#6b7280';
+                elements.modeTimeslotBtn.style.color = '#d1d5db';
+            } else {
+                elements.modeTimeslotBtn.classList.add('mode-btn-active');
+                elements.modeTimeslotBtn.style.backgroundColor = '#10b981';
+                elements.modeTimeslotBtn.style.color = 'white';
+                elements.modeAutoBtn.style.backgroundColor = '#6b7280';
+                elements.modeAutoBtn.style.color = '#d1d5db';
+            }
         }
 
         if (elements.timeslotControls) {
@@ -364,7 +414,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (elements.modeStatusMsg) {
             if (manualOverride) {
                 elements.modeStatusMsg.innerText = "Manual";
-            } else {
+                } else {
                 elements.modeStatusMsg.innerText = currentMode.charAt(0).toUpperCase() + currentMode.slice(1);
             }
         }
@@ -476,7 +526,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (elements.timeslotForm) {
                 elements.timeslotForm.classList.remove('hidden');
             }
-        } else {
+                } else {
             isTimeslotActive = false;
             if (elements.timeslotActivateBtn) {
                 elements.timeslotActivateBtn.innerText = 'Deactivated';

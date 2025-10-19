@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+ {% extends 'base.html' %}
 {% load static %}
 
 {% block title %}Dashboard for {{ device.name }}{% endblock %}
@@ -54,20 +54,20 @@
                 <div class="grid grid-cols-2 gap-2">
                     <button id="mode-auto" class="mode-btn mode-btn-active p-2 rounded-lg">Auto</button>
                     <button id="mode-timeslot" class="mode-btn p-2 rounded-lg bg-gray-600">Timeslot</button>
-                </div>
             </div>
-            
+        </div>
+        
             <!-- Charts -->
             <div class="space-y-4">
                 <div>
                     <h3 class="text-xl text-center">Water Usage (Litres)</h3>
                     <canvas id="waterUsageChart"></canvas>
-                </div>
+        </div>
                 <div>
                     <h3 class="text-xl text-center">Pump Runtimes</h3>
                     <canvas id="pumpRuntimeChart"></canvas>
                 </div>
-            </div>
+    </div>
 
             <!-- Timeslot Controls -->
             <div id="timeslot-controls" class="bg-gray-700 p-3 rounded-lg hidden">
@@ -102,7 +102,7 @@
                 </div>
             </div>
         </div>
-
+        
         <!-- Right Column for Tanks -->
         <div class="md:col-span-2 bg-gray-800 p-4 rounded-lg shadow-lg flex flex-col items-center justify-center">
             <h2 class="text-2xl font-semibold mb-6">Live Tank Status</h2>
@@ -298,9 +298,9 @@ function createTanks() {
     }
     
     tankNames.forEach((tankName, index) => {
-        const tankDiv = document.createElement('div');
+    const tankDiv = document.createElement('div');
         tankDiv.className = 'flex flex-col items-center';
-        tankDiv.innerHTML = `
+    tankDiv.innerHTML = `
             <div class="text-center font-semibold mb-1">${index === 0 ? 'Tank 1 (Source)' : `Tank ${index + 1}`}</div>
             <div id="tank-level-text-${index + 1}" class="text-center text-2xl font-bold mb-2">0%</div>
             <div class="tank-container">
@@ -586,7 +586,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <!-- Push Notifications -->
 <script src="{% static 'push_notifications.js' %}"></script>
-
-<!-- Dashboard Clean CSS -->
-<link rel="stylesheet" href="{% static 'dashboard_clean.css' %}">
 {% endblock content %}
