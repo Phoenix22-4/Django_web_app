@@ -235,6 +235,31 @@ body {
     filter: drop-shadow(0 0 6px #ef4444);
 }
 
+/* Pump Animation Classes (Based on working code) */
+.pump-svg.active #pump-motor {
+    animation: spin 1s linear infinite;
+}
+
+.pump-svg.online {
+    filter: drop-shadow(0 0 12px rgba(34, 197, 94, 0.6));
+}
+
+.pump-svg.offline {
+    filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.4));
+}
+
+#pump-motor.active {
+    animation: spin 1s linear infinite;
+}
+
+#pump-motor.online {
+    color: #22c55e;
+}
+
+#pump-motor.offline {
+    color: #ef4444;
+}
+
 @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
