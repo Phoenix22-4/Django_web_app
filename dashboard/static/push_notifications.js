@@ -1,34 +1,31 @@
-// Simple Push Notification Manager for AquaSavvy
+// Simplified Push Notification Manager
 class PushNotificationManager {
     constructor() {
-        this.isSupported = 'Notification' in window;
-        this.permission = Notification.permission;
+        this.isSupported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
         this.init();
     }
 
     async init() {
         if (!this.isSupported) {
-            console.log('Push notifications are not supported in this browser');
+            console.log('Push notifications are not supported in this browser or environment.');
             return;
         }
-
-        console.log('Push notification manager initialized');
         
-        // Request permission if not already granted
-        if (this.permission === 'default') {
-            await this.requestPermission();
-        }
+        // Request permission immediately
+        await this.requestPermission();
+        
+        // Register a dummy token or status to the server
+        await this.sendTokenToServer();
     }
 
     async requestPermission() {
         try {
-            this.permission = await Notification.requestPermission();
-            
-            if (this.permission === 'granted') {
-                console.log('Notification permission granted');
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                console.log('Notification permission granted.');
                 return true;
             } else {
-                console.log('Notification permission denied');
+                console.log('Notification permission denied.');
                 return false;
             }
         } catch (error) {
@@ -37,136 +34,88 @@ class PushNotificationManager {
         }
     }
 
-    showNotification(title, body, options = {}) {
-        if (this.permission !== 'granted') {
-            console.log('Notification permission not granted');
-            return null;
-        }
-
-        const notificationOptions = {
-            body: body,
-            icon: '/static/images/chat-icon.png',
-            badge: '/static/images/chat-icon.png',
-            tag: 'aquasavvy-notification',
-            requireInteraction: true,
-            ...options
-        };
-
-        const notification = new Notification(title, notificationOptions);
-
-        // Handle notification click
-        notification.onclick = () => {
-            window.focus();
-            notification.close();
-            // Navigate to dashboard
-            window.location.href = '/devices/';
-        };
-
-        // Auto-close after 10 seconds
-        setTimeout(() => {
-            notification.close();
-        }, 10000);
-
-        return notification;
-    }
-
-    async testNotification() {
+    async sendTokenToServer() {
         try {
-            const response = await fetch('/api/test_notification/', {
+            const permission = Notification.permission;
+            const response = await fetch('/api/register_fcm_token/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': this.getCSRFToken()
-                }
+                },
+                body: JSON.stringify({
+                    fcm_token: permission === 'granted' ? 'browser_granted' : 'browser_denied',
+                    enabled: permission === 'granted'
+                })
             });
 
             const data = await response.json();
-            
             if (data.status === 'success') {
-                console.log('Test notification sent successfully');
-                // Show local notification as well
-                this.showNotification(
-                    'Test Notification',
-                    'This is a test notification from AquaSavvy!',
-                    { tag: 'test-notification' }
-                );
+                console.log('Notification preference registered successfully:', data.message);
             } else {
-                console.error('Failed to send test notification:', data.error);
+                console.error('Failed to register notification preference:', data.error);
             }
         } catch (error) {
-            console.error('Error sending test notification:', error);
+            console.error('Error sending notification preference to server:', error);
+        }
+    }
+
+    async testNotification() {
+        if (Notification.permission === 'granted') {
+            // Show local notification immediately
+            this.showLocalNotification('Test Notification', 'This is a test notification from AquaSavvy!');
+            
+            // Also send to server for testing
+            try {
+                const response = await fetch('/api/test_notification/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': this.getCSRFToken()
+                    }
+                });
+                const data = await response.json();
+                if (data.status === 'success') {
+                    console.log('Test notification sent successfully from server.');
+                } else {
+                    console.error('Failed to send test notification from server:', data.error);
+                }
+            } catch (error) {
+                console.error('Error sending test notification to server:', error);
+            }
+        } else {
+            alert('Please enable browser notifications to receive alerts.');
+            this.requestPermission();
+        }
+    }
+
+    showLocalNotification(title, body) {
+        if (Notification.permission === 'granted') {
+            const notification = new Notification(title, {
+                body: body,
+                icon: '/static/images/chat-icon.png',
+                badge: '/static/images/chat-icon.png',
+                tag: 'aquasavvy-notification',
+                requireInteraction: true
+            });
+
+            notification.onclick = function() {
+                window.focus();
+                notification.close();
+            };
+
+            // Auto-close after 5 seconds
+            setTimeout(() => {
+                notification.close();
+            }, 5000);
         }
     }
 
     getCSRFToken() {
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-            const [name, value] = cookie.trim().split('=');
-            if (name === 'csrftoken') {
-                return value;
-            }
-        }
-        return '';
-    }
-
-    // Show system alerts
-    showTankLevelAlert(tankName, level, alertType) {
-        let title, body;
-        
-        if (alertType === 'low') {
-            title = 'Low Water Level Alert';
-            body = `Tank '${tankName}' is at ${level}% - below minimum threshold`;
-        } else if (alertType === 'high') {
-            title = 'High Water Level Alert';
-            body = `Tank '${tankName}' is at ${level}% - above maximum threshold`;
-        } else {
-            title = 'Tank Level Alert';
-            body = `Tank '${tankName}' is at ${level}%`;
-        }
-
-        this.showNotification(title, body, { tag: `tank-${tankName}-${alertType}` });
-    }
-
-    showPumpStatusAlert(pumpStatus, reason = null) {
-        const title = pumpStatus ? 'Pump Started' : 'Pump Stopped';
-        let body = `Pump has been turned ${pumpStatus ? 'ON' : 'OFF'}`;
-        
-        if (reason) {
-            body += ` - ${reason}`;
-        }
-
-        this.showNotification(title, body, { tag: 'pump-status' });
-    }
-
-    showSystemAlert(alertType, message) {
-        const title = `AquaSavvy System Alert - ${alertType}`;
-        this.showNotification(title, message, { tag: `system-${alertType}` });
-    }
-
-    showWelcomeNotification() {
-        this.showNotification(
-            'Welcome to AquaSavvy!',
-            'Your water management system is now connected. You\'ll receive alerts about your devices.',
-            { tag: 'welcome' }
-        );
+        const token = document.querySelector('[name=csrfmiddlewaretoken]');
+        return token ? token.value : '';
     }
 }
 
-// Initialize push notification manager when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    window.pushNotificationManager = new PushNotificationManager();
-    
-    // Show welcome notification if this is the first visit
-    const hasSeenWelcome = localStorage.getItem('aquasavvy-welcome-shown');
-    if (!hasSeenWelcome && window.pushNotificationManager.permission === 'granted') {
-        setTimeout(() => {
-            window.pushNotificationManager.showWelcomeNotification();
-            localStorage.setItem('aquasavvy-welcome-shown', 'true');
-        }, 2000);
-    }
-});
-
-// Export for use in other scripts
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = PushNotificationManager;
-}
+// Initialize push notification manager
+window.pushNotificationManager = new PushNotificationManager();

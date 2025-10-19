@@ -53,9 +53,26 @@ Keep responses concise and actionable.
 class CustomLoginView(LoginView):
     template_name = 'login.html'
     redirect_authenticated_user = True
+    
+    def form_valid(self, form):
+        # Log successful login
+        print(f"🔐 User '{form.get_user().username}' logged in successfully")
+        return super().form_valid(form)
+    
+    def form_invalid(self, form):
+        # Log failed login attempt
+        username = form.cleaned_data.get('username', 'unknown')
+        print(f"❌ Failed login attempt for user '{username}'")
+        return super().form_invalid(form)
 
 class CustomLogoutView(LogoutView):
     next_page = 'public_home'
+    
+    def dispatch(self, request, *args, **kwargs):
+        # Log the logout action
+        if request.user.is_authenticated:
+            print(f"🔒 User '{request.user.username}' logged out")
+        return super().dispatch(request, *args, **kwargs)
 
 class CustomPasswordChangeView(PasswordChangeView):
     template_name = 'password_change.html'
@@ -520,25 +537,31 @@ def register_fcm_token(request):
     try:
         data = json.loads(request.body)
         fcm_token = data.get('fcm_token')
-        
-        if not fcm_token:
-            return JsonResponse({'error': 'FCM token required'}, status=400)
+        enabled = data.get('enabled', False)
         
         if not request.user.is_authenticated:
             return JsonResponse({'error': 'Authentication required'}, status=401)
         
-        # Update user's FCM token
-        profile = request.user.get_profile()
-        profile.fcm_token = fcm_token
-        profile.save()
-        
-        # Send welcome notification
-        push_notification_service.send_welcome_notification(request.user)
-        
-        return JsonResponse({
-            'status': 'success',
-            'message': 'FCM token registered successfully'
-        })
+        # Update user's notification preference
+        try:
+            from .models import Profile
+            profile, created = Profile.objects.get_or_create(user=request.user)
+            profile.fcm_token = fcm_token or 'browser_notification'
+            profile.push_notifications = enabled
+            profile.save()
+            
+            print(f"📱 Notification preference updated for user '{request.user.username}': {enabled}")
+            
+            return JsonResponse({
+                'status': 'success',
+                'message': f'Notification preference {"enabled" if enabled else "disabled"} successfully'
+            })
+        except Exception as e:
+            print(f"❌ Error updating notification preference: {e}")
+            return JsonResponse({
+                'error': f'Error updating notification preference: {str(e)}',
+                'status': 'error'
+            }, status=500)
         
     except Exception as e:
         return JsonResponse({
@@ -554,23 +577,14 @@ def test_notification(request):
         if not request.user.is_authenticated:
             return JsonResponse({'error': 'Authentication required'}, status=401)
         
-        success = push_notification_service.send_notification_to_user(
-            request.user,
-            "Test Notification",
-            "This is a test notification from AquaSavvy!",
-            {"type": "test", "timestamp": datetime.now().isoformat()}
-        )
+        # For browser notifications, we'll just return success
+        # The actual notification will be shown by the JavaScript
+        print(f"🔔 Test notification requested by user '{request.user.username}'")
         
-        if success:
-            return JsonResponse({
-                'status': 'success',
-                'message': 'Test notification sent successfully'
-            })
-        else:
-            return JsonResponse({
-                'error': 'Failed to send test notification',
-                'status': 'error'
-            }, status=500)
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Test notification sent successfully'
+        })
             
     except Exception as e:
         return JsonResponse({
