@@ -325,6 +325,19 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         if command in ["PUMP_ON", "PUMP_OFF"]:
             # Use the helper function to send commands
             send_pump_command(self.device_id, command)
+        elif command in ["SOLENOID_ON", "SOLENOID_OFF"]:
+            # Handle solenoid commands
+            solenoid_index = data.get('solenoid_index')
+            solenoid_name = data.get('solenoid_name')
+            command_topic = MQTT_COMMAND_TOPIC_FORMAT.format(self.device_id)
+            payload = json.dumps({
+                "command": command,
+                "solenoid_index": solenoid_index,
+                "solenoid_name": solenoid_name
+            })
+            client_instance = get_mqtt_client()
+            client_instance.client.publish(command_topic, payload)
+            print(f"Web app sent solenoid command '{command}' for solenoid {solenoid_index} ({solenoid_name}) to device '{self.device_id}'")
 
     async def device_message(self, event):
         message = event['message']
