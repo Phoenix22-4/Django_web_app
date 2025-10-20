@@ -76,6 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Update tanks with live data
             console.log("🔄 Calling updateTankLevelsLive with data:", data);
+            console.log("🔍 Data keys:", Object.keys(data));
             updateTankLevelsLive(data);
             
             // Update pump status and animation
@@ -373,6 +374,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- LIVE TANK LEVEL UPDATES (Dynamic System) ---
     function updateTankLevelsLive(data) {
         console.log("🔄 PROCESSING WEBSOCKET DATA:", data);
+        console.log("🔍 Function called with data type:", typeof data);
+        console.log("🔍 Data is object:", data instanceof Object);
         
         let tanksFound = 0;
         let tanksUpdated = 0;
