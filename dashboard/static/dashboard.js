@@ -141,12 +141,23 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // --- DYNAMIC TANK CREATION FROM WEBSOCKET DATA ---
     function createTankFromData(readingId, level) {
-        if (!elements.tanksWrapper) return;
+        if (!elements.tanksWrapper) {
+            console.error("❌ ERROR: tanks-wrapper element not found in HTML");
+            return;
+        }
         
         // Check if tank already exists
         const existingTank = window.tankConfigs.find(tank => tank.id === readingId);
         if (existingTank) {
+            console.log(`ℹ️ Tank ${readingId} already exists, skipping creation`);
             return; // Tank already exists
+        }
+        
+        // Validate input data
+        if (!readingId || typeof level !== 'number' || level < 0 || level > 100) {
+            console.error(`❌ ERROR: Invalid tank data - readingId: ${readingId}, level: ${level}`);
+            console.error("💡 Expected: readingId (string), level (number 0-100)");
+            return;
         }
         
         // Create tank name from reading ID (e.g., "overhead_level" -> "Overhead Tank")
@@ -176,8 +187,8 @@ document.addEventListener('DOMContentLoaded', function() {
         tankDiv.className = 'flex flex-col items-center';
         const sourceIndicator = isSource ? ' (Source)' : '';
         tankDiv.innerHTML = `
-            <div class="text-center font-semibold mb-1 text-blue-600">${tankName}${sourceIndicator}</div>
-            <div id="tank-level-text-${slot}" class="text-center text-2xl font-bold mb-2 text-green-600">${level}%</div>
+            <div class="text-center font-semibold mb-1" style="color: #000000;">${tankName}${sourceIndicator}</div>
+            <div id="tank-level-text-${slot}" class="text-center text-2xl font-bold mb-2" style="color: #000000;">${level}%</div>
             <div class="tank-container">
                 <div id="water-${slot}" class="water"></div>
             </div>
@@ -192,13 +203,26 @@ document.addEventListener('DOMContentLoaded', function() {
         // Recreate status messages
         createTankStatusMessages();
         
-        console.log(`Created dynamic tank: ${tankName} (${readingId}) at ${level}%`);
+        // Console confirmation for tank creation
+        console.log(`✅ TANK CREATED: ${tankName} (${readingId}) at ${level}%`);
+        console.log(`📊 Tank Details:`, tankConfig);
     }
     
     // --- UPDATE INDIVIDUAL TANK LEVEL ---
     function updateTankLevel(readingId, level) {
         const tank = window.tankConfigs.find(t => t.id === readingId);
-        if (!tank) return;
+        if (!tank) {
+            console.error(`❌ ERROR: Tank ${readingId} not found for update`);
+            console.error("💡 Available tanks:", window.tankConfigs.map(t => t.id));
+            return;
+        }
+        
+        // Validate level data
+        if (typeof level !== 'number' || level < 0 || level > 100) {
+            console.error(`❌ ERROR: Invalid level data for ${readingId}: ${level}`);
+            console.error("💡 Expected: level (number 0-100)");
+            return;
+        }
         
         const tankWater = document.getElementById(`water-${tank.slot}`);
         const tankLevelText = document.getElementById(`tank-level-text-${tank.slot}`);
@@ -207,18 +231,14 @@ document.addEventListener('DOMContentLoaded', function() {
             safeStyleUpdate(tankWater, 'height', `${level}%`);
             safeUpdate(tankLevelText, `${level}%`);
             
-            // Add color coding based on level
-            if (level >= 80) {
-                tankLevelText.style.color = '#10b981'; // Green
-            } else if (level >= 50) {
-                tankLevelText.style.color = '#f59e0b'; // Yellow
-            } else if (level >= 20) {
-                tankLevelText.style.color = '#f97316'; // Orange
-            } else {
-                tankLevelText.style.color = '#ef4444'; // Red
-            }
+            // Set text color to black for better visibility
+            tankLevelText.style.color = '#000000';
             
-            console.log(`${tank.name} (${readingId}): ${level}%`);
+            // Console confirmation for water level update
+            console.log(`💧 WATER LEVEL UPDATE: ${tank.name} (${readingId}): ${level}%`);
+        } else {
+            console.error(`❌ ERROR: DOM elements not found for tank ${readingId}`);
+            console.error(`💡 Looking for: water-${tank.slot}, tank-level-text-${tank.slot}`);
         }
     }
     
@@ -342,22 +362,39 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- LIVE TANK LEVEL UPDATES (Dynamic System) ---
     function updateTankLevelsLive(data) {
-        console.log("Updating tank levels with live data:", data);
+        console.log("🔄 PROCESSING WEBSOCKET DATA:", data);
+        
+        let tanksFound = 0;
+        let tanksUpdated = 0;
+        let tanksCreated = 0;
         
         // Process all data entries that end with '_level'
         for (const [key, value] of Object.entries(data)) {
             if (key.endsWith('_level') && typeof value === 'number') {
+                tanksFound++;
+                console.log(`🔍 FOUND TANK DATA: ${key} = ${value}%`);
+                
                 // Check if tank already exists
                 const existingTank = window.tankConfigs.find(tank => tank.id === key);
                 
                 if (existingTank) {
                     // Update existing tank
                     updateTankLevel(key, value);
+                    tanksUpdated++;
                 } else {
                     // Create new tank from data
                     createTankFromData(key, value);
+                    tanksCreated++;
                 }
             }
+        }
+        
+        // Summary console message
+        if (tanksFound > 0) {
+            console.log(`📈 TANK PROCESSING SUMMARY: Found ${tanksFound} tanks, Created ${tanksCreated}, Updated ${tanksUpdated}`);
+        } else {
+            console.log("⚠️ NO TANK DATA FOUND: No fields ending with '_level' detected in WebSocket data");
+            console.log("💡 Expected format: {overhead_level: 98, underground_level: 82, ...}");
         }
     }
     
