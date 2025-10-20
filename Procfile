@@ -1,1 +1,2 @@
-web: python manage.py migrate && daphne -b 0.0.0.0 -p $PORT AquaGuard.asgi:application
+release: python manage.py migrate && python manage.py createsuperuser --noinput
+web: gunicorn AquaGuard.wsgi
