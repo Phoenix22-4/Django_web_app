@@ -1,1 +1,3 @@
-﻿web: python manage.py migrate && python manage.py shell -c "import os; from django.contrib.auth import get_user_model; User = get_user_model(); username = os.environ.get('ADMIN_USER'); password = os.environ.get('ADMIN_PASSWORD'); User.objects.filter(username=username).exists() or User.objects.create_superuser(username, 'admin@example.com', password) if username and password else print('Skipping superuser creation')" && daphne -b 0.0.0.0 -p $PORT AquaGuard.asgi:application
+release: python manage.py migrate && python manage.py createsuperuser --noinput
+web: gunicorn AquaGuard.wsgi --bind 0.0.0.0:$PORT
+worker: celery -A AquaGuard worker --loglevel=info
