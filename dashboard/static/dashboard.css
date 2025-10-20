@@ -224,12 +224,15 @@ body {
 }
 
 .pump-on #pump-motor {
-    animation: spin 1s linear infinite;
+    animation: pumpPulse 0.8s ease-in-out infinite alternate;
+    stroke: #10b981;
+    stroke-width: 8;
 }
 
 .pump-on #pump-body {
     stroke: #22c55e;
     filter: drop-shadow(0 0 6px #22c55e);
+    animation: pumpVibrate 1.2s ease-in-out infinite;
 }
 
 .pump-off #pump-body {
@@ -289,6 +292,36 @@ body {
 @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
+}
+
+@keyframes pumpPulse {
+    0% {
+        stroke-width: 6;
+        opacity: 0.8;
+        transform: translateY(0);
+    }
+    50% {
+        stroke-width: 10;
+        opacity: 1;
+        transform: translateY(-2px);
+    }
+    100% {
+        stroke-width: 6;
+        opacity: 0.8;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pumpVibrate {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(1px);
+    }
+    75% {
+        transform: translateX(-1px);
+    }
 }
 
 /* ====================
