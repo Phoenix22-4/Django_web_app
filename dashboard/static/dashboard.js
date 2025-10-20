@@ -64,10 +64,10 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     socket.onmessage = function(e) {
-        console.log("WebSocket message received");
+        console.log("📡 WebSocket message received");
         try {
             const data = JSON.parse(e.data);
-            console.log("Parsed data:", data);
+            console.log("📊 Parsed data:", data);
 
             // Store data globally for reference
             window.lastData = data;
@@ -75,6 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
             updateConnectionStatus('device', 'Online', 'online');
 
             // Update tanks with live data
+            console.log("🔄 Calling updateTankLevelsLive with data:", data);
             updateTankLevelsLive(data);
             
             // Update pump status and animation
@@ -84,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
             updateStatusMessagesLive(data);
 
         } catch (error) {
-            console.error("Error processing message:", error);
+            console.error("❌ Error processing message:", error);
             updateConnectionStatus('device', 'Error', 'error');
         }
     };
@@ -128,7 +129,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- TANK INITIALIZATION ---
     function initializeTanks() {
-        if (!elements.tanksWrapper) return;
+        console.log('🔧 INITIALIZING TANK SYSTEM...');
+        console.log('🔍 Looking for tanks-wrapper element...');
+        
+        if (!elements.tanksWrapper) {
+            console.error('❌ ERROR: tanks-wrapper element not found!');
+            console.error('💡 Make sure the HTML contains: <div id="tanks-wrapper">');
+            return;
+        }
+        
+        console.log('✅ tanks-wrapper element found:', elements.tanksWrapper);
         
         // Clear existing tanks
         elements.tanksWrapper.innerHTML = '';
@@ -136,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Initialize empty tank configuration
         window.tankConfigs = [];
         
-        console.log('Tank system initialized - tanks will be created dynamically from WebSocket data');
+        console.log('✅ Tank system initialized - tanks will be created dynamically from WebSocket data');
     }
     
     // --- DYNAMIC TANK CREATION FROM WEBSOCKET DATA ---
