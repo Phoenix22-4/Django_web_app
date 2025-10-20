@@ -11,7 +11,7 @@ import json
 
 class DeviceAdmin(admin.ModelAdmin):
     list_display = ('device_id', 'name', 'owner', 'created_at', 'pump_present', 'tank_capacity_liters')
-    readonly_fields = ('device_id', 'created_at', 'tank_1_reading_id', 'tank_2_reading_id', 'tank_3_reading_id', 'tank_4_reading_id')
+    readonly_fields = ('device_id', 'created_at', 'tank_1_reading_id', 'tank_2_reading_id', 'tank_3_reading_id', 'tank_4_reading_id', 'solenoid_1_reading_id', 'solenoid_2_reading_id', 'solenoid_3_reading_id', 'solenoid_4_reading_id')
     search_fields = ('device_id', 'name', 'owner__username')
     list_filter = ('owner', 'pump_present')
     fieldsets = (
@@ -27,12 +27,22 @@ class DeviceAdmin(admin.ModelAdmin):
         }),
         ('Tank Configuration (Auto-detected from IoT data)', {
             'fields': (
-                ('tank_1_reading_id', 'tank_1_name'),
-                ('tank_2_reading_id', 'tank_2_name'),
-                ('tank_3_reading_id', 'tank_3_name'),
-                ('tank_4_reading_id', 'tank_4_name'),
+                ('tank_1_reading_id', 'tank_1_name', 'tank_1_is_source'),
+                ('tank_2_reading_id', 'tank_2_name', 'tank_2_is_source'),
+                ('tank_3_reading_id', 'tank_3_name', 'tank_3_is_source'),
+                ('tank_4_reading_id', 'tank_4_name', 'tank_4_is_source'),
             ),
-            'description': 'Reading IDs are auto-detected from IoT data. Enter tank names only for tanks with reading IDs.'
+            'description': 'Reading IDs are auto-detected from IoT data. Enter tank names only for tanks with reading IDs. Check "Is Source" for the water supply tank.'
+        }),
+        ('Solenoid Valve Configuration (Auto-detected from IoT data)', {
+            'fields': (
+                ('solenoid_1_reading_id', 'solenoid_1_name'),
+                ('solenoid_2_reading_id', 'solenoid_2_name'),
+                ('solenoid_3_reading_id', 'solenoid_3_name'),
+                ('solenoid_4_reading_id', 'solenoid_4_name'),
+            ),
+            'description': 'Reading IDs are auto-detected from IoT data. Enter solenoid valve names only for valves with reading IDs.',
+            'classes': ('collapse',)
         }),
         ('Date Information', {
             'fields': ('created_at',),

@@ -38,12 +38,16 @@ class Device(models.Model):
     # --- TANK CONFIGURATION FIELDS (Auto-populated from IoT data) ---
     tank_1_reading_id = models.CharField(max_length=100, blank=True, null=True, help_text="Reading ID for Tank 1 (auto-detected from IoT data)")
     tank_1_name = models.CharField(max_length=100, blank=True, null=True, help_text="Name for Tank 1 (enter only if reading_id exists)")
+    tank_1_is_source = models.BooleanField(default=False, help_text="Check if Tank 1 is the source tank (water supply)")
     tank_2_reading_id = models.CharField(max_length=100, blank=True, null=True, help_text="Reading ID for Tank 2 (auto-detected from IoT data)")
     tank_2_name = models.CharField(max_length=100, blank=True, null=True, help_text="Name for Tank 2 (enter only if reading_id exists)")
+    tank_2_is_source = models.BooleanField(default=False, help_text="Check if Tank 2 is the source tank (water supply)")
     tank_3_reading_id = models.CharField(max_length=100, blank=True, null=True, help_text="Reading ID for Tank 3 (auto-detected from IoT data)")
     tank_3_name = models.CharField(max_length=100, blank=True, null=True, help_text="Name for Tank 3 (enter only if reading_id exists)")
+    tank_3_is_source = models.BooleanField(default=False, help_text="Check if Tank 3 is the source tank (water supply)")
     tank_4_reading_id = models.CharField(max_length=100, blank=True, null=True, help_text="Reading ID for Tank 4 (auto-detected from IoT data)")
     tank_4_name = models.CharField(max_length=100, blank=True, null=True, help_text="Name for Tank 4 (enter only if reading_id exists)")
+    tank_4_is_source = models.BooleanField(default=False, help_text="Check if Tank 4 is the source tank (water supply)")
 
     # --- SOLENOID VALVE CONFIGURATION FIELDS (Auto-populated from IoT data) ---
     solenoid_1_reading_id = models.CharField(max_length=100, blank=True, null=True, help_text="Reading ID for Solenoid Valve 1 (auto-detected from IoT data)")
@@ -94,6 +98,37 @@ class Device(models.Model):
             if not solenoid_name:
                 available.append(i)
         return available
+    
+    def get_source_tank_info(self):
+        """Get information about the source tank"""
+        for i in range(1, 5):
+            is_source = getattr(self, f'tank_{i}_is_source', False)
+            if is_source:
+                reading_id = getattr(self, f'tank_{i}_reading_id', None)
+                name = getattr(self, f'tank_{i}_name', None)
+                if reading_id and name:
+                    return {
+                        'slot': i,
+                        'reading_id': reading_id,
+                        'name': name
+                    }
+        return None
+    
+    def get_secondary_tanks_info(self):
+        """Get information about all secondary tanks (non-source tanks)"""
+        secondary_tanks = []
+        for i in range(1, 5):
+            is_source = getattr(self, f'tank_{i}_is_source', False)
+            if not is_source:
+                reading_id = getattr(self, f'tank_{i}_reading_id', None)
+                name = getattr(self, f'tank_{i}_name', None)
+                if reading_id and name:
+                    secondary_tanks.append({
+                        'slot': i,
+                        'reading_id': reading_id,
+                        'name': name
+                    })
+        return secondary_tanks
 
     def __str__(self):
         return self.name or self.device_id
