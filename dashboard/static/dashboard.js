@@ -1,5 +1,6 @@
-// Advanced Multi-Tank Dashboard JavaScript
+// Advanced Multi-Tank Dashboard JavaScript v1.4
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("🚀 DASHBOARD.JS v1.4 LOADED - Dynamic Tank System Active");
     console.log("Advanced Multi-Tank Dashboard loaded");
 
     const deviceIdElement = document.getElementById('device-id');

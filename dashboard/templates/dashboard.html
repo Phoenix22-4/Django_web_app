@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+ {% extends 'base.html' %}
 {% load static %}
 
 {% block title %}Dashboard for {{ device.name }}{% endblock %}
@@ -266,7 +266,7 @@
 <script src="{% static 'aquasavvy-chat.js' %}"></script>
 
 <!-- Dashboard JavaScript -->
-<script src="{% static 'dashboard.js' %}?v=1.3"></script>
+<script src="{% static 'dashboard.js' %}?v=1.4&t={{ timestamp|default:'' }}"></script>
 
 <!-- Push Notifications -->
 <script src="{% static 'push_notifications.js' %}"></script>
