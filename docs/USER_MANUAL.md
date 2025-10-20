@@ -12,7 +12,28 @@ Your intelligent water management system that keeps your water supply monitored,
 - Login with your credentials
 - You'll see your device list or dashboard
 
-### 2. **Understanding the Dashboard**
+### 2. **Tank Configuration (Admin Setup)**
+Before using the system, your administrator needs to configure the tanks:
+
+#### **Django Admin Configuration**
+1. **Access Admin Panel**: Go to `/admin/` and login as admin
+2. **Device Configuration**: Select your device from the Device list
+3. **Tank Setup**: For each tank (1-4):
+   - **Reading ID**: Auto-detected from IoT data (read-only)
+   - **Tank Name**: Enter a descriptive name (e.g., "Overhead Tank", "Underground Tank")
+   - **Is Source**: Check this box for the water supply tank (only one tank can be source)
+4. **Save Configuration**: Save the device configuration
+
+#### **Tank Types**
+- **Source Tank**: The water supply tank (e.g., underground tank, well tank)
+- **Secondary Tanks**: Storage tanks that get filled from the source (e.g., overhead tanks)
+
+#### **Dynamic Display**
+- Only configured tanks (with names) will appear on the dashboard
+- Tanks are identified by their reading IDs from the IoT system
+- Source tank is clearly marked with "(Source)" indicator
+
+### 3. **Understanding the Dashboard**
 
 #### **Header Section**
 - **System Name**: Shows your device name (e.g., "AquaSavvy: Main Tank")
@@ -32,8 +53,9 @@ Your intelligent water management system that keeps your water supply monitored,
 - **Test Notifications**: Button to test push notification system
 
 **Right Column - Live Tank Status**
-- **Tank Display**: Dynamic tank visualization (1-4 tanks)
-- **Tank Levels**: Real-time percentage display
+- **Dynamic Tank Display**: Configurable tank visualization (1-4 tanks)
+- **Tank Levels**: Real-time percentage display with color coding
+- **Source Tank Indicator**: Shows which tank is the water supply source
 - **Main Pump**: Central pump control with visual status
 - **Solenoid Valves**: Individual valve control (when configured)
 

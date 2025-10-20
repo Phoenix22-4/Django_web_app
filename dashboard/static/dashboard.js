@@ -130,43 +130,65 @@ document.addEventListener('DOMContentLoaded', function() {
     function initializeTanks() {
         if (!elements.tanksWrapper) return;
         
-        // Always create at least 2 tanks (overhead and underground) for live data
-        const defaultTanks = [
-            { name: 'Overhead Tank', id: 'overhead_level' },
-            { name: 'Underground Tank', id: 'underground_level' }
-        ];
-        
         // Get configured tank names from device data if available
-        const tankNames = [];
+        const tankConfigs = [];
         if (window.deviceData) {
             for (let i = 1; i <= 4; i++) {
                 const tankName = window.deviceData[`tank_${i}_name`];
                 const readingId = window.deviceData[`tank_${i}_reading_id`];
+                const isSource = window.deviceData[`tank_${i}_is_source`] || false;
                 if (tankName && readingId) {
-                    tankNames.push({ name: tankName, id: readingId });
+                    tankConfigs.push({ 
+                        name: tankName, 
+                        id: readingId, 
+                        slot: i,
+                        isSource: isSource
+                    });
                 }
             }
         }
         
-        // Use configured tanks or default tanks
-        const tanksToCreate = tankNames.length > 0 ? tankNames : defaultTanks;
-        
+        // Clear existing tanks
         elements.tanksWrapper.innerHTML = '';
         
-        tanksToCreate.forEach((tank, index) => {
+        // Create tanks based on configuration
+        tankConfigs.forEach((tank, index) => {
             const tankDiv = document.createElement('div');
             tankDiv.className = 'flex flex-col items-center';
+            const sourceIndicator = tank.isSource ? ' (Source)' : '';
             tankDiv.innerHTML = `
-                <div class="text-center font-semibold mb-1">${tank.name}</div>
-                <div id="tank-level-text-${index + 1}" class="text-center text-2xl font-bold mb-2">0%</div>
+                <div class="text-center font-semibold mb-1 text-blue-600">${tank.name}${sourceIndicator}</div>
+                <div id="tank-level-text-${tank.slot}" class="text-center text-2xl font-bold mb-2 text-green-600">0%</div>
                 <div class="tank-container">
-                    <div id="water-${index + 1}" class="water"></div>
+                    <div id="water-${tank.slot}" class="water"></div>
                 </div>
             `;
             elements.tanksWrapper.appendChild(tankDiv);
         });
         
-        console.log(`Initialized ${tanksToCreate.length} tanks:`, tanksToCreate);
+        console.log(`Initialized ${tankConfigs.length} tanks:`, tankConfigs);
+        
+        // Store tank configuration globally for reference
+        window.tankConfigs = tankConfigs;
+        
+        // Create tank status messages
+        createTankStatusMessages();
+    }
+    
+    // --- CREATE TANK STATUS MESSAGES ---
+    function createTankStatusMessages() {
+        const statusContainer = document.getElementById('tank-status-messages');
+        if (!statusContainer || !window.tankConfigs) return;
+        
+        statusContainer.innerHTML = '';
+        
+        window.tankConfigs.forEach(tank => {
+            const statusDiv = document.createElement('div');
+            statusDiv.id = `tank-status-msg-${tank.slot}`;
+            statusDiv.className = 'text-sm';
+            statusDiv.textContent = `${tank.name}: --%`;
+            statusContainer.appendChild(statusDiv);
+        });
     }
 
     // --- SOLENOID VALVE INITIALIZATION ---
@@ -271,45 +293,35 @@ document.addEventListener('DOMContentLoaded', function() {
         return readingId;
     }
 
-    // --- LIVE TANK LEVEL UPDATES (Based on working code) ---
+    // --- LIVE TANK LEVEL UPDATES (Dynamic System) ---
     function updateTankLevelsLive(data) {
         console.log("Updating tank levels with live data:", data);
         
-        // Update overhead tank
-        const overheadLevel = data.overhead_level || 0;
-        const overheadWater = document.getElementById('water-1');
-        const overheadLevelText = document.getElementById('tank-level-text-1');
-        
-        if (overheadWater && overheadLevelText) {
-            safeStyleUpdate(overheadWater, 'height', `${overheadLevel}%`);
-            safeUpdate(overheadLevelText, `${overheadLevel}%`);
-            console.log(`Overhead tank: ${overheadLevel}%`);
-        }
-        
-        // Update underground tank
-        const undergroundLevel = data.underground_level || 0;
-        const undergroundWater = document.getElementById('water-2');
-        const undergroundLevelText = document.getElementById('tank-level-text-2');
-        
-        if (undergroundWater && undergroundLevelText) {
-            safeStyleUpdate(undergroundWater, 'height', `${undergroundLevel}%`);
-            safeUpdate(undergroundLevelText, `${undergroundLevel}%`);
-            console.log(`Underground tank: ${undergroundLevel}%`);
-        }
-        
-        // Update additional tanks if they exist
-        for (let i = 3; i <= 4; i++) {
-            const tankKey = `tank_${i}_level`;
-            if (data[tankKey] !== undefined) {
-                const tankWater = document.getElementById(`water-${i}`);
-                const tankLevelText = document.getElementById(`tank-level-text-${i}`);
+        // Update tanks based on configured reading IDs
+        if (window.tankConfigs) {
+            window.tankConfigs.forEach(tank => {
+                const level = data[tank.id] || 0;
+                const tankWater = document.getElementById(`water-${tank.slot}`);
+                const tankLevelText = document.getElementById(`tank-level-text-${tank.slot}`);
                 
                 if (tankWater && tankLevelText) {
-                    safeStyleUpdate(tankWater, 'height', `${data[tankKey]}%`);
-                    safeUpdate(tankLevelText, `${data[tankKey]}%`);
-                    console.log(`Tank ${i}: ${data[tankKey]}%`);
+                    safeStyleUpdate(tankWater, 'height', `${level}%`);
+                    safeUpdate(tankLevelText, `${level}%`);
+                    
+                    // Add color coding based on level
+                    if (level >= 80) {
+                        tankLevelText.style.color = '#10b981'; // Green
+                    } else if (level >= 50) {
+                        tankLevelText.style.color = '#f59e0b'; // Yellow
+                    } else if (level >= 20) {
+                        tankLevelText.style.color = '#f97316'; // Orange
+                    } else {
+                        tankLevelText.style.color = '#ef4444'; // Red
+                    }
+                    
+                    console.log(`${tank.name} (${tank.id}): ${level}%`);
                 }
-            }
+            });
         }
     }
     
@@ -384,49 +396,57 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log(`Pump status: ${pumpIsOn ? 'ON' : 'OFF'}, Current: ${pumpCurrent}A`);
     }
     
-    // --- LIVE STATUS MESSAGES (Based on working code) ---
+    // --- LIVE STATUS MESSAGES (Dynamic System) ---
     function updateStatusMessagesLive(data) {
-        const overheadLevel = data.overhead_level || 0;
-        const undergroundLevel = data.underground_level || 0;
-        
-        // Update overhead status message
-        const overheadStatusMsg = document.getElementById('overhead-status-msg');
-        if (overheadStatusMsg) {
-            if (overheadLevel >= 95) {
-                overheadStatusMsg.textContent = "Overhead Tank: FULL";
-                overheadStatusMsg.style.color = "blue";
+        // Update tank status messages dynamically
+        if (window.tankConfigs) {
+            window.tankConfigs.forEach(tank => {
+                const level = data[tank.id] || 0;
+                const statusMsgId = `tank-status-msg-${tank.slot}`;
+                const statusMsg = document.getElementById(statusMsgId);
+                
+                if (statusMsg) {
+                    if (tank.isSource) {
+                        // Source tank status
+                        if (level < 10) {
+                            statusMsg.textContent = `${tank.name}: CRITICAL!`;
+                            statusMsg.style.color = "red";
+                        } else if (level < 25) {
+                            statusMsg.textContent = `${tank.name}: Low`;
+                            statusMsg.style.color = "orange";
+                        } else {
+                            statusMsg.textContent = `${tank.name}: ${level}%`;
+                            statusMsg.style.color = "";
+                        }
+                    } else {
+                        // Secondary tank status
+                        if (level >= 95) {
+                            statusMsg.textContent = `${tank.name}: FULL`;
+                            statusMsg.style.color = "blue";
             } else {
-                overheadStatusMsg.textContent = `Overhead Tank: ${overheadLevel}%`;
-                overheadStatusMsg.style.color = "";
-            }
+                            statusMsg.textContent = `${tank.name}: ${level}%`;
+                            statusMsg.style.color = "";
+                        }
+                    }
+                }
+            });
         }
         
-        // Update underground status message
-        const undergroundStatusMsg = document.getElementById('underground-status-msg');
-        if (undergroundStatusMsg) {
-            if (undergroundLevel < 10) {
-                undergroundStatusMsg.textContent = "Underground: CRITICAL!";
-                undergroundStatusMsg.style.color = "red";
-            } else if (undergroundLevel < 25) {
-                undergroundStatusMsg.textContent = "Underground: Low";
-                undergroundStatusMsg.style.color = "orange";
-            } else {
-                undergroundStatusMsg.textContent = `Underground Tank: ${undergroundLevel}%`;
-                undergroundStatusMsg.style.color = "";
-            }
-        }
-        
-        // Update safety status
+        // Update safety status based on source tank
         const safetyStatusMsg = document.getElementById('safety-status-message');
-        if (safetyStatusMsg) {
-            if (undergroundLevel < 10) {
-                safetyStatusMsg.textContent = `SOURCE TANK CRITICAL (${undergroundLevel}%) - PUMP OFF`;
+        if (safetyStatusMsg && window.tankConfigs) {
+            const sourceTank = window.tankConfigs.find(tank => tank.isSource);
+            if (sourceTank) {
+                const sourceLevel = data[sourceTank.id] || 0;
+                if (sourceLevel < 10) {
+                    safetyStatusMsg.textContent = `SOURCE TANK CRITICAL (${sourceLevel}%) - PUMP OFF`;
                 safetyStatusMsg.classList.remove('hidden');
             } else if (data.pump_status && data.pump_current < 2.0) {
                 safetyStatusMsg.textContent = `DRY RUN DETECTED (${data.pump_current.toFixed(1)}A) - PUMP OFF`;
                 safetyStatusMsg.classList.remove('hidden');
             } else {
                 safetyStatusMsg.classList.add('hidden');
+                }
             }
         }
     }
@@ -705,11 +725,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function handleManualPumpToggle() {
+        // Check if source tank is available and has sufficient water
+        if (window.tankConfigs && window.lastData) {
+            const sourceTank = window.tankConfigs.find(tank => tank.isSource);
+            if (sourceTank) {
+                const sourceLevel = window.lastData[sourceTank.id] || 0;
+                if (sourceLevel < 10) {
+                    console.log('❌ Cannot turn on pump: Source tank level too low');
+                    return;
+                }
+            }
+        }
+        
         // Get current pump status from live data
         const currentPumpStatus = window.lastData ? window.lastData.pump_status : false;
         const newPumpStatus = !currentPumpStatus;
         
-        // Send command via WebSocket to AWS IoT Core (Based on working code)
+        // Send command via WebSocket to AWS IoT Core
         if (socket && socket.readyState === WebSocket.OPEN) {
             const command = newPumpStatus ? 'PUMP_ON' : 'PUMP_OFF';
             socket.send(JSON.stringify({command: command}));
