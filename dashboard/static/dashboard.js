@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
         timeslotActivateBtn: document.getElementById('timeslot-activate-btn'),
         timeslotForm: document.getElementById('timeslot-form'),
         tanksWrapper: document.getElementById('tanks-wrapper'),
+        tankStatusMessages: document.getElementById('tank-status-messages'),
         solenoidValvesSection: document.getElementById('solenoid-valves-section'),
         solenoidValvesContainer: document.getElementById('solenoid-valves-container')
     };
@@ -255,8 +256,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // --- CREATE TANK STATUS MESSAGES ---
     function createTankStatusMessages() {
-        const statusContainer = document.getElementById('tank-status-messages');
-        if (!statusContainer || !window.tankConfigs) return;
+        const statusContainer = elements.tankStatusMessages;
+        if (!statusContainer || !window.tankConfigs) {
+            console.error('Tank status messages container not found or no tank configs');
+            return;
+        }
         
         statusContainer.innerHTML = '';
         
