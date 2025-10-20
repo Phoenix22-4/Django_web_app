@@ -10,6 +10,8 @@
     window.deviceId = "{{ device.device_id }}";
     // Also set it on body for device_control.js
     document.body.dataset.deviceId = "{{ device.device_id }}";
+    // Make solenoid names available to JavaScript
+    window.solenoidNames = {{ device.get_solenoid_names|safe|default:"[]" }};
 </script>
 
 <!-- Clean Header with Connection Status in Center -->
@@ -257,51 +259,14 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
-<script>
-// Clean HTML - All functionality moved to dashboard.js
-
-// --- SOLENOID VALVES CREATION ---
-function createSolenoidValves() {
-    const solenoidNames = {{ device.get_solenoid_names|safe|default:"[]" }};
-    const solenoidValvesSection = document.getElementById('solenoid-valves-section');
-    const solenoidValvesContainer = document.getElementById('solenoid-valves-container');
-    
-    if (solenoidNames.length === 0) {
-        solenoidValvesSection.classList.add('hidden');
-        return;
-    }
-    
-    solenoidValvesSection.classList.remove('hidden');
-    solenoidValvesContainer.innerHTML = '';
-    
-    solenoidNames.forEach((solenoidName, index) => {
-        const solenoidDiv = document.createElement('div');
-        solenoidDiv.className = 'bg-gray-700 p-3 rounded-lg text-center';
-        solenoidDiv.innerHTML = `
-            <h4 class="font-semibold mb-2">${solenoidName}</h4>
-            <div id="solenoid-status-${index + 1}" class="text-sm mb-2">OFF</div>
-            <button id="solenoid-toggle-${index + 1}" class="bg-red-600 text-white px-3 py-1 rounded text-sm">
-                Turn ON
-            </button>
-        `;
-        solenoidValvesContainer.appendChild(solenoidDiv);
-    });
-}
-
-// --- INITIALIZATION ---
-document.addEventListener('DOMContentLoaded', function() {
-    // Tank creation is now handled by dashboard.js from WebSocket data
-    createSolenoidValves();
-    // All other functionality is handled by dashboard.js
-});
-</script>
+<!-- All JavaScript functionality moved to dashboard.js -->
 
 <!-- AquaSavvy AI Chat Widget -->
 <link rel="stylesheet" href="{% static 'aquasavvy-chat.css' %}">
 <script src="{% static 'aquasavvy-chat.js' %}"></script>
 
 <!-- Dashboard JavaScript -->
-<script src="{% static 'dashboard.js' %}?v=1.1"></script>
+<script src="{% static 'dashboard.js' %}?v=1.2"></script>
 
 <!-- Push Notifications -->
 <script src="{% static 'push_notifications.js' %}"></script>

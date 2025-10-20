@@ -931,12 +931,51 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // --- SOLENOID VALVES CREATION ---
+    function createSolenoidValves() {
+        // Get solenoid names from Django template data
+        const solenoidNames = window.solenoidNames || [];
+        const solenoidValvesSection = document.getElementById('solenoid-valves-section');
+        const solenoidValvesContainer = document.getElementById('solenoid-valves-container');
+        
+        if (!solenoidValvesSection || !solenoidValvesContainer) {
+            console.log('Solenoid valve elements not found');
+            return;
+        }
+        
+        if (solenoidNames.length === 0) {
+            solenoidValvesSection.classList.add('hidden');
+            return;
+        }
+        
+        solenoidValvesSection.classList.remove('hidden');
+        solenoidValvesContainer.innerHTML = '';
+        
+        solenoidNames.forEach((solenoidName, index) => {
+            const solenoidDiv = document.createElement('div');
+            solenoidDiv.className = 'bg-gray-700 p-3 rounded-lg text-center';
+            solenoidDiv.innerHTML = `
+                <h4 class="font-semibold mb-2">${solenoidName}</h4>
+                <div id="solenoid-status-${index + 1}" class="text-sm mb-2">OFF</div>
+                <button id="solenoid-toggle-${index + 1}" class="bg-red-600 text-white px-3 py-1 rounded text-sm">
+                    Turn ON
+                </button>
+            `;
+            solenoidValvesContainer.appendChild(solenoidDiv);
+        });
+        
+        console.log(`Created ${solenoidNames.length} solenoid valves`);
+    }
+
     // --- INITIALIZATION ---
     setupEventListeners();
     initializeCharts();
     
     // Initialize tanks immediately (don't wait for device data)
     initializeTanks();
+    
+    // Create solenoid valves
+    createSolenoidValves();
     
     // Store socket globally for other functions
     window.socket = socket;
