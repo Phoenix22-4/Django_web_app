@@ -1,5 +1,6 @@
 # dashboard/models.py
 from django.db import models
+import json
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -129,6 +130,49 @@ class Device(models.Model):
                         'name': name
                     })
         return secondary_tanks
+
+    # ====== DASHBOARD CONFIG HELPERS (for dashboard.html JSON block) ======
+    def get_tank_config(self):
+        """
+        Return a list of tank config dicts using admin configuration.
+        Only include tanks that have BOTH a name and a reading_id.
+        Each item: { "name": <display name>, "data_key": <reading_id> }
+        """
+        tanks = []
+        for i in range(1, 5):
+            name = getattr(self, f"tank_{i}_name", None)
+            reading_id = getattr(self, f"tank_{i}_reading_id", None)
+            if name and reading_id:
+                tanks.append({
+                    "name": name,
+                    "data_key": reading_id
+                })
+        return tanks
+
+    def get_tank_config_json(self):
+        """JSON string for tanks, safe to embed in <script> tag."""
+        return json.dumps(self.get_tank_config())
+
+    def get_solenoid_config(self):
+        """
+        Return a list of solenoid config dicts using admin configuration.
+        Only include solenoids that have BOTH a name and a reading_id.
+        Each item: { "name": <display name>, "data_key": <reading_id> }
+        """
+        solenoids = []
+        for i in range(1, 5):
+            name = getattr(self, f"solenoid_{i}_name", None)
+            reading_id = getattr(self, f"solenoid_{i}_reading_id", None)
+            if name and reading_id:
+                solenoids.append({
+                    "name": name,
+                    "data_key": reading_id
+                })
+        return solenoids
+
+    def get_solenoid_config_json(self):
+        """JSON string for solenoids, safe to embed in <script> tag."""
+        return json.dumps(self.get_solenoid_config())
 
     def __str__(self):
         return self.name or self.device_id
