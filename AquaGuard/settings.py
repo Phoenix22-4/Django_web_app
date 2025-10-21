@@ -115,6 +115,7 @@ CHANNEL_LAYERS = {
 }
 
 # Session settings
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_AGE = 900
 SESSION_SAVE_EVERY_REQUEST = True
 
