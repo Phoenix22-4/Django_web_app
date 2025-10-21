@@ -17,10 +17,12 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 20px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 15px 30px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    backdrop-filter: blur(10px);
+    color: white;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
 .header-left {
@@ -30,14 +32,13 @@ body {
 
 .dashboard-title {
     font-size: 24px;
-    font-weight: bold;
-    color: white;
+    font-weight: 600;
     margin: 0;
 }
 
 .header-center {
     flex: 1;
-    display: flex; 
+    display: flex;
     justify-content: center;
 }
 
@@ -54,12 +55,66 @@ body {
 
 .status-label {
     font-weight: 500;
-    color: white;
 }
 
 .status-text {
     font-weight: 600;
+}
+
+.status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #ff4757;
+    animation: pulse 2s infinite;
+}
+
+.status-dot.online {
+    background: #2ed573;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.welcome-text {
+    font-weight: 500;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.action-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.2);
     color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+    background: rgba(255,255,255,0.3);
+    transform: translateY(-2px);
+}
+
+.action-btn.logout {
+    background: rgba(255,71,87,0.8);
 }
 
 .status-dot {
