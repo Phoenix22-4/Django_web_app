@@ -173,14 +173,18 @@ document.addEventListener('DOMContentLoaded', function() {
         window.tankConfigs = [];
         
         // Create tanks from Django admin configuration
-        if (window.tankConfig && window.tankConfig.length > 0) {
+        console.log('🔍 Checking window.tankConfig:', window.tankConfig);
+        console.log('🔍 Type of window.tankConfig:', typeof window.tankConfig);
+        
+        if (window.tankConfig && Array.isArray(window.tankConfig) && window.tankConfig.length > 0) {
             console.log('🏗️ Creating tanks from Django admin configuration...');
-            window.tankConfig.forEach(tankConfig => {
-                console.log(`📦 Creating tank: ${tankConfig.name} (${tankConfig.data_key})`);
+            window.tankConfig.forEach((tankConfig, index) => {
+                console.log(`📦 Creating tank ${index + 1}:`, tankConfig);
                 createTankFromAdminConfig(tankConfig);
             });
         } else {
             console.log('ℹ️ No tank configuration found - tanks will be created dynamically from WebSocket data');
+            console.log('🔍 Available window properties:', Object.keys(window).filter(key => key.includes('tank')));
         }
         
         console.log('✅ Tank system initialized');
@@ -380,9 +384,13 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // --- CREATE TANK FROM ADMIN CONFIG ---
     function createTankFromAdminConfig(tankConfig) {
+        console.log('🏗️ createTankFromAdminConfig called with:', tankConfig);
+        
         const readingId = tankConfig.data_key;
         const tankName = tankConfig.name;
         const capacity = tankConfig.capacity || 500;
+        
+        console.log(`📦 Creating tank: ${tankName} (${readingId}) with capacity: ${capacity}L`);
         
         // Get next available slot
         const slot = window.tankConfigs.length + 1;
@@ -399,10 +407,52 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add to global tank configs
         window.tankConfigs.push(newTankConfig);
         
+        console.log('🔍 About to call createTankDisplay with:', newTankConfig);
+        
         // Create tank display with default level 0
         createTankDisplay(newTankConfig, 0);
         
         console.log(`✅ TANK CREATED FROM ADMIN CONFIG: ${tankName} (${readingId}) - Capacity: ${capacity}L`);
+    }
+    
+    // --- CREATE TANK DISPLAY ---
+    function createTankDisplay(tankConfig, level = 0) {
+        console.log('🏗️ createTankDisplay called with:', tankConfig, 'level:', level);
+        
+        if (!elements.tanksWrapper) {
+            console.error("❌ ERROR: tanks-wrapper element not found in HTML");
+            return;
+        }
+        
+        const { id: readingId, name: tankName, slot, capacity, isSource } = tankConfig;
+        
+        // Create tank HTML element
+        const tankDiv = document.createElement('div');
+        tankDiv.className = 'flex flex-col items-center';
+        const sourceIndicator = isSource ? ' (Source)' : '';
+        
+        // Calculate current volume from level and capacity
+        const currentVolume = Math.round((level / 100) * capacity);
+        
+        tankDiv.innerHTML = `
+            <div class="text-center font-semibold mb-1" style="color: #000000;">${tankName}${sourceIndicator}</div>
+            <div id="tank-level-text-${slot}" class="text-center text-2xl font-bold mb-1" style="color: #000000;">${level}%</div>
+            <div id="tank-volume-text-${slot}" class="text-center text-sm mb-2" style="color: #666666;">${currentVolume}/${capacity}L</div>
+            <div class="tank-container">
+                <div id="water-${slot}" class="water"></div>
+            </div>
+        `;
+        
+        // Add to tanks wrapper
+        elements.tanksWrapper.appendChild(tankDiv);
+        
+        // Update tank level immediately
+        updateTankLevel(readingId, level);
+        
+        // Recreate status messages
+        createTankStatusMessages();
+        
+        console.log(`✅ TANK DISPLAY CREATED: ${tankName} (${readingId}) at ${level}%`);
     }
     
     // --- DYNAMIC TANK CREATION FROM WEBSOCKET DATA ---
@@ -479,31 +529,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add to global configuration
         window.tankConfigs.push(newTankConfig);
         
-        // Create tank HTML element
-        const tankDiv = document.createElement('div');
-        tankDiv.className = 'flex flex-col items-center';
-        const sourceIndicator = isSource ? ' (Source)' : '';
-        // Calculate current volume from level and capacity
-        const capacity = newTankConfig.capacity || 500;
-        const currentVolume = Math.round((level / 100) * capacity);
-        
-        tankDiv.innerHTML = `
-            <div class="text-center font-semibold mb-1" style="color: #000000;">${tankName}${sourceIndicator}</div>
-            <div id="tank-level-text-${slot}" class="text-center text-2xl font-bold mb-1" style="color: #000000;">${level}%</div>
-            <div id="tank-volume-text-${slot}" class="text-center text-sm mb-2" style="color: #666666;">${currentVolume}/${capacity}L</div>
-            <div class="tank-container">
-                <div id="water-${slot}" class="water"></div>
-            </div>
-        `;
-        
-        // Add to tanks wrapper
-        elements.tanksWrapper.appendChild(tankDiv);
-        
-        // Update tank level immediately
-        updateTankLevel(readingId, level);
-        
-        // Recreate status messages
-        createTankStatusMessages();
+        // Create tank display
+        createTankDisplay(newTankConfig, level);
         
         // Console confirmation for tank creation
         console.log(`✅ TANK CREATED: ${tankName} (${readingId}) at ${level}%`);
