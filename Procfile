@@ -1,1 +1,2 @@
-web: python manage.py migrate && python manage.py shell -c "import os; from django.contrib.auth import get_user_model; User = get_user_model(); username = os.environ.get('ADMIN_USER'); password = os.environ.get('ADMIN_PASSWORD'); email = os.environ.get('ADMIN_EMAIL', 'admin@example.com'); User.objects.filter(username=username).exists() or User.objects.create_superuser(username, email, password) if username and password else print('ADMIN_USER and ADMIN_PASSWORD not set, skipping superuser creation.')" && echo "DATABASE SETUP COMPLETE. REVERT PROCFILE AND REDEPLOY." && sleep infinity
+release: python manage.py migrate && python create_admin_script.py
+web: daphne -b 0.0.0.0 -p $PORT AquaGuard.asgi:application
