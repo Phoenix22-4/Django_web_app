@@ -10,6 +10,7 @@ import json
 import google.generativeai as genai
 import os
 from datetime import datetime
+from django.utils import timezone
 # Import with error handling for local development
 try:
     from .aws_iot_integration import aws_iot_manager
@@ -91,6 +92,18 @@ class CustomPasswordChangeView(PasswordChangeView):
     
     def form_valid(self, form):
         messages.success(self.request, 'Your password has been changed successfully!')
+        
+        # Send password change notification
+        try:
+            # Store password change notification in session for JavaScript to pick up
+            self.request.session['password_change_notification'] = {
+                'title': '🔐 AquaGuard Alert - Password Changed',
+                'message': f'Your system password was changed by {self.request.user.username} at {timezone.now().strftime("%Y-%m-%d %H:%M:%S")}.',
+                'timestamp': timezone.now().isoformat()
+            }
+        except Exception as e:
+            print(f"Error storing password change notification: {e}")
+        
         return super().form_valid(form)
 
 def home_view(request):
@@ -105,10 +118,18 @@ def device_list_view(request):
     user_devices = request.user.device_set.all()
     unassigned_devices = Device.objects.filter(owner__isnull=True)
     
-    return render(request, 'device_list.html', {
+    # Check for password change notification
+    password_change_notification = None
+    if 'password_change_notification' in request.session:
+        password_change_notification = request.session.pop('password_change_notification')
+    
+    context = {
         'devices': user_devices,
-        'unassigned_devices': unassigned_devices
-    })
+        'unassigned_devices': unassigned_devices,
+        'password_change_notification': password_change_notification
+    }
+    
+    return render(request, 'device_list.html', context)
 
 @login_required
 def claim_device_view(request, device_id):

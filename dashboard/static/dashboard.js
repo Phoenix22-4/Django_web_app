@@ -19,6 +19,11 @@ document.addEventListener('DOMContentLoaded', function() {
     let isTimeslotActive = false;
     let timeslotSettings = { min: 20, max: 95 };
     
+    // Connection monitoring
+    let lastMessageTime = null;
+    let connectionCheckInterval = null;
+    let connectionFailureNotified = false;
+    
     // Live Analytics Data
     let waterUsageChart = null;
     let pumpUsageChart = null;
@@ -86,6 +91,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Store data globally for reference
             window.lastData = data;
+            
+            // Update last message time for connection monitoring
+            lastMessageTime = new Date();
+            connectionFailureNotified = false;
 
             updateConnectionStatus('device', 'Online', 'online');
 
@@ -760,23 +769,21 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(`⚡ CURRENT STATUS: ${pumpCurrent.toFixed(1)}A - Color: ${pumpCurrent > 2.0 ? 'green' : 'red'}`);
         }
         
-        // Send notification for pump status changes
-        if (window.showNotification && window.lastPumpState !== undefined) {
-            if (pumpIsOn && !window.lastPumpState) {
-                // Pump turned on
-                window.showNotification(
-                    '🟢 AquaGuard Info - Pump Started',
-                    `Pump has been turned ON. Current: ${pumpCurrent.toFixed(1)}A`,
-                    '/static/images/logo.png'
-                );
-            } else if (!pumpIsOn && window.lastPumpState) {
-                // Pump turned off
-                window.showNotification(
-                    '🔴 AquaGuard Info - Pump Stopped',
-                    'Pump has been turned OFF',
-                    '/static/images/logo.png'
-                );
+        // Send enhanced pump notifications
+        if (window.lastPumpState !== undefined) {
+            let isOverload = false;
+            let isDryRun = false;
+            
+            // Check for overload (current > 6A)
+            if (pumpIsOn && pumpCurrent > 6.0) {
+                isOverload = true;
             }
+            // Check for dry run (current < 1.5A when pump is on)
+            else if (pumpIsOn && pumpCurrent < 1.5) {
+                isDryRun = true;
+            }
+            
+            sendPumpNotification(pumpIsOn, pumpCurrent, isOverload, isDryRun);
         }
         
         // Update last pump state for comparison
@@ -810,49 +817,31 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (level < 10) {
                             statusMsg.textContent = `${tank.name}: CRITICAL!`;
                             statusMsg.style.color = "red";
-                            
-                            // Send notification for critical source tank
-                            if (window.showNotification) {
-                                window.showNotification(
-                                    '🚨 AquaGuard Alert - Source Tank Critical',
-                                    `${tank.name} is critically low at ${level}%! Please refill immediately.`,
-                                    '/static/images/logo.png'
-                                );
-                            }
                         } else if (level < 25) {
                             statusMsg.textContent = `${tank.name}: Low`;
                             statusMsg.style.color = "orange";
-                            
-                            // Send notification for low source tank
-                            if (window.showNotification) {
-                                window.showNotification(
-                                    '⚠️ AquaGuard Alert - Source Tank Low',
-                                    `${tank.name} is running low at ${level}%. Consider refilling soon.`,
-                                    '/static/images/logo.png'
-                                );
-                            }
                         } else {
                             statusMsg.textContent = `${tank.name}: ${level}%`;
                             statusMsg.style.color = "";
                         }
+                        
+                        // Send enhanced notification for source tank
+                        sendTankNotification(tank.name, level, 'source', true);
                     } else {
                         // Secondary tank status
-                        if (level >= 95) {
+                        if (level < 15) {
+                            statusMsg.textContent = `${tank.name}: MINIMUM!`;
+                            statusMsg.style.color = "red";
+                        } else if (level >= 95) {
                             statusMsg.textContent = `${tank.name}: FULL`;
                             statusMsg.style.color = "blue";
-                            
-                            // Send notification for full tank
-                            if (window.showNotification) {
-                                window.showNotification(
-                                    '✅ AquaGuard Info - Tank Full',
-                                    `${tank.name} is full at ${level}%. Water level is optimal.`,
-                                    '/static/images/logo.png'
-                                );
-                            }
                         } else {
                             statusMsg.textContent = `${tank.name}: ${level}%`;
                             statusMsg.style.color = "";
                         }
+                        
+                        // Send enhanced notification for secondary tank
+                        sendTankNotification(tank.name, level, 'secondary', false);
                     }
                 }
             });
@@ -867,27 +856,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (sourceLevel < 10) {
                     safetyStatusMsg.textContent = `SOURCE TANK CRITICAL (${sourceLevel}%) - PUMP OFF`;
                     safetyStatusMsg.classList.remove('hidden');
-                    
-                    // Send notification for critical water level
-                    if (window.showNotification) {
-                        window.showNotification(
-                            '🚨 AquaGuard Alert - Critical Water Level',
-                            `Source tank is critically low at ${sourceLevel}%! Pump has been turned off for safety.`,
-                            '/static/images/logo.png'
-                        );
-                    }
                 } else if (data.pump_status && data.pump_current < 2.0) {
                     safetyStatusMsg.textContent = `DRY RUN DETECTED (${data.pump_current.toFixed(1)}A) - PUMP OFF`;
                     safetyStatusMsg.classList.remove('hidden');
-                    
-                    // Send notification for dry run detection
-                    if (window.showNotification) {
-                        window.showNotification(
-                            '⚠️ AquaGuard Alert - Dry Run Detected',
-                            `Pump is running but current is low (${data.pump_current.toFixed(1)}A). Possible dry run - pump turned off.`,
-                            '/static/images/logo.png'
-                        );
-                    }
                 } else {
                     safetyStatusMsg.classList.add('hidden');
                 }
@@ -1372,6 +1343,117 @@ document.addEventListener('DOMContentLoaded', function() {
     // Create solenoid valves
     createSolenoidValves();
     
+    // Start connection monitoring
+    startConnectionMonitoring();
+    
+    // Check for password change notification
+    checkPasswordChangeNotification();
+    
     // Store socket globally for other functions
     window.socket = socket;
+    
+    // --- CONNECTION MONITORING ---
+    function startConnectionMonitoring() {
+        console.log('🔍 Starting connection monitoring...');
+        
+        // Check connection every 5 seconds
+        connectionCheckInterval = setInterval(() => {
+            if (lastMessageTime) {
+                const timeSinceLastMessage = new Date() - lastMessageTime;
+                const secondsSinceLastMessage = timeSinceLastMessage / 1000;
+                
+                if (secondsSinceLastMessage > 10 && !connectionFailureNotified) {
+                    // Connection failure detected
+                    connectionFailureNotified = true;
+                    
+                    if (window.showNotification) {
+                        window.showNotification(
+                            '🔌 AquaGuard Alert - Connection Lost',
+                            'Device or WebSocket connection lost for more than 10 seconds. Please check your connection.',
+                            '/static/images/logo.png'
+                        );
+                    }
+                    
+                    console.log('🚨 Connection failure detected - notification sent');
+                }
+            }
+        }, 5000);
+    }
+    
+    // --- ENHANCED NOTIFICATION SYSTEM ---
+    function sendTankNotification(tankName, level, tankType, isSource = false) {
+        if (!window.showNotification) return;
+        
+        let title, message;
+        
+        if (isSource) {
+            // Source tank notifications
+            if (level < 10) {
+                title = '🚨 AquaGuard Alert - Source Tank Critical';
+                message = `${tankName} is critically low at ${level}%! Please refill immediately.`;
+            } else if (level < 25) {
+                title = '⚠️ AquaGuard Alert - Source Tank Low';
+                message = `${tankName} is running low at ${level}%. Use water sparingly.`;
+            } else if (level >= 95) {
+                title = '✅ AquaGuard Info - Source Tank Full';
+                message = `${tankName} is full at ${level}%. Water level is optimal.`;
+            }
+        } else {
+            // Secondary tank notifications
+            if (level < 15) {
+                title = '🚨 AquaGuard Alert - Tank Minimum';
+                message = `${tankName} is at minimum level (${level}%). Please refill soon.`;
+            } else if (level >= 95) {
+                title = '✅ AquaGuard Info - Tank Full';
+                message = `${tankName} is full at ${level}%. Water level is optimal.`;
+            }
+        }
+        
+        if (title && message) {
+            window.showNotification(title, message, '/static/images/logo.png');
+        }
+    }
+    
+    function sendPumpNotification(pumpStatus, current, isOverload = false, isDryRun = false) {
+        if (!window.showNotification) return;
+        
+        let title, message;
+        
+        if (isOverload) {
+            title = '⚠️ AquaGuard Alert - Pump Overload';
+            message = `Pump is overloaded! Current: ${current.toFixed(1)}A - Pump turned off for safety.`;
+        } else if (isDryRun) {
+            title = '⚠️ AquaGuard Alert - Pump Dry Run';
+            message = `Pump dry run detected! Current: ${current.toFixed(1)}A - Pump turned off for safety.`;
+        } else if (pumpStatus && current > 5.0) {
+            title = '⚠️ AquaGuard Alert - High Current';
+            message = `Pump current is high (${current.toFixed(1)}A). Monitor for potential issues.`;
+        } else if (pumpStatus) {
+            title = '🟢 AquaGuard Info - Pump Started';
+            message = `Pump is ON. Current: ${current.toFixed(1)}A`;
+        } else {
+            title = '🔴 AquaGuard Info - Pump Stopped';
+            message = 'Pump is OFF';
+        }
+        
+        window.showNotification(title, message, '/static/images/logo.png');
+    }
+    
+    // --- PASSWORD CHANGE NOTIFICATION ---
+    function checkPasswordChangeNotification() {
+        // Check if there's a password change notification in the page
+        const passwordChangeNotification = document.querySelector('[data-password-change-notification]');
+        
+        if (passwordChangeNotification) {
+            const title = passwordChangeNotification.getAttribute('data-notification-title');
+            const message = passwordChangeNotification.getAttribute('data-notification-message');
+            
+            if (title && message && window.showNotification) {
+                window.showNotification(title, message, '/static/images/logo.png');
+                
+                // Remove the notification element after showing
+                passwordChangeNotification.remove();
+            }
+        }
+    }
 });

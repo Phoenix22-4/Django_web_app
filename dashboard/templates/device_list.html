@@ -31,6 +31,15 @@
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
+    <!-- Password Change Notification (hidden, for JavaScript to pick up) -->
+    {% if password_change_notification %}
+    <div data-password-change-notification 
+         data-notification-title="{{ password_change_notification.title }}"
+         data-notification-message="{{ password_change_notification.message }}"
+         style="display: none;">
+    </div>
+    {% endif %}
+    
     <!-- Header -->
     <header class="bg-gradient-to-r from-sky-blue to-sky-blue-dark text-white shadow-lg">
         <div class="container mx-auto px-4 py-6">
