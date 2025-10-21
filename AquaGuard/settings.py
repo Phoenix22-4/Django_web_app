@@ -19,6 +19,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',  # Required for sitemaps
+    'django.contrib.sitemaps',  # Required for sitemaps
     'channels', # Django Channels
     'dashboard.apps.DashboardConfig', # Your app
 ]
@@ -156,3 +158,6 @@ if not DEBUG:
 FIREBASE_CREDENTIALS = os.environ.get('FIREBASE_SERVICE_ACCOUNT_JSON', '')
 FIREBASE_CREDENTIALS_PATH = os.path.join(BASE_DIR, 'firebase-service-account.json')
 VAPID_PUBLIC_KEY = 'BMLnBIiNgOMINbDOGA24NWnufsGSMP9GF-Z12V8dbEXA8NwBy-UFPOrF8kDpGdVjeIQsMRE-oxf-y60W1p4DEcY'
+
+# Site ID for sitemaps (required for Django sitemaps)
+SITE_ID = 1

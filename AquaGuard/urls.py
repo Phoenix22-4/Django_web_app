@@ -21,6 +21,8 @@ from django.template.loader import render_to_string
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.views import LogoutView
 from django.shortcuts import redirect
+from django.contrib.sitemaps.views import sitemap
+from .sitemaps import PublicViewSitemap
 
 def service_worker(request):
     content = render_to_string('sw.js')
@@ -43,10 +45,16 @@ class AdminLogoutView(LogoutView):
             print(f"🔒 Admin user '{request.user.username}' logged out")
         return super().dispatch(request, *args, **kwargs)
 
+# Sitemap configuration
+sitemaps = {
+    'public': PublicViewSitemap,
+}
+
 urlpatterns = [
     path('sw.js', service_worker, name='service_worker'),
     path('firebase-messaging-sw.js', firebase_service_worker, name='firebase_service_worker'),
     path('admin/logout/', AdminLogoutView.as_view(), name='admin_logout'),
     path('admin/', admin.site.urls),
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
     path('', include('dashboard.urls')),
 ]

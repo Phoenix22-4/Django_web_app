@@ -105,12 +105,19 @@
                     </button>
                 </div>
             </div>
+            
+            <!-- Additional Status Messages Container for compatibility -->
+            <div id="statusMessagesContainer" class="bg-gray-700 p-4 rounded-lg text-center hidden">
+                <h3 class="text-lg font-semibold mb-3 underline">Additional Status</h3>
+                <div class="text-sm text-gray-300">Additional status information will appear here</div>
+            </div>
         </div>
         
         <!-- Right Column for Tanks -->
         <div class="md:col-span-2 bg-gray-800 p-4 rounded-lg shadow-lg flex flex-col items-center justify-center">
             <h2 class="text-2xl font-semibold mb-6">Live Tank Status</h2>
             <div id="tanks-wrapper" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-6 mb-8"></div>
+            <div id="tanksContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-6 mb-8 hidden"></div>
             <div class="flex flex-col items-center space-y-4">
                 <h3 class="text-xl">Main Pump (Fills Secondary Tanks)</h3>
                 <svg id="pump-svg" class="pump-svg" width="100" height="100" viewBox="0 0 100 100">
@@ -119,9 +126,17 @@
                 </svg>
                 <div id="pump-status-text" class="text-lg font-medium">...</div>
                 <div id="pump-current-text" class="text-sm text-gray-400 mb-2">Current: 0.0A</div>
-                <button id="pump-toggle-btn" class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg w-32 transition-colors">
-                    Turn ON
-                </button>
+                <div class="pump-controls">
+                    <button id="pumpOnBtn" class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg w-32 transition-colors mr-2">
+                        Turn ON
+                    </button>
+                    <button id="pumpOffBtn" class="bg-red-600 text-white font-bold py-2 px-4 rounded-lg w-32 transition-colors">
+                        Turn OFF
+                    </button>
+                    <button id="pump-toggle-btn" class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg w-32 transition-colors hidden">
+                        Toggle
+                    </button>
+                </div>
             </div>
             
             <!-- Solenoid Valves Section -->
