@@ -1,41 +1,67 @@
+#!/usr/bin/env python
 import os
-from django.core.management.base import BaseCommand, CommandError
-from django.contrib.auth import get_user_model
+import sys
+import django
 
-User = get_user_model()
+print("=== ADMIN USER CREATION SCRIPT (Procfile Web) ===")
+print("Starting admin user creation...")
 
-class Command(BaseCommand):
-    help = 'Creates or updates an admin superuser from environment variables (ADMIN_USER, ADMIN_PASSWORD)'
+try:
+    # Setup Django
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'AquaGuard.settings')
+    django.setup()
+    print("Django setup completed successfully")
 
-    def handle(self, *args, **options):
-        # Use your specific variable names
-        username = os.environ.get('ADMIN_USER')
-        password = os.environ.get('ADMIN_PASSWORD')
-        
-        # We also need an email, let's look for ADMIN_EMAIL
-        # If it's not set, we'll create a default one.
-        email = os.environ.get('ADMIN_EMAIL')
-        if not email:
-            if username:
-                email = f"{username}@example.com" # Create a default email
-                self.stdout.write(self.style.WARNING(f'ADMIN_EMAIL not set, defaulting to {email}'))
-            else:
-                email = "admin@example.com" # Fallback
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    print("User model imported successfully")
 
-        if not all([username, password]):
-            raise CommandError('Missing one or both environment variables: ADMIN_USER, ADMIN_PASSWORD')
+    # --- IMPORTANT: Hardcoded Credentials ---
+    # This is generally NOT recommended for security.
+    # Prefer environment variables if possible.
+    username = 'Admin'
+    password = 'Admin123!' # Your desired password
+    email = 'admin@example.com' # Your desired email
+    # ----------------------------------------
 
-        try:
-            # Check if user already exists
-            user = User.objects.get(username=username)
-            user.set_password(password)
-            user.email = email
-            user.is_staff = True
-            user.is_superuser = True
-            user.save()
-            self.stdout.write(self.style.SUCCESS(f'Successfully updated password for admin user "{username}"'))
-        
-        except User.DoesNotExist:
-            # Create a new user
-            User.objects.create_superuser(username=username, email=email, password=password)
-            self.stdout.write(self.style.SUCCESS(f'Successfully created new admin user "{username}"'))
+    print(f"Attempting to create/update admin user: {username}")
+    print(f"Email: {email}")
+    print(f"Password being set: {password}") # Explicitly print password
+
+    # Using get_or_create to handle both creation and updates gracefully
+    user, created = User.objects.get_or_create(
+        username=username,
+        defaults={'email': email, 'is_staff': True, 'is_superuser': True}
+    )
+
+    # Always set/update the password, staff/superuser status, and email
+    user.set_password(password)
+    user.email = email
+    user.is_staff = True
+    user.is_superuser = True
+    user.save()
+
+    print("-" * 30) # Separator for clarity in logs
+    if created:
+        print(f'✅ SUCCESS: Created NEW admin user "{username}"')
+    else:
+        print(f'✅ SUCCESS: Updated EXISTING admin user "{username}"')
+
+    # Confirm the details again, including the password
+    print(f'   Username: {user.username}')
+    print(f'   Password Set To: {password}') # Print password again
+    print(f'   Email: {user.email}')
+    print("-" * 30) # Separator
+
+    print("=== ADMIN USER CREATION COMPLETED SUCCESSFULLY ===")
+    # Allow the Procfile command to continue to Daphne
+    sys.exit(0)
+
+
+except Exception as e:
+    print("-" * 30)
+    print(f"❌ ERROR: Failed to create/update admin user: {str(e)}")
+    print("-" * 30)
+    print("=== ADMIN USER CREATION FAILED ===")
+    # Stop the Procfile command from continuing to Daphne
+    sys.exit(1)
