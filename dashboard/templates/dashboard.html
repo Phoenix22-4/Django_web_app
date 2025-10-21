@@ -116,6 +116,23 @@
                 <h3 class="text-lg font-semibold mb-3 underline">Additional Status</h3>
                 <div class="text-sm text-gray-300">Additional status information will appear here</div>
             </div>
+
+            <!-- Live Analytics Section -->
+            <div class="bg-gray-100 p-4 rounded-lg mt-4">
+                <h3 class="text-lg font-semibold mb-3 text-center text-gray-800">Live Analytics (24h)</h3>
+                
+                <!-- Water Usage Chart -->
+                <div class="mb-4">
+                    <h4 class="text-sm font-medium mb-2 text-gray-700">Water Usage (Liters)</h4>
+                    <canvas id="water-usage-chart" width="300" height="150"></canvas>
+                </div>
+                
+                <!-- Pump Usage Chart -->
+                <div>
+                    <h4 class="text-sm font-medium mb-2 text-gray-700">Pump Usage (Hours)</h4>
+                    <canvas id="pump-usage-chart" width="300" height="150"></canvas>
+                </div>
+            </div>
         </div>
         
         <!-- Right Column for Tanks -->
