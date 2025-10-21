@@ -2,6 +2,7 @@
 from pathlib import Path
 import os
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -85,11 +86,9 @@ else:
             }
         }
     }
+    # Verify database configuration
     if not DATABASES['default'].get('ENGINE'):
-         raise ImproperlyConfigured("Database settings are not configured. DATABASE_URL env var is missing and fallback failed.")
-
-if 'default' in DATABASES and not DATABASES['default'].get('ENGINE'):
-     raise ImproperlyConfigured("Database ENGINE is missing after parsing DATABASE_URL.")
+        raise ImproperlyConfigured("Database settings are not configured. DATABASE_URL env var is missing and fallback failed.")
 
 
 # Password validation
