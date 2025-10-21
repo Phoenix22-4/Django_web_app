@@ -57,7 +57,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const socket = new WebSocket(socketURL);
 
     socket.onopen = function(e) {
-        console.log("WebSocket connection established");
+        console.log("✅ WebSocket connection established successfully");
+        console.log("🔗 WebSocket URL:", socketURL);
         updateConnectionStatus('websocket', 'Online', 'online');
         updateConnectionStatus('device', 'Connecting...', 'connecting');
         
@@ -99,14 +100,17 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     socket.onclose = function(e) {
-        console.log("WebSocket connection closed");
+        console.log("❌ WebSocket connection closed");
+        console.log("🔍 Close code:", e.code, "Reason:", e.reason);
         updateConnectionStatus('websocket', 'Offline', 'offline');
         updateConnectionStatus('device', 'Disconnected', 'offline');
     };
 
     socket.onerror = function(error) {
-        console.error("WebSocket error:", error);
+        console.error("❌ WebSocket error:", error);
+        console.error("🔍 WebSocket URL:", socketURL);
         updateConnectionStatus('websocket', 'Error', 'error');
+        updateConnectionStatus('device', 'Connection Error', 'error');
     };
 
     // --- DEVICE DATA LOADING ---
@@ -221,7 +225,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const slot = window.tankConfigs.length + 1;
         
         // Create tank configuration
-        const tankConfig = {
+        const newTankConfig = {
             name: tankName,
             id: readingId,
             slot: slot,
@@ -229,14 +233,14 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         
         // Add to global configuration
-        window.tankConfigs.push(tankConfig);
+        window.tankConfigs.push(newTankConfig);
         
         // Create tank HTML element
         const tankDiv = document.createElement('div');
         tankDiv.className = 'flex flex-col items-center';
         const sourceIndicator = isSource ? ' (Source)' : '';
         // Calculate current volume from level and capacity
-        const capacity = tankConfig.capacity || 500;
+        const capacity = newTankConfig.capacity || 500;
         const currentVolume = Math.round((level / 100) * capacity);
         
         tankDiv.innerHTML = `
@@ -259,7 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Console confirmation for tank creation
         console.log(`✅ TANK CREATED: ${tankName} (${readingId}) at ${level}%`);
-        console.log(`📊 Tank Details:`, tankConfig);
+        console.log(`📊 Tank Details:`, newTankConfig);
     }
     
     // --- UPDATE INDIVIDUAL TANK LEVEL ---
