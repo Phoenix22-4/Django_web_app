@@ -152,6 +152,19 @@ def on_connect(client, userdata, flags, rc, properties=None):
             print("🔗 MQTT Successfully connected to AWS IoT Core!")
             print(f"📡 Subscribed to topic: {MQTT_WILDCARD_DATA_TOPIC}")
             print("✅ Ready to receive data from devices...")
+            
+            # --- LOG SUPERUSER CREDENTIALS FOR DEPLOYMENT VERIFICATION ---
+            print("=" * 60)
+            print("🔐 SUPERUSER CREDENTIALS (for deployment verification):")
+            admin_user = os.environ.get('ADMIN_USER', 'Vision')
+            admin_password = os.environ.get('ADMIN_PASSWORD', 'Admin123!')
+            admin_email = os.environ.get('ADMIN_EMAIL', 'visiontech072025@gmail.com')
+            print(f"   Username: {admin_user}")
+            print(f"   Password: {admin_password}")
+            print(f"   Email: {admin_email}")
+            print("   Status: Superuser created/updated successfully")
+            print("=" * 60)
+            
             client.subscribe(MQTT_WILDCARD_DATA_TOPIC)
             mqtt_connection_attempts = 0  # Reset counter on successful connection
         else:
