@@ -30,6 +30,8 @@ document.addEventListener('DOMContentLoaded', function() {
         pumpSvg: document.getElementById('pump-svg'),
         pumpStatusText: document.getElementById('pump-status-text'),
         pumpToggleButton: document.getElementById('pump-toggle-btn'),
+        pumpOnBtn: document.getElementById('pumpOnBtn'),
+        pumpOffBtn: document.getElementById('pumpOffBtn'),
         modeAutoBtn: document.getElementById('mode-auto'),
         modeTimeslotBtn: document.getElementById('mode-timeslot'),
         modeStatusMsg: document.querySelector('#mode-status-message span'),
@@ -158,7 +160,45 @@ document.addEventListener('DOMContentLoaded', function() {
         // Initialize empty tank configuration
         window.tankConfigs = [];
         
-        console.log('✅ Tank system initialized - tanks will be created dynamically from WebSocket data');
+        // Create tanks from Django admin configuration
+        if (window.tankConfig && window.tankConfig.length > 0) {
+            console.log('🏗️ Creating tanks from Django admin configuration...');
+            window.tankConfig.forEach(tankConfig => {
+                console.log(`📦 Creating tank: ${tankConfig.name} (${tankConfig.data_key})`);
+                createTankFromAdminConfig(tankConfig);
+            });
+        } else {
+            console.log('ℹ️ No tank configuration found - tanks will be created dynamically from WebSocket data');
+        }
+        
+        console.log('✅ Tank system initialized');
+    }
+    
+    // --- CREATE TANK FROM ADMIN CONFIG ---
+    function createTankFromAdminConfig(tankConfig) {
+        const readingId = tankConfig.data_key;
+        const tankName = tankConfig.name;
+        const capacity = tankConfig.capacity || 500;
+        
+        // Get next available slot
+        const slot = window.tankConfigs.length + 1;
+        
+        // Create tank configuration
+        const newTankConfig = {
+            id: readingId,
+            name: tankName,
+            slot: slot,
+            capacity: capacity,
+            isSource: false
+        };
+        
+        // Add to global tank configs
+        window.tankConfigs.push(newTankConfig);
+        
+        // Create tank display with default level 0
+        createTankDisplay(newTankConfig, 0);
+        
+        console.log(`✅ TANK CREATED FROM ADMIN CONFIG: ${tankName} (${readingId}) - Capacity: ${capacity}L`);
     }
     
     // --- DYNAMIC TANK CREATION FROM WEBSOCKET DATA ---
@@ -872,6 +912,14 @@ document.addEventListener('DOMContentLoaded', function() {
             elements.pumpToggleButton.addEventListener('click', handleManualPumpToggle);
         }
         
+        // Pump control buttons
+        if (elements.pumpOnBtn) {
+            elements.pumpOnBtn.addEventListener('click', () => controlPump(true));
+        }
+        if (elements.pumpOffBtn) {
+            elements.pumpOffBtn.addEventListener('click', () => controlPump(false));
+        }
+        
         // Timeslot controls
         if (elements.timeslotActivateBtn) {
             elements.timeslotActivateBtn.addEventListener('click', handleTimeslotActivate);
@@ -919,6 +967,35 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         console.log(`Pump command sent: ${newPumpStatus ? 'ON' : 'OFF'}`);
+    }
+
+    function controlPump(turnOn) {
+        console.log(`🎛️ PUMP CONTROL: ${turnOn ? 'TURNING ON' : 'TURNING OFF'}`);
+        
+        // Check if source tank is available and has sufficient water (only for turning on)
+        if (turnOn && window.lastData && window.tankConfigs) {
+            const sourceTank = window.tankConfigs.find(tank => tank.isSource);
+            if (sourceTank) {
+                const sourceLevel = window.lastData[sourceTank.id] || 0;
+                if (sourceLevel < 10) {
+                    console.log('❌ Cannot turn on pump: Source tank level too low');
+                    alert('Cannot turn on pump: Source tank level too low (less than 10%)');
+                    return;
+                }
+            }
+        }
+        
+        // Send command via WebSocket to AWS IoT Core
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            const command = turnOn ? 'PUMP_ON' : 'PUMP_OFF';
+            socket.send(JSON.stringify({command: command}));
+            console.log(`📡 ${command} command sent via WebSocket`);
+        } else {
+            console.error('❌ WebSocket not connected, cannot send command');
+            alert('Cannot send command: WebSocket not connected');
+        }
+        
+        console.log(`✅ Pump ${turnOn ? 'ON' : 'OFF'} command sent`);
     }
 
     function handleTimeslotActivate() {
