@@ -1,2 +1,2 @@
-release: python manage.py makemigrations && python manage.py migrate && python create_admin_script.py
+release: python manage.py makemigrations && python manage.py migrate && python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username='Admin').exists() or User.objects.create_superuser('Admin', 'admin@example.com', 'Admin123!'); print('Admin user created: Username=Admin, Password=Admin123!')"
 web: daphne -b 0.0.0.0 -p $PORT AquaGuard.asgi:application
