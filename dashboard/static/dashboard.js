@@ -760,6 +760,28 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(`⚡ CURRENT STATUS: ${pumpCurrent.toFixed(1)}A - Color: ${pumpCurrent > 2.0 ? 'green' : 'red'}`);
         }
         
+        // Send notification for pump status changes
+        if (window.showNotification && window.lastPumpState !== undefined) {
+            if (pumpIsOn && !window.lastPumpState) {
+                // Pump turned on
+                window.showNotification(
+                    '🟢 AquaGuard Info - Pump Started',
+                    `Pump has been turned ON. Current: ${pumpCurrent.toFixed(1)}A`,
+                    '/static/images/logo.png'
+                );
+            } else if (!pumpIsOn && window.lastPumpState) {
+                // Pump turned off
+                window.showNotification(
+                    '🔴 AquaGuard Info - Pump Stopped',
+                    'Pump has been turned OFF',
+                    '/static/images/logo.png'
+                );
+            }
+        }
+        
+        // Update last pump state for comparison
+        window.lastPumpState = pumpIsOn;
+        
         console.log("✅ SYSTEM STATUS: All status messages updated with real-time data");
         
         console.log(`Pump status: ${pumpIsOn ? 'ON' : 'OFF'}, Current: ${pumpCurrent}A`);
@@ -788,9 +810,27 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (level < 10) {
                             statusMsg.textContent = `${tank.name}: CRITICAL!`;
                             statusMsg.style.color = "red";
+                            
+                            // Send notification for critical source tank
+                            if (window.showNotification) {
+                                window.showNotification(
+                                    '🚨 AquaGuard Alert - Source Tank Critical',
+                                    `${tank.name} is critically low at ${level}%! Please refill immediately.`,
+                                    '/static/images/logo.png'
+                                );
+                            }
                         } else if (level < 25) {
                             statusMsg.textContent = `${tank.name}: Low`;
                             statusMsg.style.color = "orange";
+                            
+                            // Send notification for low source tank
+                            if (window.showNotification) {
+                                window.showNotification(
+                                    '⚠️ AquaGuard Alert - Source Tank Low',
+                                    `${tank.name} is running low at ${level}%. Consider refilling soon.`,
+                                    '/static/images/logo.png'
+                                );
+                            }
                         } else {
                             statusMsg.textContent = `${tank.name}: ${level}%`;
                             statusMsg.style.color = "";
@@ -800,6 +840,15 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (level >= 95) {
                             statusMsg.textContent = `${tank.name}: FULL`;
                             statusMsg.style.color = "blue";
+                            
+                            // Send notification for full tank
+                            if (window.showNotification) {
+                                window.showNotification(
+                                    '✅ AquaGuard Info - Tank Full',
+                                    `${tank.name} is full at ${level}%. Water level is optimal.`,
+                                    '/static/images/logo.png'
+                                );
+                            }
                         } else {
                             statusMsg.textContent = `${tank.name}: ${level}%`;
                             statusMsg.style.color = "";
@@ -818,9 +867,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (sourceLevel < 10) {
                     safetyStatusMsg.textContent = `SOURCE TANK CRITICAL (${sourceLevel}%) - PUMP OFF`;
                     safetyStatusMsg.classList.remove('hidden');
+                    
+                    // Send notification for critical water level
+                    if (window.showNotification) {
+                        window.showNotification(
+                            '🚨 AquaGuard Alert - Critical Water Level',
+                            `Source tank is critically low at ${sourceLevel}%! Pump has been turned off for safety.`,
+                            '/static/images/logo.png'
+                        );
+                    }
                 } else if (data.pump_status && data.pump_current < 2.0) {
                     safetyStatusMsg.textContent = `DRY RUN DETECTED (${data.pump_current.toFixed(1)}A) - PUMP OFF`;
                     safetyStatusMsg.classList.remove('hidden');
+                    
+                    // Send notification for dry run detection
+                    if (window.showNotification) {
+                        window.showNotification(
+                            '⚠️ AquaGuard Alert - Dry Run Detected',
+                            `Pump is running but current is low (${data.pump_current.toFixed(1)}A). Possible dry run - pump turned off.`,
+                            '/static/images/logo.png'
+                        );
+                    }
                 } else {
                     safetyStatusMsg.classList.add('hidden');
                 }
