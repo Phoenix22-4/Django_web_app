@@ -49,6 +49,12 @@ class Device(models.Model):
     tank_4_reading_id = models.CharField(max_length=100, blank=True, null=True, help_text="Reading ID for Tank 4 (auto-detected from IoT data)")
     tank_4_name = models.CharField(max_length=100, blank=True, null=True, help_text="Name for Tank 4 (enter only if reading_id exists)")
     tank_4_is_source = models.BooleanField(default=False, help_text="Check if Tank 4 is the source tank (water supply)")
+    tank_4_capacity_liters = models.PositiveIntegerField(default=500, blank=True, null=True, help_text="Capacity of Tank 4 in liters")
+
+    # --- TANK CAPACITY FIELDS ---
+    tank_1_capacity_liters = models.PositiveIntegerField(default=500, blank=True, null=True, help_text="Capacity of Tank 1 in liters")
+    tank_2_capacity_liters = models.PositiveIntegerField(default=500, blank=True, null=True, help_text="Capacity of Tank 2 in liters")
+    tank_3_capacity_liters = models.PositiveIntegerField(default=500, blank=True, null=True, help_text="Capacity of Tank 3 in liters")
 
     # --- SOLENOID VALVE CONFIGURATION FIELDS (Auto-populated from IoT data) ---
     solenoid_1_reading_id = models.CharField(max_length=100, blank=True, null=True, help_text="Reading ID for Solenoid Valve 1 (auto-detected from IoT data)")
@@ -136,16 +142,18 @@ class Device(models.Model):
         """
         Return a list of tank config dicts using admin configuration.
         Only include tanks that have BOTH a name and a reading_id.
-        Each item: { "name": <display name>, "data_key": <reading_id> }
+        Each item: { "name": <display name>, "data_key": <reading_id>, "capacity": <capacity_liters> }
         """
         tanks = []
         for i in range(1, 5):
             name = getattr(self, f"tank_{i}_name", None)
             reading_id = getattr(self, f"tank_{i}_reading_id", None)
+            capacity = getattr(self, f"tank_{i}_capacity_liters", 500) or 500
             if name and reading_id:
                 tanks.append({
                     "name": name,
-                    "data_key": reading_id
+                    "data_key": reading_id,
+                    "capacity": capacity
                 })
         return tanks
 

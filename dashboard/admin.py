@@ -27,12 +27,12 @@ class DeviceAdmin(admin.ModelAdmin):
         }),
         ('Tank Configuration (Auto-detected from IoT data)', {
             'fields': (
-                ('tank_1_reading_id', 'tank_1_name', 'tank_1_is_source'),
-                ('tank_2_reading_id', 'tank_2_name', 'tank_2_is_source'),
-                ('tank_3_reading_id', 'tank_3_name', 'tank_3_is_source'),
-                ('tank_4_reading_id', 'tank_4_name', 'tank_4_is_source'),
+                ('tank_1_reading_id', 'tank_1_name', 'tank_1_is_source', 'tank_1_capacity_liters'),
+                ('tank_2_reading_id', 'tank_2_name', 'tank_2_is_source', 'tank_2_capacity_liters'),
+                ('tank_3_reading_id', 'tank_3_name', 'tank_3_is_source', 'tank_3_capacity_liters'),
+                ('tank_4_reading_id', 'tank_4_name', 'tank_4_is_source', 'tank_4_capacity_liters'),
             ),
-            'description': 'Reading IDs are auto-detected from IoT data. Enter tank names only for tanks with reading IDs. Check "Is Source" for the water supply tank.'
+            'description': 'Reading IDs are auto-detected from IoT data. Enter tank names only for tanks with reading IDs. Check "Is Source" for the water supply tank. Set capacity in liters for each tank.'
         }),
         ('Solenoid Valve Configuration (Auto-detected from IoT data)', {
             'fields': (
