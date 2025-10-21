@@ -30,14 +30,9 @@ class AquaSavvyChat {
             </div>
             <div class="chat-messages" id="chat-messages">
                 <div class="welcome-message">
-                    <p>Hi! I'm your AquaSavvy AI assistant. I can help you with:</p>
-                    <ul>
-                        <li>Water system monitoring and control</li>
-                        <li>Device troubleshooting</li>
-                        <li>Automation setup</li>
-                        <li>System maintenance tips</li>
-                    </ul>
-                    <p>How can I help you today?</p>
+                    <p><strong>AquaSavvy AI Assistant</strong></p>
+                    <p>I help with water system monitoring, pump control, and troubleshooting.</p>
+                    <p>Ask me anything about your system!</p>
                 </div>
             </div>
             <div class="chat-input-area">
@@ -112,29 +107,107 @@ class AquaSavvyChat {
         this.showTypingIndicator();
 
         try {
-            // Send to backend
-            const response = await fetch('/api/ai_chat/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                },
-                body: JSON.stringify({ message: message })
-            });
+            // Try streaming first
+            await this.sendStreamingMessage(message);
+        } catch (streamError) {
+            // Fallback to regular request
+            console.log('Streaming failed, falling back to regular request:', streamError);
+            await this.sendRegularMessage(message);
+        }
+    }
 
-            const data = await response.json();
-            
-            // Remove typing indicator
-            this.hideTypingIndicator();
-            
-            if (data.reply) {
-                this.addMessage('assistant', data.reply);
-            } else {
-                this.addMessage('error', 'Sorry, I encountered an error. Please try again.');
+    async sendStreamingMessage(message) {
+        const response = await fetch('/api/ai_chat/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({ 
+                message: message, 
+                stream: true 
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Streaming request failed');
+        }
+
+        // Remove typing indicator
+        this.hideTypingIndicator();
+
+        // Create assistant message container
+        const messagesContainer = document.getElementById('chat-messages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message assistant streaming';
+        messageDiv.innerHTML = '<p></p>';
+        messagesContainer.appendChild(messageDiv);
+        
+        const messageText = messageDiv.querySelector('p');
+        let fullResponse = '';
+
+        // Read streaming response
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+
+        try {
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const data = line.slice(6);
+                        if (data === '[DONE]') {
+                            messageDiv.classList.remove('streaming');
+                            return;
+                        }
+
+                        try {
+                            const parsed = JSON.parse(data);
+                            if (parsed.chunk) {
+                                fullResponse += parsed.chunk;
+                                messageText.textContent = fullResponse;
+                                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                            } else if (parsed.reply) {
+                                messageText.textContent = parsed.reply;
+                                messageDiv.classList.remove('streaming');
+                                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                                return;
+                            }
+                        } catch (e) {
+                            // Ignore parsing errors for incomplete chunks
+                        }
+                    }
+                }
             }
-        } catch (error) {
-            this.hideTypingIndicator();
-            this.addMessage('error', 'Connection error. Please check your internet connection.');
+        } finally {
+            reader.releaseLock();
+        }
+    }
+
+    async sendRegularMessage(message) {
+        const response = await fetch('/api/ai_chat/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({ message: message })
+        });
+
+        const data = await response.json();
+        
+        // Remove typing indicator
+        this.hideTypingIndicator();
+        
+        if (data.reply) {
+            this.addMessage('assistant', data.reply);
+        } else {
+            this.addMessage('error', 'Sorry, I encountered an error. Please try again.');
         }
     }
 
