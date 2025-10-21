@@ -10,9 +10,20 @@ import json
 import google.generativeai as genai
 import os
 from datetime import datetime
-from .aws_iot_integration import aws_iot_manager
+# Import with error handling for local development
+try:
+    from .aws_iot_integration import aws_iot_manager
+except ImportError:
+    print("WARNING: AWS IoT integration not available")
+    aws_iot_manager = None
+
 from .models import Device, WaterReading, AutomationRule
-from .push_notifications import push_notification_service
+
+try:
+    from .push_notifications import push_notification_service
+except ImportError:
+    print("WARNING: Push notifications not available")
+    push_notification_service = None
 
 # Configure Gemini AI
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
