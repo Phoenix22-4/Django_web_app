@@ -40,7 +40,10 @@
         <div class="header-actions">
             <a href="{% url 'device_list' %}" class="action-btn" title="Back to Devices"><i class="fas fa-arrow-left"></i></a>
             <a href="{% static 'docs/index.html' %}" class="action-btn" title="Docs"><i class="fas fa-book"></i></a>
-            <a href="{% url 'logout' %}" class="action-btn logout" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
+            <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="action-btn logout" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
+            </form>
         </div>
     </div>
 </div>
@@ -150,125 +153,6 @@
     </div>
 </div>
 
-<!-- Expandable Automation Timeslots -->
-<div class="automation-timeslots">
-    <div class="timeslot" data-slot="1">
-        <div class="timeslot-header">
-            <span class="timeslot-name">Timeslot 1</span>
-            <button class="timeslot-toggle" data-slot="1">+</button>
-        </div>
-        <div class="timeslot-form hidden" data-slot="1">
-            <div class="form-group">
-                <label>Rule Name:</label>
-                <input type="text" placeholder="e.g., Night Refill" class="rule-name">
-            </div>
-            <div class="form-group">
-                <label>Start Time:</label>
-                <input type="time" class="start-time">
-            </div>
-            <div class="form-group">
-                <label>End Time:</label>
-                <input type="time" class="end-time">
-            </div>
-            <div class="form-group">
-                <label>Tank to Monitor:</label>
-                <select class="tank-select">
-                    <option>Select Tank</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Turn ON Below (%):</label>
-                <input type="number" placeholder="20" class="min-level">
-            </div>
-            <div class="form-group">
-                <label>Turn OFF Above (%):</label>
-                <input type="number" placeholder="80" class="max-level">
-            </div>
-            <div class="form-actions">
-                <button class="save-btn">Save</button>
-                <button class="cancel-btn">Cancel</button>
-            </div>
-        </div>
-    </div>
-    
-    <div class="timeslot" data-slot="2">
-        <div class="timeslot-header">
-            <span class="timeslot-name">Timeslot 2</span>
-            <button class="timeslot-toggle" data-slot="2">+</button>
-        </div>
-        <div class="timeslot-form hidden" data-slot="2">
-            <div class="form-group">
-                <label>Rule Name:</label>
-                <input type="text" placeholder="e.g., Morning Fill" class="rule-name">
-            </div>
-            <div class="form-group">
-                <label>Start Time:</label>
-                <input type="time" class="start-time">
-            </div>
-            <div class="form-group">
-                <label>End Time:</label>
-                <input type="time" class="end-time">
-            </div>
-            <div class="form-group">
-                <label>Tank to Monitor:</label>
-                <select class="tank-select">
-                    <option>Select Tank</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Turn ON Below (%):</label>
-                <input type="number" placeholder="20" class="min-level">
-            </div>
-            <div class="form-group">
-                <label>Turn OFF Above (%):</label>
-                <input type="number" placeholder="80" class="max-level">
-            </div>
-            <div class="form-actions">
-                <button class="save-btn">Save</button>
-                <button class="cancel-btn">Cancel</button>
-            </div>
-        </div>
-    </div>
-    
-    <div class="timeslot" data-slot="3">
-        <div class="timeslot-header">
-            <span class="timeslot-name">Timeslot 3</span>
-            <button class="timeslot-toggle" data-slot="3">+</button>
-        </div>
-        <div class="timeslot-form hidden" data-slot="3">
-            <div class="form-group">
-                <label>Rule Name:</label>
-                <input type="text" placeholder="e.g., Evening Refill" class="rule-name">
-            </div>
-            <div class="form-group">
-                <label>Start Time:</label>
-                <input type="time" class="start-time">
-            </div>
-            <div class="form-group">
-                <label>End Time:</label>
-                <input type="time" class="end-time">
-            </div>
-            <div class="form-group">
-                <label>Tank to Monitor:</label>
-                <select class="tank-select">
-                    <option>Select Tank</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Turn ON Below (%):</label>
-                <input type="number" placeholder="20" class="min-level">
-            </div>
-            <div class="form-group">
-                <label>Turn OFF Above (%):</label>
-                <input type="number" placeholder="80" class="max-level">
-            </div>
-            <div class="form-actions">
-                <button class="save-btn">Save</button>
-                <button class="cancel-btn">Cancel</button>
-            </div>
-        </div>
-    </div>
-</div>
 
 <footer class="site-footer">
     <p>AquaSavvy Solutions | email: contact:vision072025@gmail.com | WhatsApp: +254 702 715070</p>

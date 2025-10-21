@@ -48,9 +48,12 @@
                         <a href="{% url 'public_home' %}" class="bg-white/20 hover:bg-white/30 p-2 rounded-lg transition-colors" title="Documentation">
                             <i class="fas fa-book"></i>
                         </a>
-                        <a href="{% url 'logout' %}" class="bg-red-500/80 hover:bg-red-500 p-2 rounded-lg transition-colors" title="Logout">
-                            <i class="fas fa-sign-out-alt"></i>
-                        </a>
+                        <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="bg-red-500/80 hover:bg-red-500 p-2 rounded-lg transition-colors" title="Logout">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
