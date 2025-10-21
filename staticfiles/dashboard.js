@@ -18,6 +18,14 @@ document.addEventListener('DOMContentLoaded', function() {
     let manualOverride = false;
     let isTimeslotActive = false;
     let timeslotSettings = { min: 20, max: 95 };
+    
+    // Live Analytics Data
+    let waterUsageChart = null;
+    let pumpUsageChart = null;
+    let dailyWaterUsage = 0;
+    let dailyPumpHours = 0;
+    let lastPumpState = false;
+    let pumpStartTime = null;
     let simulatedCurrent = 0.0;
     let solenoidStates = {};
 
@@ -30,6 +38,8 @@ document.addEventListener('DOMContentLoaded', function() {
         pumpSvg: document.getElementById('pump-svg'),
         pumpStatusText: document.getElementById('pump-status-text'),
         pumpToggleButton: document.getElementById('pump-toggle-btn'),
+        pumpOnBtn: document.getElementById('pumpOnBtn'),
+        pumpOffBtn: document.getElementById('pumpOffBtn'),
         modeAutoBtn: document.getElementById('mode-auto'),
         modeTimeslotBtn: document.getElementById('mode-timeslot'),
         modeStatusMsg: document.querySelector('#mode-status-message span'),
@@ -90,6 +100,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update status messages
             console.log("🔄 Calling updateStatusMessagesLive with data:", data);
             updateStatusMessagesLive(data);
+            
+            // Update live analytics
+            console.log("🔄 Calling updateLiveAnalytics with data:", data);
+            updateLiveAnalytics(data);
 
             console.log("✅ All real-time updates completed successfully");
 
@@ -158,7 +172,237 @@ document.addEventListener('DOMContentLoaded', function() {
         // Initialize empty tank configuration
         window.tankConfigs = [];
         
-        console.log('✅ Tank system initialized - tanks will be created dynamically from WebSocket data');
+        // Create tanks from Django admin configuration
+        if (window.tankConfig && window.tankConfig.length > 0) {
+            console.log('🏗️ Creating tanks from Django admin configuration...');
+            window.tankConfig.forEach(tankConfig => {
+                console.log(`📦 Creating tank: ${tankConfig.name} (${tankConfig.data_key})`);
+                createTankFromAdminConfig(tankConfig);
+            });
+        } else {
+            console.log('ℹ️ No tank configuration found - tanks will be created dynamically from WebSocket data');
+        }
+        
+        console.log('✅ Tank system initialized');
+        
+        // Initialize live analytics charts
+        initializeLiveAnalytics();
+    }
+    
+    // --- LIVE ANALYTICS INITIALIZATION ---
+    function initializeLiveAnalytics() {
+        console.log('📊 Initializing live analytics charts...');
+        
+        // Initialize water usage chart
+        const waterCtx = document.getElementById('water-usage-chart');
+        if (waterCtx) {
+            waterUsageChart = new Chart(waterCtx, {
+                type: 'line',
+                data: {
+                    labels: generate24HourLabels(),
+                    datasets: [{
+                        label: 'Water Usage (L)',
+                        data: new Array(24).fill(0),
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Hours'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Liters'
+                            },
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Initialize pump usage chart
+        const pumpCtx = document.getElementById('pump-usage-chart');
+        if (pumpCtx) {
+            pumpUsageChart = new Chart(pumpCtx, {
+                type: 'line',
+                data: {
+                    labels: generate24HourLabels(),
+                    datasets: [{
+                        label: 'Pump Usage (H)',
+                        data: new Array(24).fill(0),
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Hours'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Hours'
+                            },
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+        
+        console.log('✅ Live analytics charts initialized');
+        
+        // Reset daily data at midnight
+        scheduleMidnightReset();
+    }
+    
+    // --- GENERATE 24-HOUR LABELS ---
+    function generate24HourLabels() {
+        const labels = [];
+        for (let i = 0; i < 24; i++) {
+            labels.push(`${i}:00`);
+        }
+        return labels;
+    }
+    
+    // --- UPDATE LIVE ANALYTICS ---
+    function updateLiveAnalytics(data) {
+        if (!data) return;
+        
+        const currentHour = new Date().getHours();
+        
+        // Update water usage (estimate based on pump usage and tank levels)
+        if (data.pump_status && lastPumpState !== data.pump_status) {
+            if (data.pump_status && !lastPumpState) {
+                // Pump turned on
+                pumpStartTime = new Date();
+                console.log('💧 Pump turned ON - starting water usage tracking');
+            } else if (!data.pump_status && lastPumpState) {
+                // Pump turned off
+                if (pumpStartTime) {
+                    const pumpDuration = (new Date() - pumpStartTime) / 1000 / 60; // minutes
+                    const estimatedWaterUsage = pumpDuration * 2; // 2 liters per minute estimate
+                    dailyWaterUsage += estimatedWaterUsage;
+                    
+                    // Update chart
+                    if (waterUsageChart) {
+                        waterUsageChart.data.datasets[0].data[currentHour] += estimatedWaterUsage;
+                        waterUsageChart.update('none');
+                    }
+                    
+                    console.log(`💧 Pump ran for ${pumpDuration.toFixed(1)} minutes, estimated ${estimatedWaterUsage.toFixed(1)}L used`);
+                }
+            }
+            lastPumpState = data.pump_status;
+        }
+        
+        // Update pump usage hours
+        if (data.pump_status) {
+            const pumpUsageMinutes = 1; // 1 minute intervals
+            dailyPumpHours += pumpUsageMinutes / 60;
+            
+            if (pumpUsageChart) {
+                pumpUsageChart.data.datasets[0].data[currentHour] += pumpUsageMinutes / 60;
+                pumpUsageChart.update('none');
+            }
+        }
+        
+        console.log(`📊 Daily Stats - Water: ${dailyWaterUsage.toFixed(1)}L, Pump: ${dailyPumpHours.toFixed(2)}H`);
+    }
+    
+    // --- SCHEDULE MIDNIGHT RESET ---
+    function scheduleMidnightReset() {
+        const now = new Date();
+        const midnight = new Date(now);
+        midnight.setHours(24, 0, 0, 0);
+        
+        const msUntilMidnight = midnight.getTime() - now.getTime();
+        
+        setTimeout(() => {
+            resetDailyAnalytics();
+            scheduleMidnightReset(); // Schedule next reset
+        }, msUntilMidnight);
+        
+        console.log(`⏰ Daily analytics reset scheduled for midnight (${msUntilMidnight / 1000 / 60} minutes)`);
+    }
+    
+    // --- RESET DAILY ANALYTICS ---
+    function resetDailyAnalytics() {
+        console.log('🔄 Resetting daily analytics data...');
+        
+        dailyWaterUsage = 0;
+        dailyPumpHours = 0;
+        lastPumpState = false;
+        pumpStartTime = null;
+        
+        // Reset chart data
+        if (waterUsageChart) {
+            waterUsageChart.data.datasets[0].data = new Array(24).fill(0);
+            waterUsageChart.update('none');
+        }
+        
+        if (pumpUsageChart) {
+            pumpUsageChart.data.datasets[0].data = new Array(24).fill(0);
+            pumpUsageChart.update('none');
+        }
+        
+        console.log('✅ Daily analytics reset complete');
+    }
+    
+    // --- CREATE TANK FROM ADMIN CONFIG ---
+    function createTankFromAdminConfig(tankConfig) {
+        const readingId = tankConfig.data_key;
+        const tankName = tankConfig.name;
+        const capacity = tankConfig.capacity || 500;
+        
+        // Get next available slot
+        const slot = window.tankConfigs.length + 1;
+        
+        // Create tank configuration
+        const newTankConfig = {
+            id: readingId,
+            name: tankName,
+            slot: slot,
+            capacity: capacity,
+            isSource: false
+        };
+        
+        // Add to global tank configs
+        window.tankConfigs.push(newTankConfig);
+        
+        // Create tank display with default level 0
+        createTankDisplay(newTankConfig, 0);
+        
+        console.log(`✅ TANK CREATED FROM ADMIN CONFIG: ${tankName} (${readingId}) - Capacity: ${capacity}L`);
     }
     
     // --- DYNAMIC TANK CREATION FROM WEBSOCKET DATA ---
@@ -872,6 +1116,14 @@ document.addEventListener('DOMContentLoaded', function() {
             elements.pumpToggleButton.addEventListener('click', handleManualPumpToggle);
         }
         
+        // Pump control buttons
+        if (elements.pumpOnBtn) {
+            elements.pumpOnBtn.addEventListener('click', () => controlPump(true));
+        }
+        if (elements.pumpOffBtn) {
+            elements.pumpOffBtn.addEventListener('click', () => controlPump(false));
+        }
+        
         // Timeslot controls
         if (elements.timeslotActivateBtn) {
             elements.timeslotActivateBtn.addEventListener('click', handleTimeslotActivate);
@@ -919,6 +1171,35 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         console.log(`Pump command sent: ${newPumpStatus ? 'ON' : 'OFF'}`);
+    }
+
+    function controlPump(turnOn) {
+        console.log(`🎛️ PUMP CONTROL: ${turnOn ? 'TURNING ON' : 'TURNING OFF'}`);
+        
+        // Check if source tank is available and has sufficient water (only for turning on)
+        if (turnOn && window.lastData && window.tankConfigs) {
+            const sourceTank = window.tankConfigs.find(tank => tank.isSource);
+            if (sourceTank) {
+                const sourceLevel = window.lastData[sourceTank.id] || 0;
+                if (sourceLevel < 10) {
+                    console.log('❌ Cannot turn on pump: Source tank level too low');
+                    alert('Cannot turn on pump: Source tank level too low (less than 10%)');
+                    return;
+                }
+            }
+        }
+        
+        // Send command via WebSocket to AWS IoT Core
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            const command = turnOn ? 'PUMP_ON' : 'PUMP_OFF';
+            socket.send(JSON.stringify({command: command}));
+            console.log(`📡 ${command} command sent via WebSocket`);
+        } else {
+            console.error('❌ WebSocket not connected, cannot send command');
+            alert('Cannot send command: WebSocket not connected');
+        }
+        
+        console.log(`✅ Pump ${turnOn ? 'ON' : 'OFF'} command sent`);
     }
 
     function handleTimeslotActivate() {
