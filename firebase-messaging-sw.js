@@ -1,45 +1,55 @@
 // Firebase Service Worker for AquaSavvy
-importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
+try {
+    importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
+    importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
 
-// Initialize Firebase
-firebase.initializeApp({
-    apiKey: "your-api-key",
-    authDomain: "your-project.firebaseapp.com",
-    projectId: "your-project-id",
-    storageBucket: "your-project.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "your-app-id"
-});
+    // Initialize Firebase
+    firebase.initializeApp({
+        apiKey: "your-api-key",
+        authDomain: "your-project.firebaseapp.com",
+        projectId: "your-project-id",
+        storageBucket: "your-project.appspot.com",
+        messagingSenderId: "123456789",
+        appId: "your-app-id"
+    });
 
-// Initialize Firebase Messaging
-const messaging = firebase.messaging();
+    // Initialize Firebase Messaging
+    const messaging = firebase.messaging();
+} catch (error) {
+    console.log('Firebase messaging not available in service worker context:', error);
+}
 
 // Handle background messages
-messaging.onBackgroundMessage(function(payload) {
-    console.log('[firebase-messaging-sw.js] Received background message ', payload);
-    
-    const notificationTitle = payload.notification.title || 'AquaSavvy Notification';
-    const notificationOptions = {
-        body: payload.notification.body || 'You have a new notification',
-        icon: '/static/images/chat-icon.png',
-        badge: '/static/images/chat-icon.png',
-        tag: 'aquasavvy-notification',
-        requireInteraction: true,
-        actions: [
-            {
-                action: 'view',
-                title: 'View Dashboard'
-            },
-            {
-                action: 'dismiss',
-                title: 'Dismiss'
-            }
-        ]
-    };
+try {
+    if (typeof messaging !== 'undefined') {
+        messaging.onBackgroundMessage(function(payload) {
+            console.log('[firebase-messaging-sw.js] Received background message ', payload);
+            
+            const notificationTitle = payload.notification.title || 'AquaSavvy Notification';
+            const notificationOptions = {
+                body: payload.notification.body || 'You have a new notification',
+                icon: '/static/images/chat-icon.png',
+                badge: '/static/images/chat-icon.png',
+                tag: 'aquasavvy-notification',
+                requireInteraction: true,
+                actions: [
+                    {
+                        action: 'view',
+                        title: 'View Dashboard'
+                    },
+                    {
+                        action: 'dismiss',
+                        title: 'Dismiss'
+                    }
+                ]
+            };
 
-    self.registration.showNotification(notificationTitle, notificationOptions);
-});
+            self.registration.showNotification(notificationTitle, notificationOptions);
+        });
+    }
+} catch (error) {
+    console.log('Firebase messaging background handler not available:', error);
+}
 
 // Handle notification clicks
 self.addEventListener('notificationclick', function(event) {
