@@ -2,6 +2,7 @@
 from pathlib import Path
 import os
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -62,13 +63,37 @@ TEMPLATES = [
 WSGI_APPLICATION = 'AquaGuard.wsgi.application'
 
 # --- PRODUCTION DATABASE CONFIGURATION ---
-DATABASES = {
-    'default': dj_database_url.config(
-        # Fallback to your local Postgres database if DATABASE_URL is not set
-        default='postgresql://postgres:mwamboa22%23@localhost:5432/AquaGuard_db',
-        conn_max_age=600
-    )
-}
+# Get the database URL from the environment variable
+DATABASE_URL_FROM_ENV = os.environ.get('DATABASE_URL')
+
+# Check if the environment variable exists and is not empty
+if DATABASE_URL_FROM_ENV:
+    print("Found DATABASE_URL environment variable.") # Add this line for logging
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL_FROM_ENV, conn_max_age=600)
+    }
+    # Optional: Add SSL require mode for Railway Postgres
+    DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
+else:
+    print("WARNING: DATABASE_URL environment variable not found or empty. Using local fallback.") # Add this line for logging
+    # Fallback to your local Postgres database if DATABASE_URL is not set
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'AquaGuard_db',
+            'USER': 'postgres',
+            'PASSWORD': 'mwamboa22#', # Use the raw password here, dj_database_url handles encoding
+            'HOST': 'localhost',
+            'PORT': '5432',
+        }
+    }
+    # If even the fallback fails, raise a clear error
+    if not DATABASES['default'].get('ENGINE'):
+         raise ImproperlyConfigured("Database settings are not configured. DATABASE_URL env var is missing and fallback failed.")
+
+# Ensure the default engine is set if dj_database_url didn't provide one (shouldn't happen with valid URL)
+if 'default' in DATABASES and not DATABASES['default'].get('ENGINE'):
+     raise ImproperlyConfigured("Database ENGINE is missing after parsing DATABASE_URL.")
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
