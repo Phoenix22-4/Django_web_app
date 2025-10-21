@@ -1,2 +1,1 @@
-release: python manage.py migrate && python create_admin_script.py
-web: daphne -b 0.0.0.0 -p $PORT AquaGuard.asgi:application
+web: python manage.py migrate && python create_admin_script.py && daphne -b 0.0.0.0 -p $PORT AquaGuard.asgi:application
