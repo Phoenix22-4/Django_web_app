@@ -47,12 +47,12 @@
 <div class="dashboard-grid" id="dashboard-container" data-device-id="{{ device.device_id }}">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
         <!-- Left Column: Analytics and Controls -->
-        <div class="md:col-span-1 bg-gray-800 p-4 rounded-lg shadow-lg flex flex-col space-y-4">
-            <h2 class="text-2xl font-semibold text-center">Controls & Analytics</h2>
+        <div class="md:col-span-1 bg-white p-4 rounded-lg shadow-lg flex flex-col space-y-4">
+            <h2 class="text-2xl font-semibold text-center text-gray-800">Controls & Analytics</h2>
 
             <!-- Mode Selection -->
-            <div class="bg-gray-700 p-3 rounded-lg">
-                <h3 class="text-lg font-semibold mb-2 text-center">Operation Mode</h3>
+            <div class="bg-gray-100 p-3 rounded-lg">
+                <h3 class="text-lg font-semibold mb-2 text-center text-gray-800">Operation Mode</h3>
                 <div class="grid grid-cols-2 gap-2">
                     <button id="mode-auto" class="mode-btn mode-btn-active p-2 rounded-lg">Auto</button>
                     <button id="mode-timeslot" class="mode-btn p-2 rounded-lg bg-gray-600">Timeslot</button>
@@ -62,11 +62,11 @@
             <!-- Charts -->
             <div class="space-y-4">
                 <div>
-                    <h3 class="text-xl text-center">Water Usage (Litres)</h3>
+                    <h3 class="text-xl text-center text-gray-800">Water Usage (Litres)</h3>
                     <canvas id="waterUsageChart"></canvas>
         </div>
                 <div>
-                    <h3 class="text-xl text-center">Pump Runtimes</h3>
+                    <h3 class="text-xl text-center text-gray-800">Pump Runtimes</h3>
                     <canvas id="pumpRuntimeChart"></canvas>
                 </div>
     </div>
@@ -88,12 +88,12 @@
             </div>
 
             <!-- Status Messages -->
-            <div id="status-messages" class="bg-gray-700 p-4 rounded-lg text-center">
-                <h3 class="text-lg font-semibold mb-3 underline">System Status</h3>
-                <div id="safety-status-message" class="mb-2 text-red-400 text-lg font-bold hidden"></div>
-                <div id="mode-status-message" class="mb-2">Mode: <span class="font-bold">Auto</span></div>
-                <div id="pump-status-message" class="mb-2 text-base">Pump: <span class="font-bold">...</span></div>
-                <div id="current-status-message" class="mb-3 text-base">Current: <span class="font-bold">0A</span></div>
+            <div id="status-messages" class="bg-gray-100 p-4 rounded-lg text-center">
+                <h3 class="text-lg font-semibold mb-3 underline text-gray-800">System Status</h3>
+                <div id="safety-status-message" class="mb-2 text-red-600 text-lg font-bold hidden"></div>
+                <div id="mode-status-message" class="mb-2 text-gray-800">Mode: <span class="font-bold">Auto</span></div>
+                <div id="pump-status-message" class="mb-2 text-base text-gray-800">Pump: <span class="font-bold">...</span></div>
+                <div id="current-status-message" class="mb-3 text-base text-gray-800">Current: <span class="font-bold">0A</span></div>
                 <div id="tank-status-messages" class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                     <!-- Tank status messages will be dynamically created here -->
                 </div>
@@ -114,18 +114,18 @@
         </div>
         
         <!-- Right Column for Tanks -->
-        <div class="md:col-span-2 bg-gray-800 p-4 rounded-lg shadow-lg flex flex-col items-center justify-center">
-            <h2 class="text-2xl font-semibold mb-6">Live Tank Status</h2>
+        <div class="md:col-span-2 bg-white p-4 rounded-lg shadow-lg flex flex-col items-center justify-center">
+            <h2 class="text-2xl font-semibold mb-6 text-gray-800">Live Tank Status</h2>
             <div id="tanks-wrapper" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-6 mb-8"></div>
             <div id="tanksContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-6 mb-8 hidden"></div>
             <div class="flex flex-col items-center space-y-4">
-                <h3 class="text-xl">Main Pump (Fills Secondary Tanks)</h3>
+                <h3 class="text-xl text-gray-800">Main Pump (Fills Secondary Tanks)</h3>
                 <svg id="pump-svg" class="pump-svg" width="100" height="100" viewBox="0 0 100 100">
                     <g id="pump-body"><path d="M20 85 V 35 H 30 V 25 H 70 V 35 H 80 V 85 H 20 Z" fill="#6b7280" stroke-width="4"/><circle cx="50" cy="55" r="28" fill="#374151" stroke-width="4"/></g>
                     <path id="pump-motor" d="M50 40 L 50 70 M 35 55 L 65 55" stroke="#9ca3af" stroke-width="6" stroke-linecap="round"/>
                 </svg>
-                <div id="pump-status-text" class="text-lg font-medium">...</div>
-                <div id="pump-current-text" class="text-sm text-gray-400 mb-2">Current: 0.0A</div>
+                <div id="pump-status-text" class="text-lg font-medium text-gray-800">...</div>
+                <div id="pump-current-text" class="text-sm text-gray-600 mb-2">Current: 0.0A</div>
                 <div class="pump-controls">
                     <button id="pumpOnBtn" class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg w-32 transition-colors mr-2">
                         Turn ON

@@ -245,6 +245,19 @@ body {
     animation: spin 1s linear infinite;
 }
 
+/* Additional pump animation classes */
+.pump-svg.pump-on {
+    filter: drop-shadow(0 0 12px rgba(34, 197, 94, 0.6));
+}
+
+.pump-svg.pump-off {
+    filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.4));
+}
+
+.pump-svg.active {
+    filter: drop-shadow(0 0 12px rgba(34, 197, 94, 0.8));
+}
+
 .pump-svg.online {
     filter: drop-shadow(0 0 12px rgba(34, 197, 94, 0.6));
 }
@@ -255,14 +268,18 @@ body {
 
 #pump-motor.active {
     animation: spin 1s linear infinite;
+    stroke: #22c55e;
+    filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.8));
 }
 
 #pump-motor.online {
-    color: #22c55e;
+    stroke: #22c55e;
+    filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.6));
 }
 
 #pump-motor.offline {
-    color: #ef4444;
+    stroke: #ef4444;
+    filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.4));
 }
 
 /* Pump Status Text Styling */
