@@ -431,13 +431,13 @@ document.addEventListener('DOMContentLoaded', function() {
         tankDiv.className = 'flex flex-col items-center';
         const sourceIndicator = isSource ? ' (Source)' : '';
         
-        // Calculate current volume from level and capacity
-        const currentVolume = Math.round((level / 100) * capacity);
+        // Calculate liters remaining from level and capacity
+        const litersRemaining = Math.round((level / 100) * capacity);
         
         tankDiv.innerHTML = `
             <div class="text-center font-semibold mb-1" style="color: #000000;">${tankName}${sourceIndicator}</div>
             <div id="tank-level-text-${slot}" class="text-center text-2xl font-bold mb-1" style="color: #000000;">${level}%</div>
-            <div id="tank-volume-text-${slot}" class="text-center text-sm mb-2" style="color: #666666;">${currentVolume}/${capacity}L</div>
+            <div id="tank-volume-text-${slot}" class="text-center text-sm mb-2" style="color: #666666;">${litersRemaining}L remaining</div>
             <div class="tank-container">
                 <div id="water-${slot}" class="water"></div>
             </div>
@@ -455,20 +455,8 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log(`✅ TANK DISPLAY CREATED: ${tankName} (${readingId}) at ${level}%`);
     }
     
-    // --- DYNAMIC TANK CREATION FROM WEBSOCKET DATA ---
-    function createTankFromData(readingId, level) {
-        if (!elements.tanksWrapper) {
-            console.error("❌ ERROR: tanks-wrapper element not found in HTML");
-            return;
-        }
-        
-        // Check if tank already exists
-        const existingTank = window.tankConfigs.find(tank => tank.id === readingId);
-        if (existingTank) {
-            console.log(`ℹ️ Tank ${readingId} already exists, skipping creation`);
-            return; // Tank already exists
-        }
-        
+    // --- UPDATE EXISTING TANK FROM WEBSOCKET DATA ---
+    function updateExistingTankFromData(readingId, level) {
         // Validate input data
         if (!readingId || typeof level !== 'number' || level < 0 || level > 100) {
             console.error(`❌ ERROR: Invalid tank data - readingId: ${readingId}, level: ${level}`);
@@ -476,65 +464,16 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Check if tank is configured in Django admin
-        const tankConfig = window.tankConfig.find(tank => tank.data_key === readingId);
-        
-        if (tankConfig) {
-            // Use configured tank name and capacity
-            const tankName = tankConfig.name;
-            const capacity = tankConfig.capacity || 500;
-            const isSource = false; // Will be determined by Django admin configuration
-            
-            // Get next available slot
-            const slot = window.tankConfigs.length + 1;
-            
-            // Create tank configuration
-            const newTankConfig = {
-                id: readingId,
-                name: tankName,
-                slot: slot,
-                capacity: capacity,
-                isSource: isSource
-            };
-            
-            // Add to global tank configs
-            window.tankConfigs.push(newTankConfig);
-            
-            // Create tank display
-            createTankDisplay(newTankConfig, level);
-            
-            console.log(`✅ TANK CREATED FROM ADMIN CONFIG: ${tankName} (${readingId}) - Capacity: ${capacity}L`);
-            return;
+        // Check if tank exists (must be configured in Django admin)
+        const existingTank = window.tankConfigs.find(tank => tank.id === readingId);
+        if (existingTank) {
+            console.log(`🔄 Updating existing tank: ${existingTank.name} (${readingId}) to ${level}%`);
+            // Update existing tank level
+            updateTankLevel(readingId, level);
+        } else {
+            console.log(`ℹ️ Tank ${readingId} not configured in admin - skipping update`);
+            console.log(`💡 Only admin-configured tanks can receive WebSocket updates`);
         }
-        
-        // Fallback: Create tank name from reading ID (e.g., "overhead_level" -> "Overhead Tank")
-        const tankName = readingId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-        
-        // Determine if this is a source tank (underground, well, etc.)
-        const isSource = readingId.toLowerCase().includes('underground') || 
-                        readingId.toLowerCase().includes('well') || 
-                        readingId.toLowerCase().includes('source');
-        
-        // Get next available slot
-        const slot = window.tankConfigs.length + 1;
-        
-        // Create tank configuration
-        const newTankConfig = {
-            name: tankName,
-            id: readingId,
-            slot: slot,
-            isSource: isSource
-        };
-        
-        // Add to global configuration
-        window.tankConfigs.push(newTankConfig);
-        
-        // Create tank display
-        createTankDisplay(newTankConfig, level);
-        
-        // Console confirmation for tank creation
-        console.log(`✅ TANK CREATED: ${tankName} (${readingId}) at ${level}%`);
-        console.log(`📊 Tank Details:`, newTankConfig);
     }
     
     // --- UPDATE INDIVIDUAL TANK LEVEL ---
@@ -565,10 +504,10 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Update volume display
             const capacity = tank.capacity || 500;
-            const currentVolume = Math.round((level / 100) * capacity);
+            const litersRemaining = Math.round((level / 100) * capacity);
             const volumeElement = document.getElementById(`tank-volume-text-${tank.slot}`);
             if (volumeElement) {
-                safeUpdate(volumeElement, `${currentVolume}/${capacity}L`);
+                safeUpdate(volumeElement, `${litersRemaining}L remaining`);
             }
             
             // Console confirmation for water level update
@@ -724,9 +663,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     updateTankLevel(key, value);
                     tanksUpdated++;
                 } else {
-                    // Create new tank from data
-                    createTankFromData(key, value);
-                    tanksCreated++;
+                    // Tank not configured in admin - skip creation
+                    console.log(`ℹ️ Tank ${key} not configured in admin - skipping update`);
                 }
             }
         }
