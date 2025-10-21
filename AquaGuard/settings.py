@@ -26,6 +26,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'dashboard.middleware.DatabaseHealthCheckMiddleware',  # Add database health check
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -58,7 +59,13 @@ if DATABASE_URL_FROM_ENV:
     DATABASES = {
         'default': dj_database_url.parse(DATABASE_URL_FROM_ENV, conn_max_age=600)
     }
-    DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
+    DATABASES['default']['OPTIONS'] = {
+        'sslmode': 'require',
+        'connect_timeout': 10,  # Wait up to 10 seconds for connection
+        'options': '-c statement_timeout=30000'  # 30 second query timeout
+    }
+    # Add connection pooling settings for better reliability
+    DATABASES['default']['CONN_MAX_AGE'] = 600  # Keep connections alive for 10 minutes
 else:
     print("WARNING: DATABASE_URL environment variable not found or empty. Using local fallback.") # Add this line for logging
     DATABASES = {
@@ -69,6 +76,11 @@ else:
             'PASSWORD': 'mwamboa22#',
             'HOST': 'localhost',
             'PORT': '5432',
+            'CONN_MAX_AGE': 600,  # Keep connections alive for 10 minutes
+            'OPTIONS': {
+                'connect_timeout': 10,  # Wait up to 10 seconds for connection
+                'options': '-c statement_timeout=30000'  # 30 second query timeout
+            }
         }
     }
     if not DATABASES['default'].get('ENGINE'):
