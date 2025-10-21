@@ -70,6 +70,8 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const data = JSON.parse(e.data);
             console.log("📊 Parsed data:", data);
+            console.log("🔍 Data keys:", Object.keys(data));
+            console.log("⏰ Timestamp:", new Date().toLocaleTimeString());
 
             // Store data globally for reference
             window.lastData = data;
@@ -78,14 +80,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Update tanks with live data
             console.log("🔄 Calling updateTankLevelsLive with data:", data);
-            console.log("🔍 Data keys:", Object.keys(data));
             updateTankLevelsLive(data);
             
             // Update pump status and animation
+            console.log("🔄 Calling updatePumpStatusLive with data:", data);
             updatePumpStatusLive(data);
             
             // Update status messages
+            console.log("🔄 Calling updateStatusMessagesLive with data:", data);
             updateStatusMessagesLive(data);
+
+            console.log("✅ All real-time updates completed successfully");
 
         } catch (error) {
             console.error("❌ Error processing message:", error);
@@ -454,18 +459,29 @@ document.addEventListener('DOMContentLoaded', function() {
         // Summary console message
         if (tanksFound > 0) {
             console.log(`📈 TANK PROCESSING SUMMARY: Found ${tanksFound} tanks, Created ${tanksCreated}, Updated ${tanksUpdated}`);
+            console.log(`🎯 TANK LEVELS UPDATED: ${tanksUpdated} tanks updated in real-time`);
+            if (tanksUpdated > 0) {
+                console.log("✅ TANK DRAWINGS: All tank levels and visual representations updated successfully");
+            }
         } else {
             console.log("⚠️ NO TANK DATA FOUND: No fields ending with '_level' detected in WebSocket data");
             console.log("💡 Expected format: {overhead_level: 98, underground_level: 82, ...}");
+            console.log("🔍 Available data keys:", Object.keys(data));
         }
     }
     
     // --- LIVE PUMP STATUS UPDATES (Based on working code) ---
     function updatePumpStatusLive(data) {
-        console.log("Updating pump status with live data:", data);
+        console.log("🔄 PUMP STATUS UPDATE: Processing live pump data");
+        console.log("📊 Pump data received:", {
+            pump_status: data.pump_status,
+            pump_current: data.pump_current
+        });
         
         const pumpIsOn = data.pump_status || false;
         const pumpCurrent = data.pump_current || 0;
+        
+        console.log(`🔧 PUMP STATUS: ${pumpIsOn ? 'ON' : 'OFF'}, Current: ${pumpCurrent}A`);
         
         // Update pump status text
         const pumpStatusText = document.getElementById('pump-status-text');
@@ -505,6 +521,8 @@ document.addEventListener('DOMContentLoaded', function() {
             safeClassToggle(pumpSvg, 'active', pumpIsOn);
             safeClassToggle(pumpSvg, 'online', pumpIsOn);
             safeClassToggle(pumpSvg, 'offline', !pumpIsOn);
+            
+            console.log(`🎬 PUMP ANIMATION: ${pumpIsOn ? 'STARTED' : 'STOPPED'} - Classes applied: active=${pumpIsOn}, online=${pumpIsOn}`);
         }
         
         // Update pump motor animation
@@ -526,13 +544,24 @@ document.addEventListener('DOMContentLoaded', function() {
         if (currentStatusMsg) {
             safeUpdate(currentStatusMsg, `${pumpCurrent.toFixed(1)}A`);
             currentStatusMsg.style.color = pumpCurrent > 2.0 ? '#10b981' : '#ef4444';
+            console.log(`⚡ CURRENT STATUS: ${pumpCurrent.toFixed(1)}A - Color: ${pumpCurrent > 2.0 ? 'green' : 'red'}`);
         }
+        
+        console.log("✅ SYSTEM STATUS: All status messages updated with real-time data");
         
         console.log(`Pump status: ${pumpIsOn ? 'ON' : 'OFF'}, Current: ${pumpCurrent}A`);
     }
     
     // --- LIVE STATUS MESSAGES (Dynamic System) ---
     function updateStatusMessagesLive(data) {
+        console.log("🔄 SYSTEM STATUS UPDATE: Processing live status data");
+        console.log("📊 Status data received:", {
+            pump_status: data.pump_status,
+            pump_current: data.pump_current,
+            system_status: data.system_status,
+            mode: data.mode
+        });
+        
         // Update tank status messages dynamically
         if (window.tankConfigs) {
             window.tankConfigs.forEach(tank => {
