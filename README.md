@@ -1,295 +1,54 @@
-# AquaSavvy Kenya - Advanced IoT Water Management System
+# AquaGuard Dashboard System
 
-## 🌊 Overview
+## 🌊 Intelligent Water Management System
 
-AquaSavvy Kenya is a comprehensive IoT-driven water management system designed specifically for urban Kenyan homes and businesses. The system provides real-time remote monitoring, intelligent automation, AWS IoT integration, AI-powered assistance, and push notifications to save water, energy, and money.
+AquaGuard is a comprehensive water management system that provides real-time monitoring, automated controls, and intelligent notifications for your water tank system. Built with Django and modern web technologies, it offers a responsive dashboard with live analytics, pump control, and safety monitoring.
 
 ## ✨ Key Features
 
-### 🎯 Phase 1: Floating AI Chat Widget ✅ COMPLETE
-- **Amazon-style floating chat icon** fixed to bottom-right corner
-- **Slide-in chat panel** with smooth animations
-- **Smart routing** between public and private AI endpoints
-- **Real-time AI assistance** powered by Google Gemini
-- **System-specific knowledge** for troubleshooting and guidance
+### 🎯 Real-Time Monitoring
+- **Live Tank Levels**: Real-time water level monitoring with visual indicators
+- **Pump Status**: Current sensor monitoring with safety controls
+- **Connection Status**: WebSocket-based real-time communication
+- **System Health**: Comprehensive system status monitoring
 
-### 🔄 Phase 2: Dynamic Architecture & Advanced Automation ✅ COMPLETE
-- **Dynamic tank support** - automatically adapts to any number of tanks
-- **JSON-based tank data** storage for maximum flexibility
-- **User-defined automation rules** with custom time slots
-- **4-slot automation interface** with visual rule management
-- **Intelligent pump control** based on active automation rules
-- **Real-time rule execution** with AWS IoT command delivery
+### 📱 Comprehensive Notification System
+- **Tank Level Alerts**: Critical, low, and full level notifications
+- **Pump Safety Alerts**: Overload, dry run, and current monitoring
+- **Connection Monitoring**: Device and WebSocket failure detection
+- **Security Notifications**: Password change alerts with timestamps
 
-### 🏗️ Phase 7: Enhanced Tank Configuration ✅ COMPLETE
-- **Dynamic tank identification** using reading IDs from IoT data
-- **Source tank configuration** with admin checkbox selection
-- **Colorful UI design** with gradient backgrounds and animations
-- **Real-time tank status** with color-coded level indicators
-- **Admin panel integration** for tank name and source configuration
-- **Automatic tank display** based on configured tanks only
+### 🎛️ Intelligent Controls
+- **Manual Pump Control**: ON/OFF controls with safety checks
+- **Automated Operation**: Auto and timeslot operation modes
+- **Safety Systems**: Automatic shutdown for critical conditions
+- **Source Tank Management**: Special handling for water supply tanks
 
-### 📊 Phase 3: UI Overhaul & Data Analytics ✅ COMPLETE
-- **Icon-based navigation** with Font Awesome icons
-- **Real-time analytics charts** (Pump Runtime & Power Usage)
-- **Daily data aggregation** system for long-term storage
-- **Custom admin analytics dashboard** with downloadable reports
-- **Automated data cleanup** to optimize database performance
+### 📊 Live Analytics
+- **24-Hour Water Usage**: Daily consumption tracking
+- **24-Hour Pump Usage**: Daily operation hours monitoring
+- **Real-Time Updates**: Live data refresh every minute
+- **Historical Data**: Daily reset with data retention
 
-### ☁️ Phase 4: AWS IoT Integration ✅ COMPLETE
-- **Real-time device data reception** from AWS IoT Core
-- **Device shadow management** for state synchronization
-- **Automatic pump control** via AWS IoT commands
-- **Manual device control** through web interface
-- **Connection monitoring** with status indicators
-- **Reliable command delivery** with error handling
-
-### 📱 Phase 5: Push Notifications ✅ COMPLETE
-- **Browser-based notifications** (no Firebase required)
-- **Tank level alerts** for low/high water levels
-- **Pump status notifications** for start/stop events
-- **Solenoid valve status** notifications
-- **System alerts** for connection issues and safety
-- **Welcome notifications** after login
-- **Test notification** functionality in dashboard
-
-### 🤖 Phase 6: AI-Powered Assistance ✅ COMPLETE
-- **Google Gemini AI** integration for intelligent responses
-- **System-specific knowledge base** for AquaSavvy devices
-- **Troubleshooting assistance** with contextual help
-- **Maintenance recommendations** based on usage patterns
-- **AWS IoT configuration guidance** for technical support
-
-### 🔧 Phase 7: Advanced Dashboard & Solenoid Control ✅ COMPLETE
-- **Modern dark theme** dashboard with advanced UI
-- **Dynamic tank visualization** with smooth animations
-- **Solenoid valve control** for individual tank management
-- **Enhanced connection status** with blue indicators
-- **Real-time charts** for water usage and pump runtime
-- **Mode selection** (Auto/Timeslot) with visual feedback
-- **Safety alerts** for source tank low and dry run detection
-
-## 🏗️ System Architecture
-
-### Hardware Components
-- **ESP32 Microcontroller** - Wi-Fi connectivity and processing
-- **JSN-SR04T Ultrasonic Sensor** - Water level measurement
-- **ACS712 Current Sensor** - Pump status monitoring
-- **Solid State Relay (SSR-40DA)** - Pump control
-- **Hybrid power system** with battery backup
-
-### Software Stack
-- **Django Web Application** - User interface and API
-- **Django Channels** - WebSocket real-time communication
-- **AWS IoT Core** - MQTT message broker and device management
-- **PostgreSQL** - User and device data storage
-- **Firebase Admin SDK** - Push notification service
-- **Google Gemini AI** - Intelligent assistance
-- **Chart.js** - Analytics visualization
-- **Boto3** - AWS SDK for Python
-
-## 📱 User Interface
-
-### Dashboard Features
-- **Advanced dark theme** with modern UI design
-- **Dynamic tank visualization** with smooth animations and real-time water levels
-- **Interactive pump controls** with AWS IoT command delivery
-- **Solenoid valve control** for individual tank management (up to 4 valves)
-- **Automation timeslots** with 4-slot rule management
-- **Real-time status messages** and system health monitoring
-- **Live analytics charts** for water usage and pump runtime
-- **Mode selection** (Auto/Timeslot) with visual feedback
-- **Safety alerts** for source tank low and dry run detection
-- **Floating AI chat** for instant assistance
-- **Push notification controls** with test functionality
-- **Enhanced connection status** with blue indicators for better visibility
-
-### Public Homepage
-- **Professional landing page** with system overview
-- **Interactive architecture diagram** with hover details
-- **Economic impact analysis** with cost breakdowns
-- **AI-powered insights** for market viability and safety
-- **About Us section** with team information
-- **Production roadmap** and deployment strategy
-
-## 🔧 Technical Implementation
-
-### Models
-```python
-# Dynamic tank support with AWS IoT integration
-class WaterReading(models.Model):
-    tank_data = models.JSONField(default=list)  # [{"name": "Tank1", "level": 85}]
-    pump_status = models.BooleanField(default=False)
-    pump_current_amps = models.FloatField(default=0.0)
-    
-# User automation rules with AWS IoT control
-class AutomationRule(models.Model):
-    device = models.ForeignKey(Device, related_name='rules')
-    start_time = models.TimeField()
-    end_time = models.TimeField()
-    min_level = models.IntegerField()
-    max_level = models.IntegerField()
-    monitor_tank_name = models.CharField(max_length=100)
-    enabled = models.BooleanField(default=True)
-    
-# Daily data aggregation with power tracking
-class DailyWaterUsage(models.Model):
-    device = models.ForeignKey(Device, related_name='daily_usage')
-    date = models.DateField()
-    total_user_water_liters = models.FloatField(default=0.0)
-    total_stored_water_liters = models.FloatField(default=0.0)
-    total_power_kwh = models.FloatField(default=0.0)
-
-# Push notification support
-class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    fcm_token = models.TextField(blank=True, null=True)
-    push_notifications_enabled = models.BooleanField(default=True)
-    last_notification_sent = models.DateTimeField(blank=True, null=True)
-
-# Solenoid valve configuration
-class Device(models.Model):
-    # ... existing fields ...
-    solenoid_1_reading_id = models.CharField(max_length=100, blank=True, null=True)
-    solenoid_1_name = models.CharField(max_length=100, blank=True, null=True)
-    solenoid_2_reading_id = models.CharField(max_length=100, blank=True, null=True)
-    solenoid_2_name = models.CharField(max_length=100, blank=True, null=True)
-    solenoid_3_reading_id = models.CharField(max_length=100, blank=True, null=True)
-    solenoid_3_name = models.CharField(max_length=100, blank=True, null=True)
-    solenoid_4_reading_id = models.CharField(max_length=100, blank=True, null=True)
-    solenoid_4_name = models.CharField(max_length=100, blank=True, null=True)
-```
-
-### AWS IoT Integration
-```python
-# Real-time device data processing
-class AWSIoTManager:
-    def process_device_data(self, device_id, data):
-        # Process incoming device data from AWS IoT
-        # Create water readings
-        # Check automation rules
-        # Send pump commands if needed
-        
-    def send_pump_command(self, device_id, pump_on):
-        # Send pump control command via AWS IoT
-        # Update device shadow
-        # Handle command delivery
-        
-    def get_device_shadow(self, device_id):
-        # Retrieve device state from AWS IoT
-        # Return current device status
-```
-
-### Push Notification System
-```python
-# Firebase push notification service
-class PushNotificationService:
-    def send_tank_level_alert(self, device_id, tank_name, level, min_level, max_level):
-        # Send tank level alerts to device owners
-        
-    def send_pump_status_alert(self, device_id, pump_status, reason=None):
-        # Send pump status notifications
-        
-    def send_welcome_notification(self, user):
-        # Send welcome message after login
-```
-
-### WebSocket Communication
-- **Real-time data updates** from ESP32 devices via AWS IoT
-- **Dynamic tank rendering** based on JSON data
-- **Automation status updates** with active rule information
-- **Pump control commands** sent to devices via AWS IoT
-- **Push notification triggers** for important events
-
-### Data Management
-- **Automatic aggregation** of daily usage statistics
-- **Intelligent cleanup** of old data (48h raw, 35d daily)
-- **CSV export** functionality for analytics
-- **Anonymized data** for privacy compliance
-- **AWS IoT data processing** with real-time updates
-
-## 🚀 Deployment
-
-### Phase 1: Quick Hosting (Render/Railway)
-- Initial deployment on Railway for simplicity
-- Managed PostgreSQL database
-- Automatic HTTPS/SSL certificates
-- Environment variable configuration
-
-### Phase 2: Scale & Cost Optimization (AWS)
-- Migration to AWS Elastic Beanstalk
-- AWS S3 for static files
-- AWS IoT Core for device management
-- Fine-grained cost control and performance tuning
-
-### Future: Advanced Features
-- Over-the-Air (OTA) updates via AWS IoT
-- SMS/Email alerting system
-- Advanced analytics with machine learning
-- Multi-tenant architecture
-
-## 📊 Analytics & Monitoring
-
-### Admin Dashboard
-- **Water usage analytics** with pie and line charts
-- **Power consumption tracking** by device
-- **Pump runtime statistics** for efficiency analysis
-- **CSV data export** for external analysis
-- **Real-time device monitoring** via AWS IoT
-- **Push notification management** and testing
-
-### Data Aggregation
-```bash
-# Run daily aggregation (cron job)
-python manage.py aggregate_daily_data
-
-# Dry run to see what would be processed
-python manage.py aggregate_daily_data --dry-run
-```
-
-## 🔒 Security Features
-
-- **CSRF protection** for all forms and API endpoints
-- **User authentication** with device ownership validation
-- **WebSocket security** with user ownership checks
-- **AWS IoT Core** with certificate-based authentication
-- **Firebase security rules** for push notifications
-- **Data anonymization** for analytics exports
-- **Environment variable protection** for API keys
-
-## 📞 Support & Contact
-
-- **Email**: contact@vision072025@gmail.com
-- **WhatsApp**: +254 702 715070
-- **Location**: Nairobi, Kenya
-- **AI Assistant**: Available 24/7 in the chat widget
-
-## 🛠️ Development Setup
+## 🚀 Quick Start
 
 ### Prerequisites
 - Python 3.8+
-- Django 4.0+
-- PostgreSQL
-- Redis (for channels)
-- AWS Account (for IoT Core)
-- Firebase Project (for push notifications)
-- Google Gemini API Key
+- Django 4.2+
+- PostgreSQL (production) / SQLite (development)
+- Redis (for WebSocket support)
+- Modern web browser
 
 ### Installation
 ```bash
-# Clone repository
+# Clone the repository
 git clone <repository-url>
 cd AquaGuard_Django
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Set environment variables
-cp .env.example .env
-# Edit .env with your configuration
-
 # Run migrations
-python manage.py makemigrations
 python manage.py migrate
 
 # Create superuser
@@ -302,65 +61,247 @@ python manage.py collectstatic
 python manage.py runserver
 ```
 
-### Environment Variables Required
-```bash
-# Django Settings
-SECRET_KEY=your-secret-key
-DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
+### Configuration
+1. **Access Django Admin**: Navigate to `/admin/`
+2. **Create Device**: Add your AquaGuard device
+3. **Configure Tanks**: Set tank names, reading IDs, and capacities
+4. **Set Source Tank**: Mark your main water supply tank
+5. **Access Dashboard**: Navigate to `/dashboard/<device_id>/`
 
+## 📚 Documentation
+
+### User Documentation
+- **[User Manual](AquaGuard_User_Manual.md)**: Complete user guide with all features
+- **[Quick Reference](AquaGuard_Quick_Reference.md)**: Essential information for daily operation
+
+### Technical Documentation
+- **[Technical Documentation](AquaGuard_Technical_Documentation.md)**: System architecture and implementation details
+
+## 🎯 System Features
+
+### Dashboard Components
+
+#### Left Column - Live Analytics
+- **Water Usage Chart**: 24-hour water consumption tracking
+- **Pump Usage Chart**: 24-hour pump operation hours
+- **Mode Controls**: Auto/Timeslot operation modes
+- **Timeslot Settings**: Scheduled operation controls
+
+#### Center Column - Live Tank Status
+- **Tank Displays**: Real-time tank levels with visual indicators
+- **Tank Information**: Name, capacity, and current volume
+- **Source Tank Indicators**: Special marking for source tanks
+- **Level Percentages**: Real-time percentage and liters remaining
+
+#### Right Column - Pump Control
+- **Pump Animation**: Visual pump status with rotation animation
+- **Pump Controls**: ON/OFF buttons for manual control
+- **Current Monitoring**: Real-time current sensor readings
+- **Status Display**: Pump state and safety information
+
+### Notification System
+
+#### Tank Level Notifications
+- **🚨 Critical Level** (< 10%): Immediate refill required
+- **⚠️ Low Level** (< 25%): Water conservation recommended
+- **✅ Full Level** (≥ 95%): Optimal water storage confirmed
+
+#### Pump Safety Notifications
+- **⚠️ Pump Overload** (> 6A): Automatic safety shutdown
+- **⚠️ Dry Run Detection** (< 1.5A): Prevents pump damage
+- **⚠️ High Current Warning** (> 5A): Early warning system
+
+#### Connection Monitoring
+- **🔌 Connection Lost** (> 10s): Device communication failure
+- **🔐 Password Changed**: Security notification with timestamp
+
+### Safety Features
+- **Automatic Shutdown**: Source tank critical, pump overload, dry run
+- **Real-time Monitoring**: Continuous current and level tracking
+- **Connection Monitoring**: Automatic failure detection
+- **Safety Override**: Manual controls with safety checks
+
+## 🛠️ Technology Stack
+
+### Backend
+- **Django 4.2+**: Web framework with admin interface
+- **Django Channels**: WebSocket support for real-time communication
+- **PostgreSQL**: Production database
+- **Redis**: WebSocket channel layer
+
+### Frontend
+- **HTML5/CSS3**: Modern web standards
+- **JavaScript ES6+**: Interactive dashboard functionality
+- **Tailwind CSS**: Responsive design framework
+- **Chart.js**: Live analytics visualization
+
+### Communication
+- **WebSocket**: Real-time bidirectional communication
+- **Browser Notifications**: Native notification system
+- **Firebase Cloud Messaging**: Mobile push notifications
+
+### Deployment
+- **Railway**: Cloud platform deployment
+- **Docker**: Containerization support
+- **WhiteNoise**: Static file serving
+- **SSL/TLS**: Secure communication
+
+## 🔧 Configuration
+
+### Environment Variables
+```bash
 # Database
-DATABASE_URL=sqlite:///db.sqlite3
+DATABASE_URL=postgresql://user:password@host:port/database
 
-# AWS IoT Configuration
-AWS_ACCESS_KEY_ID=your-aws-access-key
-AWS_SECRET_ACCESS_KEY=your-aws-secret-key
-AWS_REGION=us-east-1
-AWS_IOT_ENDPOINT=your-iot-endpoint.amazonaws.com
+# Redis (for WebSocket)
+REDIS_URL=redis://localhost:6379
 
-# Firebase Configuration
-FIREBASE_PROJECT_ID=your-firebase-project-id
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nyour-private-key\n-----END PRIVATE KEY-----\n"
-FIREBASE_CLIENT_EMAIL=your-service-account@your-project.iam.gserviceaccount.com
+# Firebase Cloud Messaging
+FCM_SERVER_KEY=your_fcm_server_key
+FCM_SENDER_ID=your_fcm_sender_id
 
-# Gemini AI Configuration
-GEMINI_API_KEY=your-gemini-api-key
+# Django
+SECRET_KEY=your_secret_key
+DEBUG=False
+ALLOWED_HOSTS=your-domain.com
 ```
 
-### Management Commands
+### Tank Configuration
+1. **Tank Name**: Descriptive name (e.g., "Overhead Tank")
+2. **Reading ID**: Sensor data key (e.g., "overhead_level")
+3. **Capacity**: Tank capacity in liters
+4. **Source Tank**: Mark main water supply tank
+
+### Notification Settings
+- **Browser Permissions**: Allow notifications in browser
+- **Thresholds**: Customizable alert levels
+- **Delivery Methods**: Browser and mobile notifications
+
+## 📱 Mobile Support
+
+### Responsive Design
+- **Mobile-First**: Optimized for mobile devices
+- **Touch Controls**: Touch-friendly interface
+- **Responsive Layout**: Adapts to screen size
+- **Mobile Notifications**: Native mobile support
+
+### Browser Compatibility
+- **Chrome**: Version 80 or higher
+- **Firefox**: Version 75 or higher
+- **Safari**: Version 13 or higher
+- **Edge**: Version 80 or higher
+
+## 🔒 Security Features
+
+### Authentication
+- **User Authentication**: Django's built-in system
+- **Device Authentication**: Device ID-based WebSocket auth
+- **Session Management**: Secure session handling
+
+### Data Protection
+- **HTTPS**: SSL/TLS encryption
+- **CSRF Protection**: Cross-site request forgery prevention
+- **XSS Prevention**: Input sanitization and output escaping
+- **SQL Injection Prevention**: Django ORM protection
+
+### Notification Security
+- **Permission-based**: User consent for notifications
+- **Secure Messaging**: Encrypted notification delivery
+- **Rate Limiting**: Prevent notification spam
+
+## 🚀 Deployment
+
+### Railway Deployment
+1. **Connect Repository**: Link GitHub repository
+2. **Environment Variables**: Set required variables
+3. **Database**: Configure PostgreSQL
+4. **Redis**: Set up Redis for WebSocket
+5. **Domain**: Configure custom domain
+
+### Local Development
 ```bash
-# Aggregate daily data
-python manage.py aggregate_daily_data
+# Install dependencies
+pip install -r requirements.txt
 
-# Check device connectivity
-python manage.py check_connectivity
+# Run migrations
+python manage.py migrate
+
+# Start development server
+python manage.py runserver
+
+# Start WebSocket server
+python manage.py runserver 0.0.0.0:8000
 ```
 
-## 📈 Performance Optimizations
+## 📊 Monitoring and Analytics
 
-- **Database indexing** on frequently queried fields
-- **Automatic data cleanup** to maintain performance
-- **WebSocket connection pooling** for scalability
-- **Static file optimization** with CDN support
-- **Chart.js lazy loading** for faster page loads
-- **AWS IoT connection pooling** for device management
-- **Firebase notification batching** for efficiency
+### Real-Time Metrics
+- **Tank Levels**: Continuous level monitoring
+- **Pump Status**: Current and status tracking
+- **Connection Status**: WebSocket and device connectivity
+- **System Health**: Overall system performance
 
-## 🔮 Future Roadmap
+### Historical Data
+- **24-Hour Charts**: Daily usage patterns
+- **Water Consumption**: Daily water usage tracking
+- **Pump Operation**: Daily pump usage hours
+- **System Events**: Notification and alert history
 
-1. **Machine Learning Integration** - Predictive maintenance with AWS SageMaker
-2. **Mobile App Development** - Native iOS/Android apps with push notifications
-3. **Multi-tenant Architecture** - Support for multiple organizations
-4. **Advanced Analytics** - AI-powered insights and recommendations
-5. **Integration APIs** - Third-party system integration
-6. **Blockchain Integration** - Water usage verification and trading
-7. **Edge Computing** - Local processing with AWS Greengrass
-8. **Voice Control** - Amazon Alexa/Google Assistant integration
+## 🔍 Troubleshooting
+
+### Common Issues
+- **Tanks not displaying**: Check Django admin configuration
+- **Pump not responding**: Verify WebSocket connection
+- **Notifications not working**: Check browser permissions
+- **Connection issues**: Verify device and network status
+
+### Support Resources
+- **User Manual**: Comprehensive user guide
+- **Quick Reference**: Essential daily operations
+- **Technical Documentation**: System architecture details
+- **Browser Console**: JavaScript error debugging
+
+## 🤝 Contributing
+
+### Development Setup
+1. **Fork Repository**: Create your own fork
+2. **Create Branch**: Feature or bugfix branch
+3. **Make Changes**: Implement your changes
+4. **Test Thoroughly**: Ensure all features work
+5. **Submit Pull Request**: Request code review
+
+### Code Standards
+- **Python**: PEP 8 style guide
+- **JavaScript**: ES6+ modern syntax
+- **HTML/CSS**: Semantic markup and responsive design
+- **Documentation**: Clear and comprehensive comments
 
 ## 📄 License
 
-© 2025 AquaSavvy Kenya. A Production-Ready IoT Solution.
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🙏 Acknowledgments
+
+- **Django Community**: For the excellent web framework
+- **Tailwind CSS**: For the responsive design system
+- **Chart.js**: For the analytics visualization
+- **Browser APIs**: For notification and WebSocket support
+
+## 📞 Support
+
+### Documentation
+- **[User Manual](AquaGuard_User_Manual.md)**: Complete user guide
+- **[Quick Reference](AquaGuard_Quick_Reference.md)**: Daily operations
+- **[Technical Documentation](AquaGuard_Technical_Documentation.md)**: System details
+
+### Getting Help
+1. **Check Documentation**: Review user manual and quick reference
+2. **Browser Console**: Check for JavaScript errors
+3. **System Status**: Review dashboard status indicators
+4. **Contact Support**: Provide system logs and error details
 
 ---
 
-*Built with ❤️ for sustainable water management in Kenya*
+**AquaGuard Dashboard v1.5** - Intelligent Water Management System
+
+*Built with ❤️ for efficient water management and safety*
