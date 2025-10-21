@@ -173,7 +173,38 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Create tank name from reading ID (e.g., "overhead_level" -> "Overhead Tank")
+        // Check if tank is configured in Django admin
+        const tankConfig = window.tankConfig.find(tank => tank.data_key === readingId);
+        
+        if (tankConfig) {
+            // Use configured tank name and capacity
+            const tankName = tankConfig.name;
+            const capacity = tankConfig.capacity || 500;
+            const isSource = false; // Will be determined by Django admin configuration
+            
+            // Get next available slot
+            const slot = window.tankConfigs.length + 1;
+            
+            // Create tank configuration
+            const newTankConfig = {
+                id: readingId,
+                name: tankName,
+                slot: slot,
+                capacity: capacity,
+                isSource: isSource
+            };
+            
+            // Add to global tank configs
+            window.tankConfigs.push(newTankConfig);
+            
+            // Create tank display
+            createTankDisplay(newTankConfig, level);
+            
+            console.log(`✅ TANK CREATED FROM ADMIN CONFIG: ${tankName} (${readingId}) - Capacity: ${capacity}L`);
+            return;
+        }
+        
+        // Fallback: Create tank name from reading ID (e.g., "overhead_level" -> "Overhead Tank")
         const tankName = readingId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
         
         // Determine if this is a source tank (underground, well, etc.)
@@ -199,9 +230,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const tankDiv = document.createElement('div');
         tankDiv.className = 'flex flex-col items-center';
         const sourceIndicator = isSource ? ' (Source)' : '';
+        // Calculate current volume from level and capacity
+        const capacity = tankConfig.capacity || 500;
+        const currentVolume = Math.round((level / 100) * capacity);
+        
         tankDiv.innerHTML = `
             <div class="text-center font-semibold mb-1" style="color: #000000;">${tankName}${sourceIndicator}</div>
-            <div id="tank-level-text-${slot}" class="text-center text-2xl font-bold mb-2" style="color: #000000;">${level}%</div>
+            <div id="tank-level-text-${slot}" class="text-center text-2xl font-bold mb-1" style="color: #000000;">${level}%</div>
+            <div id="tank-volume-text-${slot}" class="text-center text-sm mb-2" style="color: #666666;">${currentVolume}/${capacity}L</div>
             <div class="tank-container">
                 <div id="water-${slot}" class="water"></div>
             </div>
@@ -246,6 +282,14 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Set text color to black for better visibility
             tankLevelText.style.color = '#000000';
+            
+            // Update volume display
+            const capacity = tank.capacity || 500;
+            const currentVolume = Math.round((level / 100) * capacity);
+            const volumeElement = document.getElementById(`tank-volume-text-${tank.slot}`);
+            if (volumeElement) {
+                safeUpdate(volumeElement, `${currentVolume}/${capacity}L`);
+            }
             
             // Console confirmation for water level update
             console.log(`💧 WATER LEVEL UPDATE: ${tank.name} (${readingId}): ${level}%`);

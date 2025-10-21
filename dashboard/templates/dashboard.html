@@ -11,7 +11,9 @@
     // Also set it on body for device_control.js
     document.body.dataset.deviceId = "{{ device.device_id }}";
     // Make solenoid names available to JavaScript
-    window.solenoidNames = {{ device.get_solenoid_names|safe|default:"[]" }};
+    window.solenoidNames = JSON.parse('{{ device.get_solenoid_names|default:"[]"|escapejs }}');
+    // Make tank configuration available to JavaScript
+    window.tankConfig = JSON.parse('{{ device.get_tank_config_json|default:"{}"|escapejs }}');
 </script>
 
 <!-- Clean Header with Connection Status in Center -->
