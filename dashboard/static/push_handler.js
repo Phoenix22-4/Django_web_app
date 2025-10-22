@@ -14,20 +14,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Get the messaging instance
         const messaging = firebase.messaging();
         
-        // Handle background messages
-        messaging.onBackgroundMessage(function(payload) {
-            console.log('Background message received:', payload);
-            
-            const notificationTitle = payload.notification.title;
-            const notificationOptions = {
-                body: payload.notification.body,
-                icon: payload.notification.icon || '/static/images/logo.png'
-            };
-            
-            return self.registration.showNotification(notificationTitle, notificationOptions);
-        });
-        
-        // Handle foreground messages
+        // Only handle foreground messages in main thread
+        // Background messages are handled by the service worker
         messaging.onMessage(function(payload) {
             console.log('Foreground message received:', payload);
             
