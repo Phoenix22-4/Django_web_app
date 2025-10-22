@@ -50,8 +50,8 @@
 
 <!-- Main Dashboard Grid - New Advanced Design -->
 <div class="dashboard-grid" id="dashboard-container" data-device-id="{{ device.device_id }}">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
-        <!-- Left Column: Analytics and Controls -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <!-- Left Column: Controls & Analytics (1/3 width) -->
         <div class="md:col-span-1 bg-white p-4 rounded-lg shadow-lg flex flex-col space-y-4">
             <h2 class="text-2xl font-semibold text-center text-gray-800">Controls & Analytics</h2>
 
@@ -119,11 +119,11 @@
 
         </div>
         
-        <!-- Right Column for Tanks -->
+        <!-- Right Column for Tanks (2/3 width) -->
         <div class="md:col-span-2 bg-white p-4 rounded-lg shadow-lg flex flex-col items-center justify-center">
             <h2 class="text-2xl font-semibold mb-6 text-gray-800">Live Tank Status</h2>
-            <div id="tanks-wrapper" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-6 mb-8"></div>
-            <div id="tanksContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-6 mb-8 hidden"></div>
+            <div id="tanks-wrapper" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-6 mb-8"></div>
+            <div id="tanksContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-6 mb-8 hidden"></div>
             <div class="flex flex-col items-center space-y-4">
                 <h3 class="text-xl text-gray-800">Main Pump (Fills Secondary Tanks)</h3>
                 <svg id="pump-svg" class="pump-svg" width="100" height="100" viewBox="0 0 100 100">

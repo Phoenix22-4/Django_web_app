@@ -906,6 +906,11 @@ input:focus, select:focus {
         grid-column: span 1 / span 1;
     }
     
+    /* Mobile adjustments for new layout */
+    .grid-cols-1.md\\:grid-cols-3 {
+        grid-template-columns: 1fr;
+    }
+    
     .tank-container {
         width: 150px;
         height: 200px;
