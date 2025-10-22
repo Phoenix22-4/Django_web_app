@@ -268,23 +268,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    aspectRatio: 2.5,
+                    aspectRatio: 1.8,
                     scales: {
                         x: {
                             title: {
                                 display: true,
                                 text: 'Hours',
-                                font: { size: 10 }
+                                font: { size: 12 }
                             },
-                            ticks: { font: { size: 9 } }
+                            ticks: { font: { size: 10 } }
                         },
                         y: {
                             title: {
                                 display: true,
                                 text: 'Liters',
-                                font: { size: 10 }
+                                font: { size: 12 }
                             },
-                            ticks: { font: { size: 9 } },
+                            ticks: { font: { size: 10 } },
                             beginAtZero: true
                         }
                     },
@@ -316,23 +316,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    aspectRatio: 2.5,
+                    aspectRatio: 1.8,
                     scales: {
                         x: {
                             title: {
                                 display: true,
                                 text: 'Hours',
-                                font: { size: 10 }
+                                font: { size: 12 }
                             },
-                            ticks: { font: { size: 9 } }
+                            ticks: { font: { size: 10 } }
                         },
                         y: {
                             title: {
                                 display: true,
                                 text: 'Hours',
-                                font: { size: 10 }
+                                font: { size: 12 }
                             },
-                            ticks: { font: { size: 9 } },
+                            ticks: { font: { size: 10 } },
                             beginAtZero: true
                         }
                     },
