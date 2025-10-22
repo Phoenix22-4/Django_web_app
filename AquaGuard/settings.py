@@ -69,11 +69,11 @@ if DATABASE_URL_FROM_ENV:
     }
     DATABASES['default']['OPTIONS'] = {
         'sslmode': 'require',
-        'connect_timeout': 10,  # Wait up to 10 seconds for connection
+        'connect_timeout': 30,  # Wait up to 30 seconds for connection
         'options': '-c statement_timeout=30000'  # 30 second query timeout
     }
     # Add connection pooling settings for better reliability
-    DATABASES['default']['CONN_MAX_AGE'] = 600  # Keep connections alive for 10 minutes
+    DATABASES['default']['CONN_MAX_AGE'] = 0  # Disable connection pooling for Railway
 else:
     print("WARNING: DATABASE_URL environment variable not found or empty. Using local fallback.") # Add this line for logging
     DATABASES = {
