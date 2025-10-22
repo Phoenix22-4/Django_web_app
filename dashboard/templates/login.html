@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="{% static 'dashboard.css' %}">
 </head>
 <body>
-    <div class="header">
+    <div class="header" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); color: white; padding: 20px; text-align: center; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
         <h1>AquaGuard System Login</h1>
     </div>
     <div class="login-container">
@@ -44,22 +44,43 @@
     .login-container input {
         width: 100%;
         padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
+        ng: 10px 15px;
+        background-color: #2dfd12;
+        border: 1px solid #cccccc;
+        border-radius: 5px;
         box-sizing: border-box;
+    }
+    .control-button {
+        display: inline-block;
+        padding: 10px 15px;
+        background-color: #22c55e;
+        color: white;
+        text-decoration: none;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        transition: background-color 0.3s;
+        cursor: pointer;
+        width: 120px;
+    }
+    .control-button:hover {
+        background-color: #16a34a;
+        color: white;
     }
     .home-button {
         display: inline-block;
         padding: 10px 15px;
-        background-color: #007bff;
+        background-color: #0ea5e9;
         color: white;
         text-decoration: none;
         border-radius: 5px;
         font-size: 16px;
         transition: background-color 0.3s;
+        width: 120px;
+        text-align: center;
     }
     .home-button:hover {
-        background-color: #0056b3;
+        background-color: #0284c7;
         color: white;
     }
     .button-row {
