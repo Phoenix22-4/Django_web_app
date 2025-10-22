@@ -176,11 +176,11 @@ CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_AGE = 3600  # 1 hour
 CSRF_USE_SESSIONS = False  # Use cookies instead of sessions for CSRF
 
-# Password Security
+# Password Security - Using PBKDF2 as primary for deployment reliability
 PASSWORD_HASHERS = [
-    'django.contrib.auth.hashers.Argon2PasswordHasher',
     'django.contrib.auth.hashers.PBKDF2PasswordHasher',
     'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.Argon2PasswordHasher',  # Requires argon2-cffi package
     'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
 ]
 
