@@ -50,7 +50,7 @@
 
 <!-- Main Dashboard Grid - New Advanced Design -->
 <div class="dashboard-grid" id="dashboard-container" data-device-id="{{ device.device_id }}">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
         <!-- Left Column: Analytics and Controls -->
         <div class="md:col-span-1 bg-white p-4 rounded-lg shadow-lg flex flex-col space-y-4">
             <h2 class="text-2xl font-semibold text-center text-gray-800">Controls & Analytics</h2>
@@ -117,26 +117,6 @@
                 <div class="text-sm text-gray-300">Additional status information will appear here</div>
             </div>
 
-            <!-- Live Analytics Section -->
-            <div class="bg-gray-100 p-4 rounded-lg mt-4">
-                <h3 class="text-lg font-semibold mb-3 text-center text-gray-800">Live Analytics (24h)</h3>
-                
-                <!-- Water Usage Chart -->
-                <div class="mb-4">
-                    <h4 class="text-sm font-medium mb-2 text-gray-700">Water Usage (Liters)</h4>
-                    <div style="height: 120px;">
-                        <canvas id="water-usage-chart"></canvas>
-                    </div>
-                </div>
-                
-                <!-- Pump Usage Chart -->
-                <div>
-                    <h4 class="text-sm font-medium mb-2 text-gray-700">Pump Usage (Hours)</h4>
-                    <div style="height: 120px;">
-                        <canvas id="pump-usage-chart"></canvas>
-                    </div>
-                </div>
-            </div>
         </div>
         
         <!-- Right Column for Tanks -->
@@ -169,6 +149,32 @@
             <div id="solenoid-valves-section" class="mt-8 hidden">
                 <h3 class="text-xl mb-4">Solenoid Valves</h3>
                 <div id="solenoid-valves-container" class="grid grid-cols-2 gap-4"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Third Column: Live Analytics -->
+    <div class="mt-6 max-w-6xl mx-auto">
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h2 class="text-2xl font-semibold text-center text-gray-800 mb-6">Live Analytics (24h)</h2>
+            
+            <!-- Side-by-side charts -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Water Usage Chart -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold mb-3 text-center text-gray-700">Water Usage (Liters)</h3>
+                    <div style="height: 200px;">
+                        <canvas id="water-usage-chart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Pump Usage Chart -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold mb-3 text-center text-gray-700">Pump Usage (Hours)</h3>
+                    <div style="height: 200px;">
+                        <canvas id="pump-usage-chart"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
