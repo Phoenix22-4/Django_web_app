@@ -29,15 +29,15 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',  # Must come before CSRF
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',  # Must come before our custom middleware
     'dashboard.middleware.DatabaseHealthCheckMiddleware',  # Add database health check
     'dashboard.security.ForceLogoutMiddleware',  # Force logout for maximum security
     'dashboard.security.SecurityHeadersMiddleware',  # Security headers
     'dashboard.security.RateLimitMiddleware',  # Rate limiting
     'dashboard.security.AuditLogMiddleware',  # Security audit logging
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -174,7 +174,7 @@ SESSION_COOKIE_SAMESITE = 'Lax'
 # CSRF Security
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_AGE = 3600  # 1 hour
-CSRF_USE_SESSIONS = True
+CSRF_USE_SESSIONS = False  # Use cookies instead of sessions for CSRF
 
 # Password Security
 PASSWORD_HASHERS = [

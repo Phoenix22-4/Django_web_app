@@ -13,10 +13,10 @@ class ForceLogoutMiddleware(MiddlewareMixin):
     """Enhanced security middleware - log security events"""
     
     def process_request(self, request):
-        # Only log security events, don't force logout to prevent login issues
+        # Only apply security to login and beyond, not to public home
         if (request.user.is_authenticated and 
             not request.path.startswith('/static/') and 
-            not request.path in ['/', '/home/', '/login/', '/about/', '/contact/'] and
+            not request.path in ['/', '/home/', '/about/', '/contact/'] and
             not request.path.startswith('/sitemap') and
             not request.path.startswith('/robots.txt')):
             
@@ -33,7 +33,7 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
         # Skip security headers for static files and public pages to avoid blocking functionality
         if (request.path.startswith('/static/') or 
             request.path.startswith('/media/') or
-            request.path in ['/', '/home/', '/login/', '/about/', '/contact/'] or
+            request.path in ['/', '/home/', '/about/', '/contact/'] or
             request.path.startswith('/sitemap') or
             request.path.startswith('/robots.txt')):
             # Only add minimal headers for public pages to ensure Google can access
@@ -79,7 +79,14 @@ class RateLimitMiddleware(MiddlewareMixin):
         self.request_counts = {}
     
     def process_request(self, request):
-        # Simple rate limiting based on IP
+        # Skip rate limiting for public pages
+        if (request.path in ['/', '/home/', '/about/', '/contact/'] or
+            request.path.startswith('/static/') or
+            request.path.startswith('/sitemap') or
+            request.path.startswith('/robots.txt')):
+            return None
+            
+        # Simple rate limiting based on IP for protected pages
         client_ip = self.get_client_ip(request)
         current_time = int(time.time())
         
@@ -114,6 +121,13 @@ class AuditLogMiddleware(MiddlewareMixin):
     """Security audit logging middleware"""
     
     def process_request(self, request):
+        # Skip logging for public pages
+        if (request.path in ['/', '/home/', '/about/', '/contact/'] or
+            request.path.startswith('/static/') or
+            request.path.startswith('/sitemap') or
+            request.path.startswith('/robots.txt')):
+            return None
+            
         # Log authentication attempts
         if request.path == '/login/' and request.method == 'POST':
             username = request.POST.get('username', 'unknown')
