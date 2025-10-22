@@ -369,19 +369,30 @@ def aws_iot_data_endpoint(request):
             'status': 'error'
         }, status=500)
 
-@csrf_exempt
+@login_required
 @require_http_methods(["POST"])
 def pump_control_view(request):
-    """Manual pump control"""
+    """Manual pump control with security validation"""
     try:
-        data = json.loads(request.body)
+        # Validate JSON payload
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON payload'}, status=400)
+        
+        # Input validation
         device_id = data.get('device_id')
         pump_on = data.get('pump_on', False)
         
-        if not device_id:
-            return JsonResponse({'error': 'Device ID required'}, status=400)
+        # Validate device_id format (alphanumeric, max 50 chars)
+        if not device_id or not isinstance(device_id, str) or len(device_id) > 50:
+            return JsonResponse({'error': 'Invalid device ID format'}, status=400)
         
-        # Check if user owns the device
+        # Validate pump_on is boolean
+        if not isinstance(pump_on, bool):
+            return JsonResponse({'error': 'Invalid pump state'}, status=400)
+        
+        # Check if user owns the device (authorization)
         device = get_object_or_404(Device, device_id=device_id, owner=request.user)
         
         # Send command to device
@@ -404,7 +415,7 @@ def pump_control_view(request):
             'status': 'error'
         }, status=500)
 
-@csrf_exempt
+@login_required
 @require_http_methods(["POST"])
 def device_command_view(request):
     """Send general command to device"""
@@ -440,7 +451,7 @@ def device_command_view(request):
             'status': 'error'
         }, status=500)
 
-@csrf_exempt
+@login_required
 @require_http_methods(["POST"])
 def solenoid_control_view(request):
     """Manual solenoid valve control"""

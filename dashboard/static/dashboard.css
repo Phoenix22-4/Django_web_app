@@ -18,8 +18,8 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: rgb(7, 108, 133);
+    background: linear-gradient(135deg, #0a33ee 0%, #764ba2 100%);
+    color: rgb(9, 182, 250);
     border-radius: 10px;
     margin-bottom: 20px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
@@ -151,7 +151,7 @@ body {
 
 .welcome-text {
     font-weight: 500;
-    color: white;
+    color: rgb(87, 210, 226);
 }
 
 .header-actions {
