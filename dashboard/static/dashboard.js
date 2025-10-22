@@ -126,15 +126,41 @@ document.addEventListener('DOMContentLoaded', function() {
     socket.onclose = function(e) {
         console.log("❌ WebSocket connection closed");
         console.log("🔍 Close code:", e.code, "Reason:", e.reason);
+        
+        // Provide specific information about error codes
+        if (e.code === 1006) {
+            console.error("🔍 Error 1006: Abnormal closure - This usually indicates a network issue or server problem");
+            updateConnectionStatus('websocket', 'Connection Lost', 'error');
+        } else if (e.code === 1000) {
+            console.log("🔍 Normal closure");
         updateConnectionStatus('websocket', 'Offline', 'offline');
+        } else {
+            console.log("🔍 Closure code:", e.code, "Reason:", e.reason);
+            updateConnectionStatus('websocket', 'Offline', 'offline');
+        }
+        
         updateConnectionStatus('device', 'Disconnected', 'offline');
     };
 
     socket.onerror = function(error) {
         console.error("❌ WebSocket error:", error);
         console.error("🔍 WebSocket URL:", socketURL);
+        console.error("🔍 Error details:", {
+            type: error.type,
+            target: error.target,
+            currentTarget: error.currentTarget
+        });
         updateConnectionStatus('websocket', 'Error', 'error');
         updateConnectionStatus('device', 'Connection Error', 'error');
+        
+        // Send notification for connection error
+        if (window.showNotification) {
+            window.showNotification(
+                '🔌 AquaGuard Alert - WebSocket Connection Error',
+                'Failed to connect to WebSocket server. Please check your internet connection and try refreshing the page.',
+                '/static/images/logo.png'
+            );
+        }
     };
 
     // --- DEVICE DATA LOADING ---

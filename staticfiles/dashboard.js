@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let pumpStartTime = null;
     let simulatedCurrent = 0.0;
     let solenoidStates = {};
+    let chartsInitialized = false;
 
     // --- DOM ELEMENTS ---
     const elements = {
@@ -206,6 +207,22 @@ document.addEventListener('DOMContentLoaded', function() {
     function initializeLiveAnalytics() {
         console.log('📊 Initializing live analytics charts...');
         
+        // Prevent multiple initializations
+        if (chartsInitialized) {
+            console.log('📊 Charts already initialized, skipping...');
+            return;
+        }
+        
+        // Destroy existing charts if they exist
+        if (waterUsageChart) {
+            waterUsageChart.destroy();
+            waterUsageChart = null;
+        }
+        if (pumpUsageChart) {
+            pumpUsageChart.destroy();
+            pumpUsageChart = null;
+        }
+        
         // Initialize water usage chart
         const waterCtx = document.getElementById('water-usage-chart');
         if (waterCtx) {
@@ -225,18 +242,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    aspectRatio: 2.5,
                     scales: {
                         x: {
                             title: {
                                 display: true,
-                                text: 'Hours'
-                            }
+                                text: 'Hours',
+                                font: { size: 10 }
+                            },
+                            ticks: { font: { size: 9 } }
                         },
                         y: {
                             title: {
                                 display: true,
-                                text: 'Liters'
+                                text: 'Liters',
+                                font: { size: 10 }
                             },
+                            ticks: { font: { size: 9 } },
                             beginAtZero: true
                         }
                     },
@@ -268,18 +290,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    aspectRatio: 2.5,
                     scales: {
                         x: {
                             title: {
                                 display: true,
-                                text: 'Hours'
-                            }
+                                text: 'Hours',
+                                font: { size: 10 }
+                            },
+                            ticks: { font: { size: 9 } }
                         },
                         y: {
                             title: {
                                 display: true,
-                                text: 'Hours'
+                                text: 'Hours',
+                                font: { size: 10 }
                             },
+                            ticks: { font: { size: 9 } },
                             beginAtZero: true
                         }
                     },
@@ -293,6 +320,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         console.log('✅ Live analytics charts initialized');
+        
+        // Mark charts as initialized
+        chartsInitialized = true;
         
         // Reset daily data at midnight
         scheduleMidnightReset();
