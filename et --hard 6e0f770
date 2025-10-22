@@ -1,0 +1,20 @@
+[33m9d7ea6a[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mrailway[m[33m, [m[1;31morigin/railway[m[33m)[m Fix password hashers: Remove Argon2 dependency and use built-in Django hashers only
+[33m1ffd838[m Fix middleware order and CSRF configuration: Move SessionMiddleware before CsrfViewMiddleware, fix security middleware to handle missing user attribute
+[33m5da591e[m Restore public home page UI with prominent login button and mobile-friendly navigation
+[33m07ac523[m Implement strict login security: 7 failed attempts = 24-hour lockout for both user and admin login, ensure public home page remains accessible to Google
+[33m961497d[m Clean: Remove __pycache__ files from git tracking
+[33mb3ecc20[m Fix: Minor indentation fix in dashboard.js
+[33m7753af7[m Fix: Resolve all linter errors and improve security
+[33m0bb1924[m Ultimate fix for bracket errors: Use single quotes in yesno filter to avoid quote conflicts
+[33m41b071a[m Fix JavaScript syntax errors in dashboard.html: Use |lower filter instead of template conditionals for boolean conversion
+[33m90530f5[m Fix syntax error in dashboard.html line 22: Replace yesno filter with proper Django template conditional for boolean conversion
+[33m0e0709e[m Security enhancement: Customizable admin URL changed to /AquaSavvy-Control/, updated security middleware, robots.txt, and added comprehensive developer security guide
+[33m82d7c8b[m Final production release: Tank-only mode for monitor-only devices, comprehensive security implementation with multi-layer protection (authentication, input validation, rate limiting, audit logging, security headers), enhanced documentation with security features, and production-ready system with seamless operation
+[33m0a0dbb9[m Final release: Complete CSV export system with comprehensive data downloads (daily/monthly/yearly for water, power, runtime), enhanced admin analytics with appealing UI, updated documentation (User Manual, Technical Docs, Quick Reference), security improvements, and production-ready system verification
+[33ma374266[m Security & UI improvements: Remove exposed API keys from frontend, implement server-side security with context processors, enhance Django Admin usage analytics with appealing UI design featuring gradient backgrounds, animated cards, and modern styling like reference dashboard
+[33mf94a32a[m Move usage analytics to Django Admin: Create admin-only usage dashboard with peak hours analysis, remove user-facing usage dashboard, implement device-specific peak pump usage hour tracking, add CSV download functionality for pump runtime data
+[33m3c5e840[m Major system improvements: Add canonical tags for SEO, single pump toggle button, voltage field for power calculation, new Usage dashboard with monthly/yearly analytics, memory optimization, reduced console logging, automatic reading ID registration, real-time updates for pump runtime and water usage
+[33m6e0f770[m Fix dashboard layout: Left column 1/3 width (Controls), Right column 2/3 width (Tank Status), Live Analytics full width below both columns - like two pillars on a floor
+[33m85d8f1c[m Redesign dashboard layout: Move live analytics to third column below main grid, side-by-side charts, increase tank and chart sizes for better visibility, responsive design for laptop and phone
+[33m961b3b6[m Fix Firebase messaging and WebSocket connection errors - Remove onBackgroundMessage from main thread, add better WebSocket error handling with specific error code 1006 detection and notifications
+[33md014ba0[m Fix Chart.js initialization errors and analytics chart sizing - Prevent multiple chart initializations, add proper chart destruction, and constrain chart height to 120px for better UI layout

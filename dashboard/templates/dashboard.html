@@ -3,8 +3,13 @@
 
 {% block title %}Dashboard for {{ device.name }}{% endblock %}
 
+{% block canonical %}
+<link rel="canonical" href="https://web-production-ddcb.up.railway.app/dashboard/{{ device.device_id }}/" />
+{% endblock %}
+
 {% block content %}
 <meta name="device-id" id="device-id" content="{{ device.device_id }}">
+<meta name="pump-present" id="pump-present" content="{{ device.pump_present|yesno:'true,false' }}">
 <script>
     // Make device_id available to JavaScript
     window.deviceId = "{{ device.device_id }}";
@@ -14,6 +19,8 @@
     window.solenoidNames = JSON.parse('{{ device.get_solenoid_names|default:"[]"|escapejs }}');
     // Make tank configuration available to JavaScript
     window.tankConfig = JSON.parse('{{ device.get_tank_config_json|default:"{}"|escapejs }}');
+    // Make pump presence available to JavaScript
+    window.pumpPresent = document.getElementById('pump-present').getAttribute('content') === 'true';
 </script>
 
 <!-- Clean Header with Connection Status in Center -->
@@ -61,20 +68,22 @@
                 <div class="grid grid-cols-2 gap-2">
                     <button id="mode-auto" class="mode-btn mode-btn-active p-2 rounded-lg">Auto</button>
                     <button id="mode-timeslot" class="mode-btn p-2 rounded-lg bg-gray-600">Timeslot</button>
+                </div>
             </div>
-        </div>
         
             <!-- Charts -->
             <div class="space-y-4">
                 <div>
                     <h3 class="text-xl text-center text-gray-800">Water Usage (Litres)</h3>
                     <canvas id="waterUsageChart"></canvas>
-        </div>
+                </div>
+                {% if device.pump_present %}
                 <div>
                     <h3 class="text-xl text-center text-gray-800">Pump Runtimes</h3>
                     <canvas id="pumpRuntimeChart"></canvas>
                 </div>
-    </div>
+                {% endif %}
+            </div>
 
             <!-- Timeslot Controls -->
             <div id="timeslot-controls" class="bg-gray-700 p-3 rounded-lg hidden">
@@ -97,8 +106,10 @@
                 <h3 class="text-lg font-semibold mb-3 underline text-gray-800">System Status</h3>
                 <div id="safety-status-message" class="mb-2 text-red-600 text-lg font-bold hidden"></div>
                 <div id="mode-status-message" class="mb-2 text-gray-800">Mode: <span class="font-bold">Auto</span></div>
+                {% if device.pump_present %}
                 <div id="pump-status-message" class="mb-2 text-base text-gray-800">Pump: <span class="font-bold">...</span></div>
                 <div id="current-status-message" class="mb-3 text-base text-gray-800">Current: <span class="font-bold">0A</span></div>
+                {% endif %}
                 <div id="tank-status-messages" class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                     <!-- Tank status messages will be dynamically created here -->
                 </div>
@@ -124,6 +135,7 @@
             <h2 class="text-2xl font-semibold mb-6 text-gray-800">Live Tank Status</h2>
             <div id="tanks-wrapper" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-6 mb-8"></div>
             <div id="tanksContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-6 mb-8 hidden"></div>
+            {% if device.pump_present %}
             <div class="flex flex-col items-center space-y-4">
                 <h3 class="text-xl text-gray-800">Main Pump (Fills Secondary Tanks)</h3>
                 <svg id="pump-svg" class="pump-svg" width="100" height="100" viewBox="0 0 100 100">
@@ -133,17 +145,21 @@
                 <div id="pump-status-text" class="text-lg font-medium text-gray-800">...</div>
                 <div id="pump-current-text" class="text-sm text-gray-600 mb-2">Current: 0.0A</div>
                 <div class="pump-controls">
-                    <button id="pumpOnBtn" class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg w-32 transition-colors mr-2">
-                        Turn ON
-                    </button>
-                    <button id="pumpOffBtn" class="bg-red-600 text-white font-bold py-2 px-4 rounded-lg w-32 transition-colors">
-                        Turn OFF
-                    </button>
-                    <button id="pump-toggle-btn" class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg w-32 transition-colors hidden">
-                        Toggle
+                    <button id="pump-toggle-btn" class="bg-gray-600 text-white font-bold py-3 px-8 rounded-lg w-40 transition-colors text-lg">
+                        PUMP OFF
                     </button>
                 </div>
             </div>
+            {% else %}
+            <div class="flex flex-col items-center space-y-4">
+                <h3 class="text-xl text-gray-800">Tank Monitoring System</h3>
+                <div class="text-center text-gray-600">
+                    <i class="fas fa-tint text-6xl mb-4"></i>
+                    <p class="text-lg">Water Level Monitoring Only</p>
+                    <p class="text-sm">No pump control available</p>
+                </div>
+            </div>
+            {% endif %}
             
             <!-- Solenoid Valves Section -->
             <div id="solenoid-valves-section" class="mt-8 hidden">
@@ -168,6 +184,7 @@
                     </div>
                 </div>
                 
+                {% if device.pump_present %}
                 <!-- Pump Usage Chart -->
                 <div class="bg-gray-50 p-4 rounded-lg">
                     <h3 class="text-lg font-semibold mb-3 text-center text-gray-700">Pump Usage (Hours)</h3>
@@ -175,6 +192,15 @@
                         <canvas id="pump-usage-chart"></canvas>
                     </div>
                 </div>
+                {% else %}
+                <!-- Water Level Analytics Chart -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold mb-3 text-center text-gray-700">Tank Level Analytics (24h)</h3>
+                    <div style="height: 200px;">
+                        <canvas id="tank-level-chart"></canvas>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
