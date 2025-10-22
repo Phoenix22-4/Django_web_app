@@ -5,7 +5,7 @@ def global_context(request):
     """Global context processor for templates"""
     return {
         'DEBUG': settings.DEBUG,
-        'site_name': 'AquaGuard',
+        'site_name': 'AquaSavvy',
         'site_description': 'Smart Water Management System',
     }
 
