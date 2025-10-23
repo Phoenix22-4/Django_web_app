@@ -230,7 +230,9 @@ class DailyWaterUsage(models.Model):
     class Meta:
         ordering = ['-date']
         # Ensure only one entry per device per day
-        unique_together = ('device', 'date') 
+        unique_together = ('device', 'date')
+        verbose_name = 'Usage'
+        verbose_name_plural = 'Usage' 
 
     def __str__(self):
         return f"Usage for {self.device.device_id} on {self.date}"
