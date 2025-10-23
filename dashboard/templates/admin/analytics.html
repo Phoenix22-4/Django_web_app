@@ -259,10 +259,11 @@
                 <div class="kpi-label">Total Water Usage (30 Days)</div>
             </div>
             
-            <!-- Water Usage Bar Chart -->
-            <div class="chart-container">
-                <canvas id="waterUsageBarChart"></canvas>
-            </div>
+             <!-- Water Usage Bar Chart -->
+             <div class="chart-container">
+                 <h3 style="color: #ffffff; text-align: center; margin-bottom: 15px; font-size: 1rem;">Monthly Water Usage Comparison (12 Months)</h3>
+                 <canvas id="waterUsageBarChart"></canvas>
+             </div>
             
             <!-- Daily Water Usage Table -->
             <div class="data-table">
@@ -302,15 +303,17 @@
                 <div class="kpi-label">Total Power Consumed (30 Days)</div>
             </div>
             
-            <!-- Pump Runtimes & Power Usage Combined Chart -->
-            <div class="chart-container">
-                <canvas id="powerRuntimeChart"></canvas>
-            </div>
-            
-            <!-- Power Usage Pie Chart -->
-            <div class="chart-container">
-                <canvas id="powerUsagePieChart"></canvas>
-            </div>
+             <!-- Pump Runtimes & Power Usage Combined Chart -->
+             <div class="chart-container">
+                 <h3 style="color: #ffffff; text-align: center; margin-bottom: 15px; font-size: 1rem;">Power & Pump Runtime Comparison (12 Months)</h3>
+                 <canvas id="powerRuntimeChart"></canvas>
+             </div>
+             
+             <!-- Power Usage Pie Chart -->
+             <div class="chart-container">
+                 <h3 style="color: #ffffff; text-align: center; margin-bottom: 15px; font-size: 1rem;">Power Usage Distribution (12 Months)</h3>
+                 <canvas id="powerUsagePieChart"></canvas>
+             </div>
             
             <!-- Power & Pump Runtime at Peak Times Table -->
             <div class="data-table">
@@ -415,10 +418,40 @@ document.addEventListener('DOMContentLoaded', function() {
     Chart.defaults.borderColor = '#3a3f44';
     Chart.defaults.backgroundColor = 'rgba(66, 165, 245, 0.1)';
     
-    // Water Usage Bar Chart (12 months)
-    const waterUsageCtx = document.getElementById('waterUsageBarChart').getContext('2d');
+    // Generate dynamic month labels based on current date (rolling 12 months)
+    function generateMonthLabels() {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const currentDate = new Date();
+        const labels = [];
+        
+        for (let i = 11; i >= 0; i--) {
+            const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+            labels.push(months[date.getMonth()] + ' ' + date.getFullYear().toString().slice(-2));
+        }
+        return labels;
+    }
+    
+    const monthLabels = generateMonthLabels();
+    
+    // Parse monthly data from Django context
     const waterUsageData = JSON.parse('{{ monthly_water_usage|escapejs }}');
-    const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const powerData = JSON.parse('{{ monthly_power_usage|escapejs }}');
+    const runtimeData = JSON.parse('{{ monthly_runtime_usage|escapejs }}');
+    
+    // Ensure data arrays have 12 elements (pad with zeros if needed)
+    function padDataArray(data, length = 12) {
+        while (data.length < length) {
+            data.unshift(0);
+        }
+        return data.slice(-length);
+    }
+    
+    const paddedWaterData = padDataArray([...waterUsageData]);
+    const paddedPowerData = padDataArray([...powerData]);
+    const paddedRuntimeData = padDataArray([...runtimeData]);
+    
+    // Water Usage Bar Chart (12 months with dynamic positioning)
+    const waterUsageCtx = document.getElementById('waterUsageBarChart').getContext('2d');
     
     new Chart(waterUsageCtx, {
         type: 'bar',
@@ -426,7 +459,7 @@ document.addEventListener('DOMContentLoaded', function() {
             labels: monthLabels,
             datasets: [{
                 label: 'Water Usage (L)',
-                data: waterUsageData,
+                data: paddedWaterData,
                 backgroundColor: [
                     '#42A5F5', '#66BB6A', '#FFA726', '#EF5350',
                     '#AB47BC', '#7E57C2', '#26A69A', '#FFCA28',
@@ -440,13 +473,25 @@ document.addEventListener('DOMContentLoaded', function() {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { display: false }
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Water Usage: ' + context.parsed.y.toLocaleString() + 'L';
+                        }
+                    }
+                }
             },
             scales: {
                 y: {
                     beginAtZero: true,
                     grid: { color: '#3a3f44' },
-                    ticks: { color: '#ffffff' }
+                    ticks: { 
+                        color: '#ffffff',
+                        callback: function(value) {
+                            return value.toLocaleString() + 'L';
+                        }
+                    }
                 },
                 x: {
                     grid: { color: '#3a3f44' },
@@ -456,10 +501,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Power & Runtime Combined Chart
+    // Power & Runtime Combined Chart (12 months with dynamic positioning)
     const powerRuntimeCtx = document.getElementById('powerRuntimeChart').getContext('2d');
-    const powerData = JSON.parse('{{ monthly_power_usage|escapejs }}');
-    const runtimeData = JSON.parse('{{ monthly_runtime_usage|escapejs }}');
     
     new Chart(powerRuntimeCtx, {
         type: 'bar',
@@ -468,18 +511,20 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 label: 'Power Usage (kWh)',
                 type: 'bar',
-                data: powerData,
+                data: paddedPowerData,
                 backgroundColor: 'rgba(255, 167, 38, 0.8)',
                 borderColor: '#FFA726',
-                borderWidth: 1
+                borderWidth: 1,
+                yAxisID: 'y'
             }, {
                 label: 'Pump Runtime (h)',
                 type: 'line',
-                data: runtimeData,
+                data: paddedRuntimeData,
                 borderColor: '#4CAF50',
                 backgroundColor: 'rgba(76, 175, 80, 0.1)',
                 fill: true,
-                tension: 0.3
+                tension: 0.3,
+                yAxisID: 'y1'
             }]
         },
         options: {
@@ -489,13 +534,45 @@ document.addEventListener('DOMContentLoaded', function() {
                 legend: { 
                     display: true,
                     labels: { color: '#ffffff' }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            if (context.datasetIndex === 0) {
+                                return 'Power: ' + context.parsed.y.toFixed(2) + ' kWh';
+                            } else {
+                                return 'Runtime: ' + context.parsed.y.toFixed(1) + ' hours';
+                            }
+                        }
+                    }
                 }
             },
             scales: {
                 y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
                     beginAtZero: true,
                     grid: { color: '#3a3f44' },
-                    ticks: { color: '#ffffff' }
+                    ticks: { 
+                        color: '#ffffff',
+                        callback: function(value) {
+                            return value.toFixed(1) + ' kWh';
+                        }
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    beginAtZero: true,
+                    grid: { drawOnChartArea: false },
+                    ticks: { 
+                        color: '#4CAF50',
+                        callback: function(value) {
+                            return value.toFixed(1) + 'h';
+                        }
+                    }
                 },
                 x: {
                     grid: { color: '#3a3f44' },
@@ -505,7 +582,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Power Usage Pie Chart (12 months)
+    // Power Usage Pie Chart (12 months with dynamic angles and positioning)
     const powerPieCtx = document.getElementById('powerUsagePieChart').getContext('2d');
     
     new Chart(powerPieCtx, {
@@ -513,14 +590,15 @@ document.addEventListener('DOMContentLoaded', function() {
         data: {
             labels: monthLabels,
             datasets: [{
-                data: powerData,
+                data: paddedPowerData,
                 backgroundColor: [
                     '#42A5F5', '#66BB6A', '#FFA726', '#EF5350',
                     '#AB47BC', '#7E57C2', '#26A69A', '#FFCA28',
                     '#FF7043', '#8D6E63', '#78909C', '#9575CD'
                 ],
                 borderColor: '#ffffff',
-                borderWidth: 2
+                borderWidth: 2,
+                hoverBorderWidth: 3
             }]
         },
         options: {
@@ -529,11 +607,49 @@ document.addEventListener('DOMContentLoaded', function() {
             plugins: {
                 legend: { 
                     position: 'bottom',
-                    labels: { color: '#ffffff' }
+                    labels: { 
+                        color: '#ffffff',
+                        usePointStyle: true,
+                        padding: 15
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                            return context.label + ': ' + context.parsed.toFixed(2) + ' kWh (' + percentage + '%)';
+                        }
+                    }
                 }
+            },
+            // Dynamic positioning - each month gets its angle based on data
+            rotation: -90, // Start from top
+            circumference: 360, // Full circle
+            cutout: '0%', // Full pie chart (no donut)
+            animation: {
+                animateRotate: true,
+                animateScale: true,
+                duration: 2000
             }
         }
     });
+    
+    // Function to update charts when new data arrives (for future real-time updates)
+    window.updateAnalyticsCharts = function(newWaterData, newPowerData, newRuntimeData) {
+        // Update water usage chart
+        waterUsageCtx.chart.data.datasets[0].data = padDataArray([...newWaterData]);
+        waterUsageCtx.chart.update('active');
+        
+        // Update power/runtime chart
+        powerRuntimeCtx.chart.data.datasets[0].data = padDataArray([...newPowerData]);
+        powerRuntimeCtx.chart.data.datasets[1].data = padDataArray([...newRuntimeData]);
+        powerRuntimeCtx.chart.update('active');
+        
+        // Update power pie chart
+        powerPieCtx.chart.data.datasets[0].data = padDataArray([...newPowerData]);
+        powerPieCtx.chart.update('active');
+    };
 });
 </script>
 {% endblock %}
