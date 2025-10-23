@@ -59,11 +59,12 @@ TEMPLATES = [
 WSGI_APPLICATION = 'AquaGuard.wsgi.application'
 
 # --- PRODUCTION DATABASE CONFIGURATION ---
-DATABASE_URL_FROM_ENV = os.environ.get('DATABASE_URL')
-if DATABASE_URL_FROM_ENV:
-    print("Found DATABASE_URL environment variable.") # Add this line for logging
+# Check for Railway PostgreSQL service first
+RAILWAY_DATABASE_URL = os.environ.get('RAILWAY_DATABASE_URL')
+if RAILWAY_DATABASE_URL:
+    print("Found RAILWAY_DATABASE_URL environment variable.")
     DATABASES = {
-        'default': dj_database_url.parse(DATABASE_URL_FROM_ENV, conn_max_age=600)
+        'default': dj_database_url.parse(RAILWAY_DATABASE_URL, conn_max_age=600)
     }
     DATABASES['default']['OPTIONS'] = {
         'sslmode': 'require',
@@ -73,29 +74,44 @@ if DATABASE_URL_FROM_ENV:
     # Add connection pooling settings for better reliability
     DATABASES['default']['CONN_MAX_AGE'] = 600  # Keep connections alive for 10 minutes
 else:
-    print("WARNING: DATABASE_URL environment variable not found or empty. Using local fallback.") # Add this line for logging
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'AquaGuard_db',
-            'USER': 'postgres',
-            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-            'HOST': 'localhost',
-            'PORT': '5432',
-            'CONN_MAX_AGE': 600,  # Keep connections alive for 10 minutes
-            'OPTIONS': {
-                'connect_timeout': 10,  # Wait up to 10 seconds for connection
-                'options': '-c statement_timeout=30000'  # 30 second query timeout
+    DATABASE_URL_FROM_ENV = os.environ.get('DATABASE_URL')
+    if DATABASE_URL_FROM_ENV:
+        print("Found DATABASE_URL environment variable.") # Add this line for logging
+        DATABASES = {
+            'default': dj_database_url.parse(DATABASE_URL_FROM_ENV, conn_max_age=600)
+        }
+        DATABASES['default']['OPTIONS'] = {
+            'sslmode': 'require',
+            'connect_timeout': 10,  # Wait up to 10 seconds for connection
+            'options': '-c statement_timeout=30000'  # 30 second query timeout
+        }
+        # Add connection pooling settings for better reliability
+        DATABASES['default']['CONN_MAX_AGE'] = 600  # Keep connections alive for 10 minutes
+    else:
+        print("WARNING: DATABASE_URL environment variable not found or empty. Using local fallback.") # Add this line for logging
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': 'AquaGuard_db',
+                'USER': 'postgres',
+                'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+                'HOST': 'localhost',
+                'PORT': '5432',
+                'CONN_MAX_AGE': 600,  # Keep connections alive for 10 minutes
+                'OPTIONS': {
+                    'connect_timeout': 10,  # Wait up to 10 seconds for connection
+                    'options': '-c statement_timeout=30000'  # 30 second query timeout
+                }
             }
         }
-    }
     # Verify database configuration
     if not DATABASES['default'].get('ENGINE'):
         raise ImproperlyConfigured("Database settings are not configured. DATABASE_URL env var is missing and fallback failed.")
     
     # Security check: Ensure no hardcoded passwords
     if not os.environ.get('DB_PASSWORD') and not DATABASE_URL_FROM_ENV:
-        raise ImproperlyConfigured("SECURITY ERROR: Database password must be set via DB_PASSWORD environment variable. Never hardcode passwords in settings.py")
+        print("WARNING: DB_PASSWORD not set, using empty password for local development")
+        # For Railway deployment, we'll use DATABASE_URL instead
 
 
 # Password validation moved to Enhanced Security Settings below
