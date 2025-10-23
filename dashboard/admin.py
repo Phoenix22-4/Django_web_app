@@ -3,14 +3,14 @@ from django.contrib import admin
 from django.urls import path
 from django.shortcuts import render
 from django.db.models import Sum, Count
-from .models import Device, WaterReading, Profile, AutomationRule, DailyWaterUsage
+from .models import Device, WaterReading, Profile, AutomationRule, DailyWaterUsage, FCMToken
 import csv
 from django.http import HttpResponse
 import datetime
 import json
 
 class DeviceAdmin(admin.ModelAdmin):
-    list_display = ('device_id', 'name', 'owner', 'created_at', 'pump_present', 'tank_capacity_liters')
+    list_display = ('device_id', 'name', 'owner', 'created_at', 'pump_present')
     readonly_fields = ('device_id', 'created_at', 'tank_1_reading_id', 'tank_2_reading_id', 'tank_3_reading_id', 'tank_4_reading_id', 'solenoid_1_reading_id', 'solenoid_2_reading_id', 'solenoid_3_reading_id', 'solenoid_4_reading_id')
     search_fields = ('device_id', 'name', 'owner__username')
     list_filter = ('owner', 'pump_present')
@@ -19,7 +19,7 @@ class DeviceAdmin(admin.ModelAdmin):
             'fields': ('device_id', 'name', 'owner')
         }),
         ('Hardware Configuration', {
-            'fields': ('tank_capacity_liters', 'pump_present')
+            'fields': ('pump_present',)
         }),
         ('System Parameters', {
             'fields': ('overload_current_amps', 'dry_run_current_amps'),
@@ -32,7 +32,7 @@ class DeviceAdmin(admin.ModelAdmin):
                 ('tank_3_reading_id', 'tank_3_name', 'tank_3_is_source', 'tank_3_capacity_liters'),
                 ('tank_4_reading_id', 'tank_4_name', 'tank_4_is_source', 'tank_4_capacity_liters'),
             ),
-            'description': 'Reading IDs are auto-detected from IoT data. Enter tank names only for tanks with reading IDs. Check "Is Source" for the water supply tank. Set capacity in liters for each tank.'
+            'description': 'Reading IDs are auto-detected from IoT data. Enter tank names only for tanks with reading IDs. Check "Is Source" for the water supply tank. Tank capacities are written on the physical tanks.'
         }),
         ('Solenoid Valve Configuration (Auto-detected from IoT data)', {
             'fields': (
@@ -343,6 +343,22 @@ class DailyWaterUsageAdmin(admin.ModelAdmin):
         return redirect('admin:analytics_dashboard')
 
 
+class FCMTokenAdmin(admin.ModelAdmin):
+    list_display = ('user', 'device_type', 'is_active', 'created_at', 'last_used', 'token_preview')
+    list_filter = ('is_active', 'device_type', 'created_at')
+    search_fields = ('user__username', 'token', 'user_agent')
+    readonly_fields = ('token', 'created_at', 'last_used')
+    list_editable = ('is_active',)
+    
+    def token_preview(self, obj):
+        return f"{obj.token[:20]}..." if obj.token else "No token"
+    token_preview.short_description = "Token Preview"
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user')
+
+
 admin.site.register(Device, DeviceAdmin)
 admin.site.register(WaterReading, WaterReadingAdmin)
 admin.site.register(DailyWaterUsage, DailyWaterUsageAdmin)
+admin.site.register(FCMToken, FCMTokenAdmin)
