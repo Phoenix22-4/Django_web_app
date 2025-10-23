@@ -139,7 +139,7 @@ const firebaseConfig = {
 ### **Your Current VAPID Public Key (ALREADY SET ✅):**
 ```javascript
 // In push_handler.js
-const vapidKey = 'BMLnBIiNgOMINbDOGA24NWnufsGSMP9GF-Z12V8dbEXA8NwBy-UFPOrF8kDpGdVjeIQsMRE-oxf-y60W1p4DEcY';
+const vapidKey = 'YOUR_VAPID_PUBLIC_KEY_HERE';
 ```
 
 ---
