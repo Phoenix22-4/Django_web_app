@@ -6,20 +6,20 @@
 {% block content %}
 <meta name="device-id" id="device-id" content="{{ device.device_id }}">
 <script>
-    // Make device_id available to JavaScript
-    window.deviceId = "{{ device.device_id }}";
+    // Make device_id available to JavaScript (properly escaped)
+    window.deviceId = "{{ device.device_id|escapejs }}";
     // Also set it on body for device_control.js
-    document.body.dataset.deviceId = "{{ device.device_id }}";
-    // Make solenoid names available to JavaScript
+    document.body.dataset.deviceId = "{{ device.device_id|escapejs }}";
+    // Make solenoid names available to JavaScript (properly escaped)
     window.solenoidNames = JSON.parse('{{ device.get_solenoid_names|default:"[]"|escapejs }}');
-    // Make tank configuration available to JavaScript
+    // Make tank configuration available to JavaScript (properly escaped)
     window.tankConfig = JSON.parse('{{ device.get_tank_config_json|default:"{}"|escapejs }}');
 </script>
 
 <!-- Clean Header with Connection Status in Center -->
 <div class="dashboard-header">
     <div class="header-left">
-        <h1 class="dashboard-title">AquaSavvy: {{ device.name }}</h1>
+        <h1 class="dashboard-title">AquaSavvy: {{ device.name|escape }}</h1>
     </div>
     <div class="header-center">
         <div class="connection-status">
@@ -36,7 +36,7 @@
         </div>
     </div>
     <div class="header-right">
-        <span class="welcome-text">Welcome, {{ user.username }}!</span>
+        <span class="welcome-text">Welcome, {{ user.username|escape }}!</span>
         <div class="header-actions">
             <a href="{% url 'device_list' %}" class="action-btn" title="Back to Devices"><i class="fas fa-arrow-left"></i></a>
             <a href="{% static 'docs/index.html' %}" class="action-btn" title="Docs"><i class="fas fa-book"></i></a>

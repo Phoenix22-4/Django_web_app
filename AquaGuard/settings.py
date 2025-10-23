@@ -29,7 +29,10 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'dashboard.middleware.DatabaseHealthCheckMiddleware',  # Add database health check
+    'dashboard.middleware.DatabaseHealthCheckMiddleware',  # Database health check
+    'dashboard.enhanced_security.EnhancedSecurityMiddleware',  # Enhanced security
+    'dashboard.enhanced_security.SecurityAuditMiddleware',  # Security audit logging
+    'dashboard.enhanced_security.CSRFProtectionMiddleware',  # Enhanced CSRF protection
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -76,7 +79,7 @@ else:
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': 'AquaGuard_db',
             'USER': 'postgres',
-            'PASSWORD': 'mwamboa22#',
+            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
             'HOST': 'localhost',
             'PORT': '5432',
             'CONN_MAX_AGE': 600,  # Keep connections alive for 10 minutes
@@ -89,16 +92,13 @@ else:
     # Verify database configuration
     if not DATABASES['default'].get('ENGINE'):
         raise ImproperlyConfigured("Database settings are not configured. DATABASE_URL env var is missing and fallback failed.")
+    
+    # Security check: Ensure no hardcoded passwords
+    if not os.environ.get('DB_PASSWORD') and not DATABASE_URL_FROM_ENV:
+        raise ImproperlyConfigured("SECURITY ERROR: Database password must be set via DB_PASSWORD environment variable. Never hardcode passwords in settings.py")
 
 
-# Password validation
-# ... (Keep AUTH_PASSWORD_VALIDATORS as they were) ...
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
-]
+# Password validation moved to Enhanced Security Settings below
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'
@@ -160,3 +160,69 @@ VAPID_PUBLIC_KEY = 'BMLnBIiNgOMINbDOGA24NWnufsGSMP9GF-Z12V8dbEXA8NwBy-UFPOrF8kDp
 
 # Site ID for sitemaps (required for Django sitemaps)
 SITE_ID = 1
+
+# --- ENHANCED SECURITY SETTINGS ---
+# Custom admin URL for security
+ADMIN_URL = os.environ.get('ADMIN_URL', 'AquaSavvy-Control/')
+
+# Enhanced password validation
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 12,  # Increased minimum length
+        }
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'OPTIONS': {
+            'user_attributes': ('username', 'email', 'first_name', 'last_name'),
+            'max_similarity': 0.7,
+        }
+    },
+]
+
+# Enhanced session security
+SESSION_COOKIE_AGE = 1800  # 30 minutes
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SAMESITE = 'Strict'
+
+# Enhanced CSRF security
+CSRF_COOKIE_HTTPONLY = False  # Must be False for AJAX
+CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SAMESITE = 'Strict'
+CSRF_USE_SESSIONS = True
+CSRF_FAILURE_VIEW = 'dashboard.views.csrf_failure_view'
+
+# Enhanced security headers
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIF = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
+# Production security settings
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+# Rate limiting settings
+RATE_LIMIT_ENABLED = True
+RATE_LIMIT_REQUESTS_PER_MINUTE = 60
+RATE_LIMIT_LOGIN_ATTEMPTS = 5
+RATE_LIMIT_LOGIN_WINDOW = 300  # 5 minutes
