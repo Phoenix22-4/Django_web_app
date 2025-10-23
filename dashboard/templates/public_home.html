@@ -125,8 +125,8 @@
                     <i class="fas fa-sign-in-alt"></i>
                 </a>
             </div>
-            <div class="md:hidden">
-                <select id="mobile-nav" class="bg-gray-200 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-accent focus:border-accent block w-full p-2.5">
+            <div class="md:hidden flex items-center space-x-2">
+                <select id="mobile-nav" class="bg-gray-200 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-accent focus:border-accent block p-2.5">
                     <option value="#overview">Overview</option>
                     <option value="#architecture">Architecture</option>
                     <option value="#details">The Solution</option>
@@ -134,8 +134,11 @@
                     <option value="#ai-analysis">AI Insight</option>
                     <option value="#production">Roadmap</option>
                     <option value="#about">About Us</option>
-                    <option value="{% url 'login' %}">🔐 Login</option>
                 </select>
+                <a href="{% url 'login' %}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center space-x-1">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Login</span>
+                </a>
             </div>
         </nav>
     </header>
