@@ -123,7 +123,7 @@
                 </a>
             </div>
             <div class="md:hidden">
-                <select id="mobile-nav" class="bg-gray-200 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-accent focus:border-accent block w-full p-2.5 mb-3">
+                <select id="mobile-nav" class="bg-gray-200 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-accent focus:border-accent block w-full p-2.5">
                     <option value="#overview">Overview</option>
                     <option value="#architecture">Architecture</option>
                     <option value="#details">The Solution</option>
@@ -131,10 +131,8 @@
                     <option value="#ai-analysis">AI Insight</option>
                     <option value="#production">Roadmap</option>
                     <option value="#about">About Us</option>
+                    <option value="{% url 'login' %}">🔐 Login</option>
                 </select>
-                <a href="{% url 'login' %}" class="w-full bg-accent text-white font-medium py-2 px-4 rounded-lg transition-colors text-center block">
-                    <i class="fas fa-sign-in-alt mr-2"></i>Login
-                </a>
             </div>
         </nav>
     </header>

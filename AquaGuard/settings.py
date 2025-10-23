@@ -7,7 +7,7 @@ from django.core.exceptions import ImproperlyConfigured
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ... (Keep SECRET_KEY, DEBUG, ALLOWED_HOSTS, CSRF_TRUSTED_ORIGINS as they were) ...
-SECRET_KEY = os.environ.get('SECRET_KEY', 'n(7543fvi8l6$ymglo2+*9ge-dso$py5bi%zh89anhhm#0wa^i')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-fallback-for-local-dev')
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 ALLOWED_HOSTS = [os.environ.get('RAILWAY_STATIC_URL', '.railway.app')]
 CSRF_TRUSTED_ORIGINS = ['https://' + os.environ.get('RAILWAY_STATIC_URL', '.railway.app')]
@@ -29,15 +29,11 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',  # Must come before CSRF
+    'dashboard.middleware.DatabaseHealthCheckMiddleware',  # Add database health check
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',  # Must come before our custom middleware
-    'dashboard.middleware.DatabaseHealthCheckMiddleware',  # Add database health check
-    'dashboard.security.ForceLogoutMiddleware',  # Force logout for maximum security
-    'dashboard.security.SecurityHeadersMiddleware',  # Security headers
-    'dashboard.security.RateLimitMiddleware',  # Rate limiting
-    'dashboard.security.AuditLogMiddleware',  # Security audit logging
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -53,7 +49,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'dashboard.context_processors.firebase_config',
             ],
         },
     },
@@ -69,11 +64,11 @@ if DATABASE_URL_FROM_ENV:
     }
     DATABASES['default']['OPTIONS'] = {
         'sslmode': 'require',
-        'connect_timeout': 30,  # Wait up to 30 seconds for connection
+        'connect_timeout': 10,  # Wait up to 10 seconds for connection
         'options': '-c statement_timeout=30000'  # 30 second query timeout
     }
     # Add connection pooling settings for better reliability
-    DATABASES['default']['CONN_MAX_AGE'] = 0  # Disable connection pooling for Railway
+    DATABASES['default']['CONN_MAX_AGE'] = 600  # Keep connections alive for 10 minutes
 else:
     print("WARNING: DATABASE_URL environment variable not found or empty. Using local fallback.") # Add this line for logging
     DATABASES = {
@@ -157,35 +152,6 @@ if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = 31536000  # 1 year
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-
-# Enhanced Security Settings
-SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
-SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
-
-# Session Security
-SESSION_COOKIE_AGE = 3600  # 1 hour
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = 'Lax'
-
-# CSRF Security
-CSRF_COOKIE_HTTPONLY = True
-CSRF_COOKIE_AGE = 3600  # 1 hour
-CSRF_USE_SESSIONS = False  # Use cookies instead of sessions for CSRF
-
-# Password Security - Using PBKDF2 as primary for deployment reliability
-PASSWORD_HASHERS = [
-    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
-    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
-    'django.contrib.auth.hashers.Argon2PasswordHasher',  # Requires argon2-cffi package
-    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
-]
-
-# Admin Security
-ADMIN_URL = os.environ.get('ADMIN_URL', 'AquaSavvy-Control/')  # Customizable admin URL
 
 # ... (Keep FIREBASE ADMIN SDK settings as they were) ...
 FIREBASE_CREDENTIALS = os.environ.get('FIREBASE_SERVICE_ACCOUNT_JSON', '')
