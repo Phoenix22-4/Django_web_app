@@ -226,6 +226,7 @@ class DailyWaterUsage(models.Model):
     total_user_water_liters = models.FloatField(default=0.0)
     total_stored_water_liters = models.FloatField(default=0.0)
     total_power_kwh = models.FloatField(default=0.0)
+    total_pump_runtime_hours = models.FloatField(default=0.0)
 
     class Meta:
         ordering = ['-date']
