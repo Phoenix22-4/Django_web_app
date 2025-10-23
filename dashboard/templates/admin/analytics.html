@@ -3,112 +3,234 @@
 
 {% block extrastyle %}
 <style>
+    /* Dark Theme Base */
+    body {
+        background-color: #212529 !important;
+        color: #ffffff !important;
+    }
+    
     .analytics-container {
+        background-color: #212529;
+        color: #ffffff;
         padding: 20px;
         max-width: 1400px;
         margin: 0 auto;
+        min-height: 100vh;
     }
     
+    /* Header Section */
     .analytics-header {
+        background-color: #2c3034;
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
     }
     
     .analytics-header h1 {
         margin: 0;
-        color: #417690;
+        color: #ffffff;
+        font-size: 1.5rem;
+        font-weight: 600;
     }
     
-    .download-btn {
-        padding: 10px 20px;
-        background: #417690;
-        color: white;
-        text-decoration: none;
-        border-radius: 5px;
+    .hamburger-menu {
+        color: #ffffff;
+        font-size: 1.2rem;
+        cursor: pointer;
+    }
+    
+    /* Two Column Grid Layout */
+    .analytics-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    
+    /* Card Styling */
+    .analytics-card {
+        background-color: #2c3034;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        border: 1px solid #3a3f44;
+    }
+    
+    .card-title {
+        color: #ffffff;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+    
+    /* KPI Display */
+    .kpi-display {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    
+    .kpi-value {
+        font-size: 2.5rem;
         font-weight: bold;
+        color: #ffffff;
+        margin-bottom: 5px;
     }
     
-    .download-btn:hover {
-        background: #2d5570;
+    .kpi-label {
+        color: #adb5bd;
+        font-size: 0.9rem;
+    }
+    
+    /* Chart Containers */
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin-bottom: 20px;
+    }
+    
+    .chart-container canvas {
+        border-radius: 8px;
+    }
+    
+    /* Table Styling */
+    .data-table {
+        background-color: #2c3034;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        border: 1px solid #3a3f44;
+        overflow-x: auto;
+    }
+    
+    .data-table h3 {
+        color: #ffffff;
+        margin-top: 0;
+        margin-bottom: 15px;
+        font-size: 1.1rem;
+    }
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: transparent;
+    }
+    
+    th, td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #3a3f44;
+        color: #ffffff;
+    }
+    
+    th {
+        background-color: #3a3f44;
+        font-weight: 600;
+        color: #ffffff;
+    }
+    
+    tr:hover {
+        background-color: #3a3f44;
+    }
+    
+    /* Download Section */
+    .download-section {
+        background-color: #2c3034;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        border: 1px solid #3a3f44;
+        margin-top: 20px;
+    }
+    
+    .download-section h2 {
+        color: #ffffff;
+        margin-top: 0;
+        margin-bottom: 20px;
+    }
+    
+    .download-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+    }
+    
+    .download-card {
+        background-color: #3a3f44;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 4px solid #42A5F5;
+    }
+    
+    .download-card h3 {
+        color: #42A5F5;
+        margin-top: 0;
+        margin-bottom: 10px;
+    }
+    
+    .download-card p {
+        color: #adb5bd;
+        margin: 5px 0;
+        font-size: 0.9rem;
     }
     
     .download-buttons {
         display: flex;
         gap: 10px;
         flex-wrap: wrap;
+        margin-top: 10px;
     }
     
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
-        margin-bottom: 30px;
+    .download-btn {
+        padding: 8px 12px;
+        background: #42A5F5;
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 0.8rem;
+        transition: background-color 0.3s;
     }
     
-    .stat-card {
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    .download-btn:hover {
+        background: #1976D2;
+        color: white;
     }
     
-    .stat-label {
-        color: #666;
-        font-size: 0.9rem;
-        margin-bottom: 5px;
+    .download-btn.power {
+        background: #FFA726;
     }
     
-    .stat-value {
-        font-size: 2rem;
-        font-weight: bold;
-        color: #417690;
+    .download-btn.power:hover {
+        background: #F57C00;
     }
     
-    .chart-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        margin-bottom: 30px;
+    .download-btn.comprehensive {
+        background: #4CAF50;
     }
     
-    .chart-card {
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    .download-btn.comprehensive:hover {
+        background: #388E3C;
     }
     
-    .data-table {
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        overflow-x: auto;
-    }
-    
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    
-    th, td {
-        padding: 12px;
-        text-align: left;
-        border-bottom: 1px solid #ddd;
-    }
-    
-    th {
-        background: #f5f5f5;
-        font-weight: bold;
-        color: #417690;
-    }
-    
+    /* Responsive Design */
     @media (max-width: 768px) {
-        .chart-grid {
+        .analytics-grid {
             grid-template-columns: 1fr;
         }
+        
+        .download-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    /* Chart.js Dark Theme Override */
+    .chartjs-render-monitor {
+        filter: brightness(0.9) contrast(1.1);
     }
 </style>
 {% endblock %}
@@ -119,210 +241,299 @@
 
 {% block content %}
 <div class="analytics-container">
+    <!-- Header -->
     <div class="analytics-header">
-        <h1>Water Usage Analytics (Last 30 Days)</h1>
-        <div class="download-buttons">
-            <a href="{% url 'admin:download_analytics_csv' %}" class="download-btn">📥 All Data (30 Days)</a>
-        </div>
+        <h1>Analytical Dashboard</h1>
+        <div class="hamburger-menu">☰</div>
     </div>
     
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-label">Total Water Usage</div>
-            <div class="stat-value">{{ total_usage_liters|default:0|floatformat:0 }}L</div>
+    <!-- Two Column Grid -->
+    <div class="analytics-grid">
+        <!-- LEFT COLUMN: Water Usage Analytics -->
+        <div class="analytics-card">
+            <div class="card-title">Water Usage Analytics</div>
+            
+            <!-- KPI Display -->
+            <div class="kpi-display">
+                <div class="kpi-value">{{ total_usage_liters|default:0|floatformat:0 }}L</div>
+                <div class="kpi-label">Total Water Usage (30 Days)</div>
+            </div>
+            
+            <!-- Water Usage Bar Chart -->
+            <div class="chart-container">
+                <canvas id="waterUsageBarChart"></canvas>
+            </div>
+            
+            <!-- Daily Water Usage Table -->
+            <div class="data-table">
+                <h3>Daily Water Usage & Totals (Current Month)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Device</th>
+                            <th>Usage (L)</th>
+                            <th>Stored (L)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in daily_data %}
+                        <tr>
+                            <td>{{ entry.date|date:"M d" }}</td>
+                            <td>{{ entry.device|default:"All" }}</td>
+                            <td>{{ entry.total_usage|default:0 }}</td>
+                            <td>{{ entry.total_stored|default:0 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" style="text-align: center; color: #adb5bd;">No data available</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <div class="stat-card">
-            <div class="stat-label">Total Power Consumed</div>
-            <div class="stat-value">{{ total_power_kwh|default:0|floatformat:2 }} kWh</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">Total Pump Runtime</div>
-            <div class="stat-value">{{ total_runtime_hours|default:0|floatformat:1 }}h</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">Active Devices</div>
-            <div class="stat-value">{{ active_devices|default:0 }}</div>
-        </div>
-    </div>
-    
-    <div class="chart-grid">
-        <div class="chart-card">
-            <h2 style="color: #417690; margin-top: 0;">Usage by Device</h2>
-            <canvas id="deviceUsageChart"></canvas>
-        </div>
-        <div class="chart-card">
-            <h2 style="color: #417690; margin-top: 0;">Power Consumption by Device</h2>
-            <canvas id="devicePowerChart"></canvas>
-        </div>
-    </div>
-    
-    <div class="chart-card" style="margin-bottom: 30px;">
-        <h2 style="color: #417690; margin-top: 0;">Daily Total Water Usage (Last 30 Days)</h2>
-        <canvas id="dailyUsageChart"></canvas>
-    </div>
-    
-    <div class="data-table">
-        <h2 style="color: #417690; margin-top: 0;">Daily Summary</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Total Usage (L)</th>
-                    <th>Total Stored (L)</th>
-                    <th>Power (kWh)</th>
-                    <th>Pump Runtime (h)</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for entry in daily_data %}
-                <tr>
-                    <td>{{ entry.date|date:"Y-m-d" }}</td>
-                    <td>{{ entry.total_usage|default:0 }}</td>
-                    <td>{{ entry.total_stored|default:0 }}</td>
-                    <td>{{ entry.total_power|default:0|floatformat:2 }}</td>
-                    <td>{{ entry.total_runtime|default:0|floatformat:1 }}</td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="5" style="text-align: center; color: #999;">No data available for the last 30 days.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    
-    <!-- Comprehensive Download Section -->
-    <div class="data-table" style="margin-top: 30px;">
-        <h2 style="color: #417690; margin-top: 0;">📥 Download Data Reports</h2>
-        <p style="color: #666; margin-bottom: 20px;">Download CSV reports for different time periods and data types:</p>
         
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+        <!-- RIGHT COLUMN: Power & Pump Runtimes Analytics -->
+        <div class="analytics-card">
+            <div class="card-title">Power & Pump Analytics</div>
+            
+            <!-- KPI Display -->
+            <div class="kpi-display">
+                <div class="kpi-value">{{ total_power_kwh|default:0|floatformat:1 }} kWh</div>
+                <div class="kpi-label">Total Power Consumed (30 Days)</div>
+            </div>
+            
+            <!-- Pump Runtimes & Power Usage Combined Chart -->
+            <div class="chart-container">
+                <canvas id="powerRuntimeChart"></canvas>
+            </div>
+            
+            <!-- Power Usage Pie Chart -->
+            <div class="chart-container">
+                <canvas id="powerUsagePieChart"></canvas>
+            </div>
+            
+            <!-- Power & Pump Runtime at Peak Times Table -->
+            <div class="data-table">
+                <h3>Power & Pump Runtime at Peak Times (Current Month)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Device</th>
+                            <th>Power (kWh)</th>
+                            <th>Runtime (h)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in peak_usage_data %}
+                        <tr>
+                            <td>{{ entry.time|default:"N/A" }}</td>
+                            <td>{{ entry.device|default:"All" }}</td>
+                            <td>{{ entry.power|default:0|floatformat:2 }}</td>
+                            <td>{{ entry.runtime|default:0|floatformat:1 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" style="text-align: center; color: #adb5bd;">No peak usage data available</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Daily Power Usage Table -->
+            <div class="data-table">
+                <h3>Daily Power Usage (Current Month)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Device</th>
+                            <th>Power (kWh)</th>
+                            <th>Runtime (h)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in daily_data %}
+                        <tr>
+                            <td>{{ entry.date|date:"M d" }}</td>
+                            <td>{{ entry.device|default:"All" }}</td>
+                            <td>{{ entry.total_power|default:0|floatformat:2 }}</td>
+                            <td>{{ entry.total_runtime|default:0|floatformat:1 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" style="text-align: center; color: #adb5bd;">No data available</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Download Section -->
+    <div class="download-section">
+        <h2>📥 Download Data Reports</h2>
+        <p style="color: #adb5bd; margin-bottom: 20px;">Download CSV reports for different time periods and data types:</p>
+        
+        <div class="download-grid">
             <!-- Water Usage Downloads -->
-            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #42A5F5;">
-                <h3 style="color: #42A5F5; margin-top: 0;">💧 Water Usage Data</h3>
-                <p style="margin: 5px 0; font-size: 0.9rem; color: #666;">Water usage and storage data</p>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <a href="{% url 'admin:download_csv_water_usage' %}?period=daily" class="download-btn" style="font-size: 0.8rem; padding: 8px 12px;">Daily (30 days)</a>
-                    <a href="{% url 'admin:download_csv_water_usage' %}?period=monthly" class="download-btn" style="font-size: 0.8rem; padding: 8px 12px;">Monthly (1 year)</a>
-                    <a href="{% url 'admin:download_csv_water_usage' %}?period=yearly" class="download-btn" style="font-size: 0.8rem; padding: 8px 12px;">Yearly (3 years)</a>
+            <div class="download-card">
+                <h3>💧 Water Usage Data</h3>
+                <p>Water usage and storage data</p>
+                <div class="download-buttons">
+                    <a href="{% url 'admin:download_csv_water_usage' %}?period=daily" class="download-btn">Daily (30 days)</a>
+                    <a href="{% url 'admin:download_csv_water_usage' %}?period=monthly" class="download-btn">Monthly (1 year)</a>
+                    <a href="{% url 'admin:download_csv_water_usage' %}?period=yearly" class="download-btn">Yearly (3 years)</a>
                 </div>
             </div>
             
             <!-- Power & Runtime Downloads -->
-            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #FFA726;">
-                <h3 style="color: #FFA726; margin-top: 0;">⚡ Power & Runtime Data</h3>
-                <p style="margin: 5px 0; font-size: 0.9rem; color: #666;">Power consumption and pump runtime data</p>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <a href="{% url 'admin:download_csv_power_runtime' %}?period=daily" class="download-btn" style="font-size: 0.8rem; padding: 8px 12px;">Daily (30 days)</a>
-                    <a href="{% url 'admin:download_csv_power_runtime' %}?period=monthly" class="download-btn" style="font-size: 0.8rem; padding: 8px 12px;">Monthly (1 year)</a>
-                    <a href="{% url 'admin:download_csv_power_runtime' %}?period=yearly" class="download-btn" style="font-size: 0.8rem; padding: 8px 12px;">Yearly (3 years)</a>
+            <div class="download-card">
+                <h3>⚡ Power & Runtime Data</h3>
+                <p>Power consumption and pump runtime data</p>
+                <div class="download-buttons">
+                    <a href="{% url 'admin:download_csv_power_runtime' %}?period=daily" class="download-btn power">Daily (30 days)</a>
+                    <a href="{% url 'admin:download_csv_power_runtime' %}?period=monthly" class="download-btn power">Monthly (1 year)</a>
+                    <a href="{% url 'admin:download_csv_power_runtime' %}?period=yearly" class="download-btn power">Yearly (3 years)</a>
                 </div>
             </div>
-        </div>
-        
-        <div style="margin-top: 20px; padding: 15px; background: #e8f5e8; border-radius: 8px; border-left: 4px solid #4CAF50;">
-            <h4 style="color: #4CAF50; margin-top: 0;">📊 Comprehensive Report</h4>
-            <p style="margin: 5px 0; font-size: 0.9rem; color: #666;">All data types combined (water usage, power, runtime)</p>
-            <a href="{% url 'admin:download_analytics_csv' %}" class="download-btn" style="background: #4CAF50;">📥 Download Complete Report (30 Days)</a>
+            
+            <!-- Comprehensive Report -->
+            <div class="download-card">
+                <h3>📊 Comprehensive Report</h3>
+                <p>All data types combined (water usage, power, runtime)</p>
+                <div class="download-buttons">
+                    <a href="{% url 'admin:download_analytics_csv' %}" class="download-btn comprehensive">📥 Complete Report (30 Days)</a>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Device Usage Pie Chart
-    const deviceLabels = JSON.parse('{{ device_labels|escapejs }}');
-    const deviceUsage = JSON.parse('{{ device_usage|escapejs }}');
+    // Chart.js default configuration for dark theme
+    Chart.defaults.color = '#ffffff';
+    Chart.defaults.borderColor = '#3a3f44';
+    Chart.defaults.backgroundColor = 'rgba(66, 165, 245, 0.1)';
     
-    if (deviceLabels && deviceLabels.length > 0) {
-        new Chart(document.getElementById('deviceUsageChart'), {
-            type: 'pie',
-            data: {
-                labels: deviceLabels,
-                datasets: [{
-                    data: deviceUsage,
-                    backgroundColor: [
-                        '#42A5F5', '#66BB6A', '#FFA726', '#EF5350',
-                        '#AB47BC', '#7E57C2', '#26A69A', '#FFCA28'
-                    ]
-                }]
+    // Water Usage Bar Chart (12 months)
+    const waterUsageCtx = document.getElementById('waterUsageBarChart').getContext('2d');
+    const waterUsageData = JSON.parse('{{ monthly_water_usage|escapejs }}');
+    const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    new Chart(waterUsageCtx, {
+        type: 'bar',
+        data: {
+            labels: monthLabels,
+            datasets: [{
+                label: 'Water Usage (L)',
+                data: waterUsageData,
+                backgroundColor: [
+                    '#42A5F5', '#66BB6A', '#FFA726', '#EF5350',
+                    '#AB47BC', '#7E57C2', '#26A69A', '#FFCA28',
+                    '#FF7043', '#8D6E63', '#78909C', '#9575CD'
+                ],
+                borderColor: '#ffffff',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
             },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'bottom' },
-                    title: { display: false }
-                }
-            }
-        });
-    } else {
-        document.getElementById('deviceUsageChart').innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No device usage data available</p>';
-    }
-    
-    // Device Power Pie Chart
-    const devicePower = JSON.parse('{{ device_power|escapejs }}');
-    
-    if (deviceLabels && deviceLabels.length > 0) {
-        new Chart(document.getElementById('devicePowerChart'), {
-            type: 'pie',
-            data: {
-                labels: deviceLabels,
-                datasets: [{
-                    data: devicePower,
-                    backgroundColor: [
-                        '#42A5F5', '#66BB6A', '#FFA726', '#EF5350',
-                        '#AB47BC', '#7E57C2', '#26A69A', '#FFCA28'
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'bottom' },
-                    title: { display: false }
-                }
-            }
-        });
-    } else {
-        document.getElementById('devicePowerChart').innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No device power data available</p>';
-    }
-    
-    // Daily Usage Line Chart
-    const dailyDates = JSON.parse('{{ daily_dates|escapejs }}');
-    const dailyUsage = JSON.parse('{{ daily_usage|escapejs }}');
-    
-    if (dailyDates && dailyDates.length > 0) {
-        new Chart(document.getElementById('dailyUsageChart'), {
-            type: 'line',
-            data: {
-                labels: dailyDates,
-                datasets: [{
-                    label: 'Total Water Usage (L)',
-                    data: dailyUsage,
-                    borderColor: '#2196F3',
-                    backgroundColor: 'rgba(33, 150, 243, 0.1)',
-                    fill: true,
-                    tension: 0.3
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: { display: true, text: 'Liters' }
-                    },
-                    x: {
-                        title: { display: true, text: 'Date' }
-                    }
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#3a3f44' },
+                    ticks: { color: '#ffffff' }
                 },
-                plugins: {
-                    legend: { display: false }
+                x: {
+                    grid: { color: '#3a3f44' },
+                    ticks: { color: '#ffffff' }
                 }
             }
-        });
-    } else {
-        document.getElementById('dailyUsageChart').innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No daily usage data available</p>';
-    }
+        }
+    });
+    
+    // Power & Runtime Combined Chart
+    const powerRuntimeCtx = document.getElementById('powerRuntimeChart').getContext('2d');
+    const powerData = JSON.parse('{{ monthly_power_usage|escapejs }}');
+    const runtimeData = JSON.parse('{{ monthly_runtime_usage|escapejs }}');
+    
+    new Chart(powerRuntimeCtx, {
+        type: 'bar',
+        data: {
+            labels: monthLabels,
+            datasets: [{
+                label: 'Power Usage (kWh)',
+                type: 'bar',
+                data: powerData,
+                backgroundColor: 'rgba(255, 167, 38, 0.8)',
+                borderColor: '#FFA726',
+                borderWidth: 1
+            }, {
+                label: 'Pump Runtime (h)',
+                type: 'line',
+                data: runtimeData,
+                borderColor: '#4CAF50',
+                backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { 
+                    display: true,
+                    labels: { color: '#ffffff' }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#3a3f44' },
+                    ticks: { color: '#ffffff' }
+                },
+                x: {
+                    grid: { color: '#3a3f44' },
+                    ticks: { color: '#ffffff' }
+                }
+            }
+        }
+    });
+    
+    // Power Usage Pie Chart (12 months)
+    const powerPieCtx = document.getElementById('powerUsagePieChart').getContext('2d');
+    
+    new Chart(powerPieCtx, {
+        type: 'pie',
+        data: {
+            labels: monthLabels,
+            datasets: [{
+                data: powerData,
+                backgroundColor: [
+                    '#42A5F5', '#66BB6A', '#FFA726', '#EF5350',
+                    '#AB47BC', '#7E57C2', '#26A69A', '#FFCA28',
+                    '#FF7043', '#8D6E63', '#78909C', '#9575CD'
+                ],
+                borderColor: '#ffffff',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { 
+                    position: 'bottom',
+                    labels: { color: '#ffffff' }
+                }
+            }
+        }
+    });
 });
 </script>
 {% endblock %}
-

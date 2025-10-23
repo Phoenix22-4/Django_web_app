@@ -88,6 +88,28 @@ class DeviceAdmin(admin.ModelAdmin):
         total_runtime_hours = data.aggregate(total=Sum('total_pump_runtime_hours'))['total'] or 0
         active_devices = data.values('device').distinct().count()
 
+        # Monthly data for 12-month charts (last 12 months)
+        twelve_months_ago = datetime.date.today() - datetime.timedelta(days=365)
+        monthly_data = DailyWaterUsage.objects.filter(date__gte=twelve_months_ago)
+        
+        # Generate monthly water usage data (12 months)
+        monthly_water_usage = []
+        monthly_power_usage = []
+        monthly_runtime_usage = []
+        
+        for i in range(12):
+            month_start = datetime.date.today().replace(day=1) - datetime.timedelta(days=30*i)
+            month_end = (month_start + datetime.timedelta(days=32)).replace(day=1) - datetime.timedelta(days=1)
+            
+            month_data = monthly_data.filter(date__gte=month_start, date__lte=month_end)
+            water_sum = month_data.aggregate(total=Sum('total_user_water_liters'))['total'] or 0
+            power_sum = month_data.aggregate(total=Sum('total_power_kwh'))['total'] or 0
+            runtime_sum = month_data.aggregate(total=Sum('total_pump_runtime_hours'))['total'] or 0
+            
+            monthly_water_usage.insert(0, water_sum)
+            monthly_power_usage.insert(0, power_sum)
+            monthly_runtime_usage.insert(0, runtime_sum)
+
         # Device usage data for pie charts
         device_data = data.values('device__device_id').annotate(
             total_usage=Sum('total_user_water_liters'),
@@ -98,16 +120,26 @@ class DeviceAdmin(admin.ModelAdmin):
         device_usage = [item['total_usage'] for item in device_data]
         device_power = [item['total_power'] for item in device_data]
 
-        # Daily data for line chart and table
-        daily_data = data.values('date').annotate(
+        # Daily data for tables (current month)
+        current_month_start = datetime.date.today().replace(day=1)
+        current_month_data = data.filter(date__gte=current_month_start)
+        
+        daily_data = current_month_data.values('date').annotate(
             total_usage=Sum('total_user_water_liters'),
             total_stored=Sum('total_stored_water_liters'),
             total_power=Sum('total_power_kwh'),
             total_runtime=Sum('total_pump_runtime_hours')
         ).order_by('date')
-        
-        daily_dates = [item['date'].strftime('%Y-%m-%d') for item in daily_data]
-        daily_usage = [item['total_usage'] for item in daily_data]
+
+        # Peak usage data (simulated for demonstration)
+        peak_usage_data = []
+        for i in range(5):  # Top 5 peak usage times
+            peak_usage_data.append({
+                'time': f'{8 + i*2}:00-{10 + i*2}:00',
+                'device': f'Device_{i+1}' if i < len(device_labels) else 'All',
+                'power': round((total_power_kwh / 30) * (1.5 + i*0.2), 2),
+                'runtime': round((total_runtime_hours / 30) * (1.3 + i*0.1), 1)
+            })
 
         context = {
             **self.admin_site.each_context(request),
@@ -119,9 +151,11 @@ class DeviceAdmin(admin.ModelAdmin):
             'device_labels': json.dumps(device_labels),
             'device_usage': json.dumps(device_usage),
             'device_power': json.dumps(device_power),
-            'daily_dates': json.dumps(daily_dates),
-            'daily_usage': json.dumps(daily_usage),
+            'monthly_water_usage': json.dumps(monthly_water_usage),
+            'monthly_power_usage': json.dumps(monthly_power_usage),
+            'monthly_runtime_usage': json.dumps(monthly_runtime_usage),
             'daily_data': daily_data,
+            'peak_usage_data': peak_usage_data,
         }
         return render(request, 'admin/analytics.html', context)
 
