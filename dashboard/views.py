@@ -7,6 +7,7 @@ from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.middleware.csrf import get_token
+from django.utils.decorators import method_decorator
 import json
 import google.generativeai as genai
 import os
