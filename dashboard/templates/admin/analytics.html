@@ -229,10 +229,10 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Device Usage Pie Chart
-    const deviceLabels = {{ device_labels|safe }};
-    const deviceUsage = {{ device_usage|safe }};
+    const deviceLabels = JSON.parse('{{ device_labels|escapejs }}');
+    const deviceUsage = JSON.parse('{{ device_usage|escapejs }}');
     
-    if (deviceLabels.length > 0) {
+    if (deviceLabels && deviceLabels.length > 0) {
         new Chart(document.getElementById('deviceUsageChart'), {
             type: 'pie',
             data: {
@@ -258,9 +258,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Device Power Pie Chart
-    const devicePower = {{ device_power|safe }};
+    const devicePower = JSON.parse('{{ device_power|escapejs }}');
     
-    if (deviceLabels.length > 0) {
+    if (deviceLabels && deviceLabels.length > 0) {
         new Chart(document.getElementById('devicePowerChart'), {
             type: 'pie',
             data: {
@@ -286,10 +286,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Daily Usage Line Chart
-    const dailyDates = {{ daily_dates|safe }};
-    const dailyUsage = {{ daily_usage|safe }};
+    const dailyDates = JSON.parse('{{ daily_dates|escapejs }}');
+    const dailyUsage = JSON.parse('{{ daily_usage|escapejs }}');
     
-    if (dailyDates.length > 0) {
+    if (dailyDates && dailyDates.length > 0) {
         new Chart(document.getElementById('dailyUsageChart'), {
             type: 'line',
             data: {
