@@ -54,4 +54,4 @@ Write-Host "- CSRF protection on all endpoints" -ForegroundColor White
 Write-Host "- Device ownership validation" -ForegroundColor White
 Write-Host "- Comprehensive security logging" -ForegroundColor White
 Write-Host ""
-Write-Host "📞 Support: contact:vision072025@gmail.com | WhatsApp: +254 702 715070" -ForegroundColor Yellow
+Write-Host "Support: contact@vision072025@gmail.com | WhatsApp: +254 702 715070" -ForegroundColor Yellow
