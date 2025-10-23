@@ -151,7 +151,7 @@ class DeviceAdmin(admin.ModelAdmin):
             total_power=Sum('total_power_kwh'),
             total_runtime=Sum('total_pump_runtime_hours')
         ).order_by('date')
-
+        
         # Peak usage data (simulated for demonstration)
         peak_usage_data = []
         for i in range(5):  # Top 5 peak usage times
