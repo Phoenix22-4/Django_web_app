@@ -44,9 +44,24 @@ This index provides a comprehensive overview of all security-related documentati
 - **Audience**: DevOps engineers, deployment teams
 - **Status**: ✅ Production Ready
 
+### 📊 Analytics & Dashboard Documentation
+
+#### 7. **ANALYTICS_DASHBOARD_DOCUMENTATION.md** - Complete Analytics Guide
+- **Purpose**: Comprehensive analytics dashboard documentation
+- **Scope**: Visual design, chart functionality, data processing, CSV exports
+- **Audience**: Developers, data analysts, system administrators
+- **Status**: ✅ Production Ready
+- **Features**:
+  - Dark theme interface with dynamic charts
+  - 12-month rolling data window
+  - Real-time chart updates
+  - Comprehensive CSV export functionality
+  - Security implementation details
+  - Performance optimization guidelines
+
 ### 🔧 Technical Security Implementation
 
-#### 7. **dashboard/security_decorators.py** - Security Decorators
+#### 8. **dashboard/security_decorators.py** - Security Decorators
 - **Purpose**: Custom security decorators for API protection
 - **Scope**: Authentication, authorization, rate limiting, input validation
 - **Audience**: Backend developers, security engineers
