@@ -211,16 +211,16 @@ body {
     margin-right: auto;
 }
 
-.md\\:grid-cols-3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.md\\:col-span-1 {
-    grid-column: span 1 / span 1;
+.md\\:grid-cols-5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .md\\:col-span-2 {
     grid-column: span 2 / span 2;
+}
+
+.md\\:col-span-3 {
+    grid-column: span 3 / span 3;
 }
 
 /* ====================
@@ -898,11 +898,15 @@ input:focus, select:focus {
         display: none;
     }
     
-    .md\\:grid-cols-3 {
+    .md\\:grid-cols-5 {
         grid-template-columns: 1fr;
     }
     
     .md\\:col-span-2 {
+        grid-column: span 1 / span 1;
+    }
+    
+    .md\\:col-span-3 {
         grid-column: span 1 / span 1;
     }
     
