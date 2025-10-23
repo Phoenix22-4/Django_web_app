@@ -257,13 +257,13 @@
             <div class="kpi-display">
                 <div class="kpi-value">{{ total_usage_liters|default:0|floatformat:0 }}L</div>
                 <div class="kpi-label">Total Water Usage (30 Days)</div>
-            </div>
+        </div>
             
              <!-- Water Usage Bar Chart -->
              <div class="chart-container">
                  <h3 style="color: #ffffff; text-align: center; margin-bottom: 15px; font-size: 1rem;">Monthly Water Usage Comparison (12 Months)</h3>
                  <canvas id="waterUsageBarChart"></canvas>
-             </div>
+        </div>
             
             <!-- Daily Water Usage Table -->
             <div class="data-table">
@@ -290,9 +290,9 @@
                         {% endfor %}
                     </tbody>
                 </table>
-            </div>
         </div>
-        
+    </div>
+    
         <!-- RIGHT COLUMN: Power & Pump Runtimes Analytics -->
         <div class="analytics-card">
             <div class="card-title">Power & Pump Analytics</div>
@@ -301,20 +301,20 @@
             <div class="kpi-display">
                 <div class="kpi-value">{{ total_power_kwh|default:0|floatformat:1 }} kWh</div>
                 <div class="kpi-label">Total Power Consumed (30 Days)</div>
-            </div>
+        </div>
             
              <!-- Pump Runtimes & Power Usage Combined Chart -->
              <div class="chart-container">
                  <h3 style="color: #ffffff; text-align: center; margin-bottom: 15px; font-size: 1rem;">Power & Pump Runtime Comparison (12 Months)</h3>
                  <canvas id="powerRuntimeChart"></canvas>
-             </div>
+        </div>
              
              <!-- Power Usage Pie Chart -->
              <div class="chart-container">
                  <h3 style="color: #ffffff; text-align: center; margin-bottom: 15px; font-size: 1rem;">Power Usage Distribution (12 Months)</h3>
                  <canvas id="powerUsagePieChart"></canvas>
-             </div>
-            
+    </div>
+    
             <!-- Power & Pump Runtime at Peak Times Table -->
             <div class="data-table">
                 <h3>Power & Pump Runtime at Peak Times (Current Month)</h3>
@@ -340,33 +340,33 @@
                         {% endfor %}
                     </tbody>
                 </table>
-            </div>
-            
+    </div>
+    
             <!-- Daily Power Usage Table -->
-            <div class="data-table">
+    <div class="data-table">
                 <h3>Daily Power Usage (Current Month)</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Date</th>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
                             <th>Device</th>
-                            <th>Power (kWh)</th>
+                    <th>Power (kWh)</th>
                             <th>Runtime (h)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for entry in daily_data %}
-                        <tr>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in daily_data %}
+                <tr>
                             <td>{{ entry.date|date:"M d" }}</td>
                             <td>{{ entry.device|default:"All" }}</td>
                             <td>{{ entry.total_power|default:0|floatformat:2 }}</td>
                             <td>{{ entry.total_runtime|default:0|floatformat:1 }}</td>
-                        </tr>
-                        {% empty %}
+                </tr>
+                {% empty %}
                         <tr><td colspan="4" style="text-align: center; color: #adb5bd;">No data available</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                {% endfor %}
+            </tbody>
+        </table>
             </div>
         </div>
     </div>
