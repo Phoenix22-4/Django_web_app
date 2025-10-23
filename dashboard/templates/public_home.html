@@ -31,7 +31,7 @@
 </style>
 <script>
         // These functions are for this page only
-        const apiKey = "AIzaSyDZ3lsOhZ4HRY9JmZlgulOjRrZ5KYZWdpk";
+        const apiKey = "{{ firebase_api_key|escapejs }}";
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
         
         async function fetchGeminiResponse(systemPrompt, userQuery) {
@@ -629,12 +629,12 @@
         import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js';
 
         const firebaseConfig = {
-            apiKey: "AIzaSyDZ3lsOhZ4HRY9JmZlgulOjRrZ5KYZWdpk",
-            authDomain: "aquasavvy-solution.firebaseapp.com",
-            projectId: "aquasavvy-solution",
-            storageBucket: "aquasavvy-solution.appspot.com",
-            messagingSenderId: "101190214775773908921",
-            appId: "1:101190214775773908921:web:aquasavvy-solution"
+            apiKey: "{{ firebase_api_key|escapejs }}",
+            authDomain: "{{ firebase_project_id|escapejs }}.firebaseapp.com",
+            projectId: "{{ firebase_project_id|escapejs }}",
+            storageBucket: "{{ firebase_project_id|escapejs }}.appspot.com",
+            messagingSenderId: "{{ firebase_messaging_sender_id|escapejs }}",
+            appId: "{{ firebase_app_id|escapejs }}"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -644,7 +644,7 @@
         if ('Notification' in window) {
             Notification.requestPermission().then((permission) => {
                 if (permission === 'granted') {
-                    getToken(messaging, { vapidKey: 'BMLnBIiNgOMINbDOGA24NWnufsGSMP9GF-Z12V8dbEXA8NwBy-UFPOrF8kDpGdVjeIQsMRE-oxf-y60W1p4DEcY' }).then((currentToken) => {
+                    getToken(messaging, { vapidKey: '{{ vapid_public_key|escapejs }}' }).then((currentToken) => {
                         if (currentToken) {
                             console.log('FCM Token:', currentToken);
                             // Send token to your Django backend
