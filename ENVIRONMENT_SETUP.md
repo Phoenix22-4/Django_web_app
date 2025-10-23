@@ -1,60 +1,69 @@
-# Environment Variables Setup
+# Environment Variables Setup Guide
 
-## Required Environment Variables
+## Required Environment Variables for Railway
 
-### For Production (Railway/Heroku):
-```bash
-SECRET_KEY=n(7543fvi8l6$ymglo2+*9ge-dso$py5bi%zh89anhhm#0wa^i
-DEBUG=False
-RAILWAY_STATIC_URL=your-app-name.railway.app
+### AWS IoT Credentials (For Device Control)
+```
+AWS_ACCESS_KEY_ID=your-aws-access-key-id
+AWS_SECRET_ACCESS_KEY=your-aws-secret-access-key
+AWS_REGION=us-east-1
+AWS_IOT_ENDPOINT=your-iot-endpoint.amazonaws.com
 ```
 
-### For Local Development:
-```bash
-SECRET_KEY=n(7543fvi8l6$ymglo2+*9ge-dso$py5bi%zh89anhhm#0wa^i
-DEBUG=True
+### Gemini AI (For Chat Assistant)
+```
+GEMINI_API_KEY=your-gemini-api-key
 ```
 
-### Optional Variables:
-```bash
-# Database (if using external database)
-DATABASE_URL=postgresql://username:password@localhost:5432/dbname
-
-# AWS IoT Core
-AWS_ACCESS_KEY_ID=your_aws_access_key
-AWS_SECRET_ACCESS_KEY=your_aws_secret_key
-AWS_IOT_ENDPOINT=your_iot_endpoint
-
-# Firebase Push Notifications
-FIREBASE_SERVER_KEY=your_firebase_server_key
-
-# Gemini AI
-GEMINI_API_KEY=your_gemini_api_key
+### Firebase (For Push Notifications - Optional)
+```
+FIREBASE_SERVICE_ACCOUNT_JSON={"type":"service_account","project_id":"your-project-id",...}
 ```
 
-## How to Set Environment Variables
+## How to Set Environment Variables in Railway
 
-### On Railway:
-1. Go to your Railway project dashboard
-2. Click on "Variables" tab
-3. Add the SECRET_KEY variable with the value above
-4. Set DEBUG=False for production
+1. Go to [railway.app](https://railway.app)
+2. Sign in and select your AquaGuard project
+3. Click on your Django service
+4. Go to the **"Variables"** tab
+5. Click **"New Variable"** for each environment variable
+6. Add the variable name and value
+7. Click **"Deploy"** to apply changes
 
-### On Heroku:
-```bash
-heroku config:set SECRET_KEY="n(7543fvi8l6$ymglo2+*9ge-dso$py5bi%zh89anhhm#0wa^i"
-heroku config:set DEBUG=False
-```
+## How to Get Firebase Service Account JSON
 
-### For Local Development:
-Create a `.env` file in your project root:
-```bash
-SECRET_KEY=n(7543fvi8l6$ymglo2+*9ge-dso$py5bi%zh89anhhm#0wa^i
-DEBUG=True
-```
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Select your project
+3. Go to **Project Settings** → **Service Accounts**
+4. Click **"Generate new private key"**
+5. Download the JSON file
+6. Copy the entire JSON content as the value for `FIREBASE_SERVICE_ACCOUNT_JSON`
 
-## Security Notes:
-- Never commit the actual SECRET_KEY to version control
-- Use different SECRET_KEYs for development and production
-- The SECRET_KEY above is a secure, randomly generated key
-- Keep your SECRET_KEY private and secure
+## What Works Without Credentials
+
+- ✅ Basic web application
+- ✅ User authentication
+- ✅ Dashboard interface
+- ✅ Static files and CSS
+- ✅ Database operations
+
+## What Needs Credentials
+
+- ⚠️ AWS IoT device communication
+- ⚠️ Gemini AI chat assistant
+- ⚠️ Firebase push notifications
+
+## Security Notes
+
+- **Never commit credentials to Git**
+- **Use Railway's environment variables** for secure storage
+- **Rotate credentials regularly**
+- **Use IAM roles with minimal permissions**
+
+## After Setup
+
+Once you add the environment variables and deploy:
+1. **AWS IoT** will work for device control
+2. **Gemini AI** will work for chat assistance
+3. **Firebase** will work for push notifications
+4. **All features** will be fully functional
