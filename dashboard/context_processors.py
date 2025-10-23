@@ -52,3 +52,14 @@ def security_context(request):
         'debug_mode': settings.DEBUG,
         'admin_url': getattr(settings, 'ADMIN_URL', 'admin/'),
     }
+
+
+def firebase_context(request):
+    """Provide Firebase configuration to templates securely"""
+    return {
+        'firebase_api_key': settings.FIREBASE_API_KEY,
+        'firebase_project_id': settings.FIREBASE_PROJECT_ID,
+        'firebase_messaging_sender_id': settings.FIREBASE_MESSAGING_SENDER_ID,
+        'firebase_app_id': settings.FIREBASE_APP_ID,
+        'vapid_public_key': settings.VAPID_PUBLIC_KEY,
+    }
