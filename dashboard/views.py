@@ -3,14 +3,19 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView, PasswordChangeView
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse, HttpResponseForbidden
+from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.views.decorators.http import require_http_methods
+from django.middleware.csrf import get_token
 import json
 import google.generativeai as genai
 import os
 from datetime import datetime
 from django.utils import timezone
+from .security_decorators import (
+    secure_api_view, validate_json_input, device_ownership_required,
+    rate_limit, sanitize_input
+)
 # Import with error handling for local development
 try:
     from .aws_iot_integration import aws_iot_manager
@@ -61,20 +66,41 @@ SUPPORT: contact:vision072025@gmail.com | WhatsApp: +254 702 715070
 Keep responses concise and actionable.
 """
 
-# Custom Login/Logout Views
+# CSRF Failure View
+def csrf_failure_view(request, reason=""):
+    """Custom CSRF failure view with security logging."""
+    logger.warning(f"CSRF failure for IP {get_client_ip(request)}: {reason}")
+    return HttpResponseForbidden(
+        '<h1>403 Forbidden</h1><p>CSRF verification failed. Please refresh the page and try again.</p>'
+    )
+
+def get_client_ip(request):
+    """Get client IP address from request headers."""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0].strip()
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+# Custom Login/Logout Views with Enhanced Security
 class CustomLoginView(LoginView):
     template_name = 'login.html'
     redirect_authenticated_user = True
     
+    @method_decorator(rate_limit(max_requests=5, window_seconds=300))  # 5 attempts per 5 minutes
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+    
     def form_valid(self, form):
         # Log successful login
-        print(f"🔐 User '{form.get_user().username}' logged in successfully")
+        print(f"🔐 User '{form.get_user().username}' logged in successfully from IP {get_client_ip(self.request)}")
         return super().form_valid(form)
     
     def form_invalid(self, form):
         # Log failed login attempt
         username = form.cleaned_data.get('username', 'unknown')
-        print(f"❌ Failed login attempt for user '{username}'")
+        print(f"❌ Failed login attempt for user '{username}' from IP {get_client_ip(self.request)}")
         return super().form_invalid(form)
 
 class CustomLogoutView(LogoutView):
@@ -172,13 +198,13 @@ def dashboard_view(request, device_id):
         'automation_rules': automation_rules
     })
 
-@csrf_exempt
-@require_http_methods(["POST"])
+@secure_api_view(require_auth=True, allowed_methods=['POST'], rate_limit_requests=20)
+@validate_json_input(required_fields=['message'], optional_fields={'stream': 'boolean'})
 def ai_chat_view(request):
     """Handle AI chat requests with streaming support"""
     try:
-        data = json.loads(request.body)
-        user_message = data.get('message', '')
+        data = request.validated_data
+        user_message = sanitize_input(data.get('message', ''))
         stream = data.get('stream', False)
         
         if not user_message:
@@ -245,28 +271,27 @@ def ai_chat_view(request):
             'error': str(e)
         })
 
-@csrf_exempt
-@require_http_methods(["POST"])
+@secure_api_view(require_auth=True, allowed_methods=['POST'], rate_limit_requests=10)
+@validate_json_input(required_fields=['device_id'], optional_fields={
+    'rule_id': 'integer', 'name': 'string', 'start_time': 'string', 
+    'end_time': 'string', 'monitor_tank_name': 'string', 
+    'min_level': 'integer', 'max_level': 'integer', 'enabled': 'boolean'
+})
+@device_ownership_required
 def save_rule_view(request):
     """Save automation rule"""
     try:
-        data = json.loads(request.body)
+        data = request.validated_data
+        device = request.device  # Already validated by device_ownership_required
         
-        device_id = data.get('device_id')
         rule_id = data.get('rule_id')  # For updates
-        name = data.get('name', 'My Rule')
+        name = sanitize_input(data.get('name', 'My Rule'))
         start_time = data.get('start_time')
         end_time = data.get('end_time')
-        monitor_tank_name = data.get('monitor_tank_name', 'Overhead')
+        monitor_tank_name = sanitize_input(data.get('monitor_tank_name', 'Overhead'))
         min_level = data.get('min_level', 20)
         max_level = data.get('max_level', 95)
         enabled = data.get('enabled', True)
-        
-        if not device_id:
-            return JsonResponse({'error': 'Device ID required'}, status=400)
-        
-        # Check if user owns the device
-        device = get_object_or_404(Device, device_id=device_id, owner=request.user)
         
         if rule_id:
             # Update existing rule
@@ -306,21 +331,16 @@ def save_rule_view(request):
             'status': 'error'
         }, status=500)
 
-@csrf_exempt
-@require_http_methods(["POST"])
+@secure_api_view(require_auth=True, allowed_methods=['POST'], rate_limit_requests=10)
+@validate_json_input(required_fields=['rule_id', 'device_id'])
+@device_ownership_required
 def delete_rule_view(request):
     """Delete automation rule"""
     try:
-        data = json.loads(request.body)
+        data = request.validated_data
+        device = request.device  # Already validated by device_ownership_required
         
         rule_id = data.get('rule_id')
-        device_id = data.get('device_id')
-        
-        if not rule_id or not device_id:
-            return JsonResponse({'error': 'Rule ID and Device ID required'}, status=400)
-        
-        # Check if user owns the device
-        device = get_object_or_404(Device, device_id=device_id, owner=request.user)
         
         # Delete the rule
         rule = get_object_or_404(AutomationRule, id=rule_id, device=device)
@@ -337,16 +357,13 @@ def delete_rule_view(request):
             'status': 'error'
         }, status=500)
 
-@csrf_exempt
-@require_http_methods(["POST"])
+@secure_api_view(require_auth=False, allowed_methods=['POST'], rate_limit_requests=100)
+@validate_json_input(required_fields=['device_id'])
 def aws_iot_data_endpoint(request):
     """Receive device data from AWS IoT"""
     try:
-        data = json.loads(request.body)
-        device_id = data.get('device_id')
-        
-        if not device_id:
-            return JsonResponse({'error': 'Device ID required'}, status=400)
+        data = request.validated_data
+        device_id = sanitize_input(data.get('device_id'))
         
         # Process the device data
         reading = aws_iot_manager.process_device_data(device_id, data)
@@ -369,23 +386,18 @@ def aws_iot_data_endpoint(request):
             'status': 'error'
         }, status=500)
 
-@csrf_exempt
-@require_http_methods(["POST"])
+@secure_api_view(require_auth=True, allowed_methods=['POST'], rate_limit_requests=20)
+@validate_json_input(required_fields=['device_id'], optional_fields={'pump_on': 'boolean'})
+@device_ownership_required
 def pump_control_view(request):
     """Manual pump control"""
     try:
-        data = json.loads(request.body)
-        device_id = data.get('device_id')
+        data = request.validated_data
+        device = request.device  # Already validated by device_ownership_required
         pump_on = data.get('pump_on', False)
         
-        if not device_id:
-            return JsonResponse({'error': 'Device ID required'}, status=400)
-        
-        # Check if user owns the device
-        device = get_object_or_404(Device, device_id=device_id, owner=request.user)
-        
         # Send command to device
-        success = aws_iot_manager.send_manual_command(device_id, 'pump_control', pump_on)
+        success = aws_iot_manager.send_manual_command(device.device_id, 'pump_control', pump_on)
         
         if success:
             return JsonResponse({
@@ -404,24 +416,19 @@ def pump_control_view(request):
             'status': 'error'
         }, status=500)
 
-@csrf_exempt
-@require_http_methods(["POST"])
+@secure_api_view(require_auth=True, allowed_methods=['POST'], rate_limit_requests=20)
+@validate_json_input(required_fields=['device_id', 'command'], optional_fields={'value': 'string'})
+@device_ownership_required
 def device_command_view(request):
     """Send general command to device"""
     try:
-        data = json.loads(request.body)
-        device_id = data.get('device_id')
-        command = data.get('command')
-        value = data.get('value')
-        
-        if not device_id or not command:
-            return JsonResponse({'error': 'Device ID and command required'}, status=400)
-        
-        # Check if user owns the device
-        device = get_object_or_404(Device, device_id=device_id, owner=request.user)
+        data = request.validated_data
+        device = request.device  # Already validated by device_ownership_required
+        command = sanitize_input(data.get('command'))
+        value = sanitize_input(data.get('value', ''))
         
         # Send command to device
-        success = aws_iot_manager.send_manual_command(device_id, command, value)
+        success = aws_iot_manager.send_manual_command(device.device_id, command, value)
         
         if success:
             return JsonResponse({
@@ -440,22 +447,19 @@ def device_command_view(request):
             'status': 'error'
         }, status=500)
 
-@csrf_exempt
-@require_http_methods(["POST"])
+@secure_api_view(require_auth=True, allowed_methods=['POST'], rate_limit_requests=20)
+@validate_json_input(required_fields=['device_id', 'solenoid_index'], optional_fields={
+    'solenoid_name': 'string', 'solenoid_on': 'boolean'
+})
+@device_ownership_required
 def solenoid_control_view(request):
     """Manual solenoid valve control"""
     try:
-        data = json.loads(request.body)
-        device_id = data.get('device_id')
+        data = request.validated_data
+        device = request.device  # Already validated by device_ownership_required
         solenoid_index = data.get('solenoid_index')
-        solenoid_name = data.get('solenoid_name')
+        solenoid_name = sanitize_input(data.get('solenoid_name', ''))
         solenoid_on = data.get('solenoid_on', False)
-        
-        if not device_id or solenoid_index is None:
-            return JsonResponse({'error': 'Device ID and solenoid index required'}, status=400)
-        
-        # Check if user owns the device
-        device = get_object_or_404(Device, device_id=device_id, owner=request.user)
         
         # Send command to device
         command_data = {
@@ -464,7 +468,7 @@ def solenoid_control_view(request):
             'solenoid_on': solenoid_on
         }
         
-        success = aws_iot_manager.send_manual_command(device_id, 'solenoid_control', command_data)
+        success = aws_iot_manager.send_manual_command(device.device_id, 'solenoid_control', command_data)
         
         if success:
             return JsonResponse({
@@ -562,13 +566,13 @@ def device_data_view(request, device_id):
             'status': 'error'
         }, status=500)
 
-@csrf_exempt
-@require_http_methods(["POST"])
+@secure_api_view(require_auth=True, allowed_methods=['POST'], rate_limit_requests=10)
+@validate_json_input(optional_fields={'fcm_token': 'string', 'enabled': 'boolean'})
 def register_fcm_token(request):
     """Register FCM token for push notifications"""
     try:
-        data = json.loads(request.body)
-        fcm_token = data.get('fcm_token')
+        data = request.validated_data
+        fcm_token = sanitize_input(data.get('fcm_token', ''))
         enabled = data.get('enabled', False)
         
         if not request.user.is_authenticated:
@@ -601,13 +605,10 @@ def register_fcm_token(request):
             'status': 'error'
         }, status=500)
 
-@csrf_exempt
-@require_http_methods(["POST"])
+@secure_api_view(require_auth=True, allowed_methods=['POST'], rate_limit_requests=5)
 def test_notification(request):
     """Send test notification"""
     try:
-        if not request.user.is_authenticated:
-            return JsonResponse({'error': 'Authentication required'}, status=401)
         
         # For browser notifications, we'll just return success
         # The actual notification will be shown by the JavaScript

@@ -54,7 +54,7 @@ urlpatterns = [
     path('sw.js', service_worker, name='service_worker'),
     path('firebase-messaging-sw.js', firebase_service_worker, name='firebase_service_worker'),
     path('admin/logout/', AdminLogoutView.as_view(), name='admin_logout'),
-    path('admin/', admin.site.urls),
+    path('AquaSavvy-Control/', admin.site.urls),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
     path('', include('dashboard.urls')),
 ]
