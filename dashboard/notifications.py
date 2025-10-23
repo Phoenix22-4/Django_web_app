@@ -75,13 +75,18 @@ def _send_fcm_notification(device: Device, title: str, body: str) -> None:
     
     try:
         # Get FCM tokens for this user from database
-        # You'll need to store FCM tokens in your database (see views.py)
-        from .models import FCMToken
+        from .models import FCMToken, Profile
         tokens = FCMToken.objects.filter(user=device.owner, is_active=True).values_list('token', flat=True)
         
+        # Get special user number for logging
+        try:
+            profile = device.owner.profile
+            special_number = getattr(profile, 'special_user_number', 'N/A')
+        except:
+            special_number = 'N/A'
+        
         if not tokens:
-            special_number = device.owner.get_profile().special_user_number if hasattr(device.owner, 'profile') else "N/A"
-            print(f"⚠️ No FCM tokens found for User #{special_number} ({device.owner.username})")
+            print(f"⚠️ No FCM tokens found for user {device.owner.username} (Special #: {special_number})")
             return
         
         # Create the message
@@ -103,9 +108,8 @@ def _send_fcm_notification(device: Device, title: str, body: str) -> None:
         # Send the message
         response = messaging.send_multicast(message)
         
-        # Log results
-        special_number = device.owner.get_profile().special_user_number if hasattr(device.owner, 'profile') else "N/A"
-        print(f"✅ Push notification sent to User #{special_number} ({device.owner.username}): {response.success_count} successful, {response.failure_count} failed")
+        # Log results with special user number
+        print(f"✅ Push notification sent to user {device.owner.username} (Special #: {special_number}): {response.success_count} successful, {response.failure_count} failed")
         
         # Handle failed tokens (cleanup invalid tokens)
         if response.failure_count > 0:

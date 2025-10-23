@@ -368,9 +368,6 @@ class ProfileAdmin(admin.ModelAdmin):
     list_filter = ('push_notifications_enabled', 'last_notification_sent')
     search_fields = ('user__username', 'special_user_number', 'phone_number')
     readonly_fields = ('special_user_number',)
-    
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related('user')
 
 
 admin.site.register(Device, DeviceAdmin)
