@@ -64,6 +64,16 @@ class DeviceAdmin(admin.ModelAdmin):
                 self.admin_site.admin_view(self.download_csv),
                 name='download_analytics_csv'
             ),
+            path(
+                'analytics/download_csv/water_usage/',
+                self.admin_site.admin_view(self.download_csv_water_usage),
+                name='download_csv_water_usage'
+            ),
+            path(
+                'analytics/download_csv/power_runtime/',
+                self.admin_site.admin_view(self.download_csv_power_runtime),
+                name='download_csv_power_runtime'
+            ),
         ]
         return custom_urls + urls
 
@@ -115,13 +125,14 @@ class DeviceAdmin(admin.ModelAdmin):
         }
         return render(request, 'admin/analytics.html', context)
 
-    # --- NEW VIEW for the CSV download ---
+    # --- COMPREHENSIVE CSV DOWNLOAD VIEWS ---
     def download_csv(self, request):
+        """Download comprehensive 30-day report"""
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="aquasavvy_30_day_report.csv"'
+        response['Content-Disposition'] = 'attachment; filename="aquasavvy_30_day_comprehensive_report.csv"'
         writer = csv.writer(response)
         
-        writer.writerow(['Device ID (Anonymized)', 'Date', 'Total User Water (Liters)', 'Total Stored Water (Liters)', 'Total Power (kWh)'])
+        writer.writerow(['Device ID', 'Date', 'Water Usage (L)', 'Water Stored (L)', 'Power (kWh)', 'Pump Runtime (h)'])
         
         thirty_days_ago = datetime.date.today() - datetime.timedelta(days=30)
         data = DailyWaterUsage.objects.filter(date__gte=thirty_days_ago).order_by('date', 'device')
@@ -132,7 +143,74 @@ class DeviceAdmin(admin.ModelAdmin):
                 row.date, 
                 row.total_user_water_liters, 
                 row.total_stored_water_liters,
-                row.total_power_kwh
+                row.total_power_kwh,
+                row.total_pump_runtime_hours
+            ])
+            
+        return response
+
+    def download_csv_water_usage(self, request):
+        """Download water usage data only"""
+        period = request.GET.get('period', 'daily')
+        response = HttpResponse(content_type='text/csv')
+        
+        if period == 'daily':
+            filename = "aquasavvy_water_usage_daily.csv"
+            days_ago = 30
+        elif period == 'monthly':
+            filename = "aquasavvy_water_usage_monthly.csv"
+            days_ago = 365
+        else:  # yearly
+            filename = "aquasavvy_water_usage_yearly.csv"
+            days_ago = 1095  # 3 years
+        
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        writer = csv.writer(response)
+        
+        writer.writerow(['Device ID', 'Date', 'Water Usage (L)', 'Water Stored (L)'])
+        
+        start_date = datetime.date.today() - datetime.timedelta(days=days_ago)
+        data = DailyWaterUsage.objects.filter(date__gte=start_date).order_by('date', 'device')
+        
+        for row in data:
+            writer.writerow([
+                row.device.device_id, 
+                row.date, 
+                row.total_user_water_liters, 
+                row.total_stored_water_liters
+            ])
+            
+        return response
+
+    def download_csv_power_runtime(self, request):
+        """Download power and pump runtime data"""
+        period = request.GET.get('period', 'daily')
+        response = HttpResponse(content_type='text/csv')
+        
+        if period == 'daily':
+            filename = "aquasavvy_power_runtime_daily.csv"
+            days_ago = 30
+        elif period == 'monthly':
+            filename = "aquasavvy_power_runtime_monthly.csv"
+            days_ago = 365
+        else:  # yearly
+            filename = "aquasavvy_power_runtime_yearly.csv"
+            days_ago = 1095  # 3 years
+        
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        writer = csv.writer(response)
+        
+        writer.writerow(['Device ID', 'Date', 'Power (kWh)', 'Pump Runtime (h)'])
+        
+        start_date = datetime.date.today() - datetime.timedelta(days=days_ago)
+        data = DailyWaterUsage.objects.filter(date__gte=start_date).order_by('date', 'device')
+        
+        for row in data:
+            writer.writerow([
+                row.device.device_id, 
+                row.date, 
+                row.total_power_kwh,
+                row.total_pump_runtime_hours
             ])
             
         return response

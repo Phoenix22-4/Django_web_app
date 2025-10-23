@@ -34,6 +34,12 @@
         background: #2d5570;
     }
     
+    .download-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -115,7 +121,9 @@
 <div class="analytics-container">
     <div class="analytics-header">
         <h1>Water Usage Analytics (Last 30 Days)</h1>
-        <a href="{% url 'admin:download_analytics_csv' %}" class="download-btn">📥 Download CSV</a>
+        <div class="download-buttons">
+            <a href="{% url 'admin:download_analytics_csv' %}" class="download-btn">📥 All Data (30 Days)</a>
+        </div>
     </div>
     
     <div class="stats-grid">
@@ -168,17 +176,53 @@
             <tbody>
                 {% for entry in daily_data %}
                 <tr>
-                    <td>{{ entry.day|date:"Y-m-d" }}</td>
-                    <td>{{ entry.total_usage }}</td>
-                    <td>{{ entry.total_stored }}</td>
-                    <td>{{ entry.total_power|floatformat:2 }}</td>
-                    <td>{{ entry.total_runtime|floatformat:1 }}</td>
+                    <td>{{ entry.date|date:"Y-m-d" }}</td>
+                    <td>{{ entry.total_usage|default:0 }}</td>
+                    <td>{{ entry.total_stored|default:0 }}</td>
+                    <td>{{ entry.total_power|default:0|floatformat:2 }}</td>
+                    <td>{{ entry.total_runtime|default:0|floatformat:1 }}</td>
                 </tr>
                 {% empty %}
                 <tr><td colspan="5" style="text-align: center; color: #999;">No data available for the last 30 days.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+    
+    <!-- Comprehensive Download Section -->
+    <div class="data-table" style="margin-top: 30px;">
+        <h2 style="color: #417690; margin-top: 0;">📥 Download Data Reports</h2>
+        <p style="color: #666; margin-bottom: 20px;">Download CSV reports for different time periods and data types:</p>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+            <!-- Water Usage Downloads -->
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #42A5F5;">
+                <h3 style="color: #42A5F5; margin-top: 0;">💧 Water Usage Data</h3>
+                <p style="margin: 5px 0; font-size: 0.9rem; color: #666;">Water usage and storage data</p>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <a href="{% url 'admin:download_csv_water_usage' %}?period=daily" class="download-btn" style="font-size: 0.8rem; padding: 8px 12px;">Daily (30 days)</a>
+                    <a href="{% url 'admin:download_csv_water_usage' %}?period=monthly" class="download-btn" style="font-size: 0.8rem; padding: 8px 12px;">Monthly (1 year)</a>
+                    <a href="{% url 'admin:download_csv_water_usage' %}?period=yearly" class="download-btn" style="font-size: 0.8rem; padding: 8px 12px;">Yearly (3 years)</a>
+                </div>
+            </div>
+            
+            <!-- Power & Runtime Downloads -->
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #FFA726;">
+                <h3 style="color: #FFA726; margin-top: 0;">⚡ Power & Runtime Data</h3>
+                <p style="margin: 5px 0; font-size: 0.9rem; color: #666;">Power consumption and pump runtime data</p>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <a href="{% url 'admin:download_csv_power_runtime' %}?period=daily" class="download-btn" style="font-size: 0.8rem; padding: 8px 12px;">Daily (30 days)</a>
+                    <a href="{% url 'admin:download_csv_power_runtime' %}?period=monthly" class="download-btn" style="font-size: 0.8rem; padding: 8px 12px;">Monthly (1 year)</a>
+                    <a href="{% url 'admin:download_csv_power_runtime' %}?period=yearly" class="download-btn" style="font-size: 0.8rem; padding: 8px 12px;">Yearly (3 years)</a>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 20px; padding: 15px; background: #e8f5e8; border-radius: 8px; border-left: 4px solid #4CAF50;">
+            <h4 style="color: #4CAF50; margin-top: 0;">📊 Comprehensive Report</h4>
+            <p style="margin: 5px 0; font-size: 0.9rem; color: #666;">All data types combined (water usage, power, runtime)</p>
+            <a href="{% url 'admin:download_analytics_csv' %}" class="download-btn" style="background: #4CAF50;">📥 Download Complete Report (30 Days)</a>
+        </div>
     </div>
 </div>
 
