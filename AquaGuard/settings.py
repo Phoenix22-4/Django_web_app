@@ -177,11 +177,11 @@ if not DEBUG:
 FIREBASE_CREDENTIALS = os.environ.get('FIREBASE_SERVICE_ACCOUNT_JSON', '')
 FIREBASE_CREDENTIALS_PATH = os.path.join(BASE_DIR, 'firebase-service-account.json')
 # Firebase Configuration - Use environment variables for security
-FIREBASE_API_KEY = os.environ.get('FIREBASE_API_KEY', 'AIzaSyDZ3lsOhZ4HRY9JmZlgulOjRrZ5KYZWdpk')
-FIREBASE_PROJECT_ID = os.environ.get('FIREBASE_PROJECT_ID', 'aquasavvy-solution')
-FIREBASE_MESSAGING_SENDER_ID = os.environ.get('FIREBASE_MESSAGING_SENDER_ID', '101190214775773908921')
-FIREBASE_APP_ID = os.environ.get('FIREBASE_APP_ID', '1:101190214775773908921:web:aquasavvy-solution')
-VAPID_PUBLIC_KEY = os.environ.get('VAPID_PUBLIC_KEY', 'BMLnBIiNgOMINbDOGA24NWnufsGSMP9GF-Z12V8dbEXA8NwBy-UFPOrF8kDpGdVjeIQsMRE-oxf-y60W1p4DEcY')
+FIREBASE_API_KEY = os.environ.get('FIREBASE_API_KEY', '')
+FIREBASE_PROJECT_ID = os.environ.get('FIREBASE_PROJECT_ID', '')
+FIREBASE_MESSAGING_SENDER_ID = os.environ.get('FIREBASE_MESSAGING_SENDER_ID', '')
+FIREBASE_APP_ID = os.environ.get('FIREBASE_APP_ID', '')
+VAPID_PUBLIC_KEY = os.environ.get('VAPID_PUBLIC_KEY', '')
 
 # Site ID for sitemaps (required for Django sitemaps)
 SITE_ID = 1
