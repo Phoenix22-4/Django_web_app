@@ -1,23 +1,54 @@
 # dashboard/context_processors.py
+"""
+Context processors for AquaGuard Django application.
+Provides global context variables for templates.
+"""
 from django.conf import settings
+from django.urls import reverse
+from django.utils import timezone
 
-def global_context(request):
-    """Global context processor for templates"""
+
+def canonical_url(request):
+    """
+    Context processor to provide canonical URL for SEO.
+    Ensures canonical link tag is present in all templates.
+    """
     return {
-        'DEBUG': settings.DEBUG,
-        'site_name': 'AquaSavvy',
-        'site_description': 'Smart Water Management System',
+        'canonical_url': request.build_absolute_uri(),
+        'current_year': timezone.now().year,
     }
 
-def firebase_config(request):
-    """Firebase configuration context processor"""
+
+def device_context(request):
+    """
+    Context processor to provide device-related context.
+    """
+    context = {}
+    
+    if request.user.is_authenticated:
+        # Get user's primary device if available
+        try:
+            from .models import Device
+            user_device = request.user.device_set.first()
+            if user_device:
+                context.update({
+                    'user_device': user_device,
+                    'has_pump': user_device.pump_present,
+                    'device_tank_names': user_device.get_tank_names(),
+                    'device_solenoid_names': user_device.get_solenoid_names(),
+                })
+        except Exception as e:
+            print(f"Error getting device context: {e}")
+    
+    return context
+
+
+def security_context(request):
+    """
+    Context processor to provide security-related context.
+    """
     return {
-        'firebase_config': {
-            'api_key': getattr(settings, 'FIREBASE_API_KEY', ''),
-            'auth_domain': getattr(settings, 'FIREBASE_AUTH_DOMAIN', ''),
-            'project_id': getattr(settings, 'FIREBASE_PROJECT_ID', ''),
-            'storage_bucket': getattr(settings, 'FIREBASE_STORAGE_BUCKET', ''),
-            'messaging_sender_id': getattr(settings, 'FIREBASE_MESSAGING_SENDER_ID', ''),
-            'app_id': getattr(settings, 'FIREBASE_APP_ID', ''),
-        }
+        'is_secure': request.is_secure(),
+        'debug_mode': settings.DEBUG,
+        'admin_url': getattr(settings, 'ADMIN_URL', 'admin/'),
     }

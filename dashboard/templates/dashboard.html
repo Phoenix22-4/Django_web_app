@@ -69,12 +69,19 @@
                 <div>
                     <h3 class="text-xl text-center text-gray-800">Water Usage (Litres)</h3>
                     <canvas id="waterUsageChart"></canvas>
-        </div>
+                </div>
+                {% if has_pump %}
                 <div>
                     <h3 class="text-xl text-center text-gray-800">Pump Runtimes</h3>
                     <canvas id="pumpRuntimeChart"></canvas>
                 </div>
-    </div>
+                {% else %}
+                <div>
+                    <h3 class="text-xl text-center text-gray-800">Water Level Trends</h3>
+                    <canvas id="waterLevelChart"></canvas>
+                </div>
+                {% endif %}
+            </div>
 
             <!-- Timeslot Controls -->
             <div id="timeslot-controls" class="bg-gray-700 p-3 rounded-lg hidden">
@@ -96,9 +103,15 @@
             <div id="status-messages" class="bg-gray-100 p-4 rounded-lg text-center">
                 <h3 class="text-lg font-semibold mb-3 underline text-gray-800">System Status</h3>
                 <div id="safety-status-message" class="mb-2 text-red-600 text-lg font-bold hidden"></div>
+                {% if has_pump %}
                 <div id="mode-status-message" class="mb-2 text-gray-800">Mode: <span class="font-bold">Auto</span></div>
                 <div id="pump-status-message" class="mb-2 text-base text-gray-800">Pump: <span class="font-bold">...</span></div>
                 <div id="current-status-message" class="mb-3 text-base text-gray-800">Current: <span class="font-bold">0A</span></div>
+                {% else %}
+                <div id="monitoring-status-message" class="mb-2 text-gray-800">Status: <span class="font-bold">Monitoring</span></div>
+                <div id="level-status-message" class="mb-2 text-base text-gray-800">Levels: <span class="font-bold">Active</span></div>
+                <div id="connection-status-message" class="mb-3 text-base text-gray-800">Connection: <span class="font-bold">Online</span></div>
+                {% endif %}
                 <div id="tank-status-messages" class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                     <!-- Tank status messages will be dynamically created here -->
                 </div>
@@ -124,6 +137,7 @@
             <h2 class="text-2xl font-semibold mb-6 text-gray-800">Live Tank Status</h2>
             <div id="tanks-wrapper" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-6 mb-8"></div>
             <div id="tanksContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-6 mb-8 hidden"></div>
+            {% if has_pump %}
             <div class="flex flex-col items-center space-y-4">
                 <h3 class="text-xl text-gray-800">Main Pump (Fills Secondary Tanks)</h3>
                 <svg id="pump-svg" class="pump-svg" width="100" height="100" viewBox="0 0 100 100">
@@ -144,6 +158,18 @@
                     </button>
                 </div>
             </div>
+            {% else %}
+            <div class="flex flex-col items-center space-y-4">
+                <h3 class="text-xl text-gray-800">Monitoring Station</h3>
+                <div class="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-eye text-blue-600 text-3xl"></i>
+                </div>
+                <div class="text-center">
+                    <div class="text-lg font-medium text-gray-800">Water Level Monitoring</div>
+                    <div class="text-sm text-gray-600">Real-time tank level tracking</div>
+                </div>
+            </div>
+            {% endif %}
             
             <!-- Solenoid Valves Section -->
             <div id="solenoid-valves-section" class="mt-8 hidden">
@@ -168,6 +194,7 @@
                     </div>
                 </div>
                 
+                {% if has_pump %}
                 <!-- Pump Usage Chart -->
                 <div class="bg-gray-50 p-4 rounded-lg">
                     <h3 class="text-lg font-semibold mb-3 text-center text-gray-700">Pump Usage (Hours)</h3>
@@ -175,6 +202,15 @@
                         <canvas id="pump-usage-chart"></canvas>
                     </div>
                 </div>
+                {% else %}
+                <!-- Water Level Trends Chart -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold mb-3 text-center text-gray-700">Water Level Trends (%)</h3>
+                    <div style="height: 200px;">
+                        <canvas id="water-level-trends-chart"></canvas>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>

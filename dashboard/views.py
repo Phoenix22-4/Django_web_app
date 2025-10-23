@@ -188,15 +188,27 @@ def dashboard_view(request, device_id):
     # Get automation rules
     automation_rules = device.rules.all()
     
+    # Get usage analytics data (filtered based on device type)
+    if device.pump_present:
+        # Full analytics for devices with pumps
+        usage_data = device.readings.all().order_by('-timestamp')[:100]
+    else:
+        # Filtered analytics for monitoring-only devices
+        usage_data = device.readings.all().order_by('-timestamp')[:100]
+    
     # Debug logging
     print(f"🔍 Dashboard view for device: {device_id}")
     print(f"📊 Latest reading: {last_reading}")
     print(f"📈 Total readings: {device.readings.count()}")
+    print(f"🔧 Device has pump: {device.pump_present}")
     
     return render(request, 'dashboard.html', {
         'device': device,
         'last_reading': last_reading,
-        'automation_rules': automation_rules
+        'automation_rules': automation_rules,
+        'usage_data': usage_data,
+        'has_pump': device.pump_present,
+        'is_monitoring_only': not device.pump_present,
     })
 
 @secure_api_view(require_auth=True, allowed_methods=['POST'], rate_limit_requests=20)
