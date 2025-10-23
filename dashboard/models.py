@@ -34,6 +34,7 @@ class FCMToken(models.Model):
     """Model to store FCM tokens for multiple devices per user"""
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fcm_tokens')
     token = models.TextField(help_text="Firebase Cloud Messaging token")
+    user_special_id = models.CharField(max_length=10, blank=True, help_text="User's special number for easy lookup")
     device_type = models.CharField(max_length=50, default='web', help_text="Device type (web, mobile, etc.)")
     user_agent = models.TextField(blank=True, null=True, help_text="User agent string")
     is_active = models.BooleanField(default=True, help_text="Whether this token is active")
@@ -44,13 +45,19 @@ class FCMToken(models.Model):
         unique_together = ('user', 'token')
         ordering = ['-last_used']
 
+    def save(self, *args, **kwargs):
+        # Auto-populate user_special_id from user's profile
+        if not self.user_special_id:
+            try:
+                self.user_special_id = self.user.profile.special_user_number
+            except:
+                self.user_special_id = "N/A"
+        super().save(*args, **kwargs)
+
     @property
     def special_user_number(self):
         """Get the user's special number for easy identification"""
-        try:
-            return self.user.profile.special_user_number
-        except:
-            return "N/A"
+        return self.user_special_id or "N/A"
 
     def __str__(self):
         return f'{self.user.username} (#{self.special_user_number}) - {self.device_type} ({self.token[:20]}...)'
