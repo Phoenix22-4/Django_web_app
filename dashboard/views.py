@@ -631,12 +631,16 @@ def save_fcm_token(request):
         profile.push_notifications_enabled = True
         profile.save()
         
-        print(f"📱 FCM token {'registered' if created else 'updated'} for user '{request.user.username}'")
+        # Get special user number for logging and response
+        special_number = profile.special_user_number or "Not Assigned"
+        
+        print(f"📱 FCM token {'registered' if created else 'updated'} for User #{special_number} ({request.user.username})")
         
         return JsonResponse({
             'status': 'success',
             'message': 'FCM token saved successfully',
-            'token_id': fcm_token_obj.id
+            'token_id': fcm_token_obj.id,
+            'special_user_number': special_number
         })
         
     except Exception as e:

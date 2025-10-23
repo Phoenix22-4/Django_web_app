@@ -8,13 +8,26 @@ from django.dispatch import receiver
 # --- NEW: A PROFILE FOR EACH USER TO STORE PUSH TOKENS ---
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    special_user_number = models.CharField(max_length=4, unique=True, blank=True, null=True, help_text="4-digit special user number for easy identification")
     phone_number = models.CharField(max_length=20, blank=True) # Kept from previous
     fcm_token = models.TextField(blank=True, null=True, help_text="Firebase Cloud Messaging token for push notifications")
     push_notifications_enabled = models.BooleanField(default=True, help_text="Enable/disable push notifications")
     last_notification_sent = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
-        return f'{self.user.username} Profile'
+        return f'{self.user.username} Profile (Special: {self.special_user_number or "Not Assigned"})'
+    
+    def generate_special_user_number(self):
+        """Generate a unique 4-digit special user number"""
+        import random
+        while True:
+            # Generate a 4-digit number
+            number = str(random.randint(1000, 9999))
+            # Check if it's already used
+            if not Profile.objects.filter(special_user_number=number).exists():
+                self.special_user_number = number
+                self.save()
+                return number
 
 
 class FCMToken(models.Model):
@@ -32,12 +45,24 @@ class FCMToken(models.Model):
         ordering = ['-last_used']
 
     def __str__(self):
-        return f'{self.user.username} - {self.device_type} ({self.token[:20]}...)'
+        special_number = self.user.get_profile().special_user_number if hasattr(self.user, 'profile') else "N/A"
+        return f'User #{special_number} ({self.user.username}) - {self.device_type} ({self.token[:20]}...)'
+    
+    @property
+    def special_user_number(self):
+        """Get the special user number for this token"""
+        try:
+            return self.user.get_profile().special_user_number
+        except:
+            return "N/A"
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        Profile.objects.get_or_create(user=instance)
+        profile, created_profile = Profile.objects.get_or_create(user=instance)
+        if created_profile and not profile.special_user_number:
+            # Generate special user number for new users
+            profile.generate_special_user_number()
 
 
 class Device(models.Model):

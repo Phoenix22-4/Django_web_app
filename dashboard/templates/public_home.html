@@ -647,7 +647,7 @@
                     getToken(messaging, { vapidKey: '{{ vapid_public_key|escapejs }}' }).then((currentToken) => {
                         if (currentToken) {
                             console.log('FCM Token:', currentToken);
-                            // Send token to your Django backend
+                            // Send token to your Django backend with automatic registration
                             fetch('/api/save_fcm_token/', {
                                 method: 'POST',
                                 headers: {
@@ -655,6 +655,17 @@
                                     'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
                                 },
                                 body: JSON.stringify({ token: currentToken })
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.status === 'success') {
+                                    console.log(`✅ FCM Token registered for User #${data.special_user_number}`);
+                                } else {
+                                    console.error('❌ FCM Token registration failed:', data.error);
+                                }
+                            })
+                            .catch(error => {
+                                console.error('❌ Error registering FCM Token:', error);
                             });
                         }
                     });

@@ -80,7 +80,8 @@ def _send_fcm_notification(device: Device, title: str, body: str) -> None:
         tokens = FCMToken.objects.filter(user=device.owner, is_active=True).values_list('token', flat=True)
         
         if not tokens:
-            print(f"⚠️ No FCM tokens found for user {device.owner.username}")
+            special_number = device.owner.get_profile().special_user_number if hasattr(device.owner, 'profile') else "N/A"
+            print(f"⚠️ No FCM tokens found for User #{special_number} ({device.owner.username})")
             return
         
         # Create the message
@@ -103,7 +104,8 @@ def _send_fcm_notification(device: Device, title: str, body: str) -> None:
         response = messaging.send_multicast(message)
         
         # Log results
-        print(f"✅ Push notification sent: {response.success_count} successful, {response.failure_count} failed")
+        special_number = device.owner.get_profile().special_user_number if hasattr(device.owner, 'profile') else "N/A"
+        print(f"✅ Push notification sent to User #{special_number} ({device.owner.username}): {response.success_count} successful, {response.failure_count} failed")
         
         # Handle failed tokens (cleanup invalid tokens)
         if response.failure_count > 0:

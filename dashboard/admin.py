@@ -344,15 +344,30 @@ class DailyWaterUsageAdmin(admin.ModelAdmin):
 
 
 class FCMTokenAdmin(admin.ModelAdmin):
-    list_display = ('user', 'device_type', 'is_active', 'created_at', 'last_used', 'token_preview')
+    list_display = ('special_user_number', 'user', 'device_type', 'is_active', 'created_at', 'last_used', 'token_preview')
     list_filter = ('is_active', 'device_type', 'created_at')
-    search_fields = ('user__username', 'token', 'user_agent')
-    readonly_fields = ('token', 'created_at', 'last_used')
+    search_fields = ('user__username', 'token', 'user_agent', 'user__profile__special_user_number')
+    readonly_fields = ('token', 'created_at', 'last_used', 'special_user_number')
     list_editable = ('is_active',)
+    
+    def special_user_number(self, obj):
+        return obj.special_user_number
+    special_user_number.short_description = "Special #"
+    special_user_number.admin_order_field = 'user__profile__special_user_number'
     
     def token_preview(self, obj):
         return f"{obj.token[:20]}..." if obj.token else "No token"
     token_preview.short_description = "Token Preview"
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user', 'user__profile')
+
+
+class ProfileAdmin(admin.ModelAdmin):
+    list_display = ('special_user_number', 'user', 'push_notifications_enabled', 'last_notification_sent')
+    list_filter = ('push_notifications_enabled', 'last_notification_sent')
+    search_fields = ('user__username', 'special_user_number', 'phone_number')
+    readonly_fields = ('special_user_number',)
     
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('user')
@@ -362,3 +377,4 @@ admin.site.register(Device, DeviceAdmin)
 admin.site.register(WaterReading, WaterReadingAdmin)
 admin.site.register(DailyWaterUsage, DailyWaterUsageAdmin)
 admin.site.register(FCMToken, FCMTokenAdmin)
+admin.site.register(Profile, ProfileAdmin)
