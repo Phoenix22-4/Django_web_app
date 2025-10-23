@@ -88,24 +88,45 @@ class DeviceAdmin(admin.ModelAdmin):
         total_runtime_hours = data.aggregate(total=Sum('total_pump_runtime_hours'))['total'] or 0
         active_devices = data.values('device').distinct().count()
 
-        # Monthly data for 12-month charts (last 12 months)
-        twelve_months_ago = datetime.date.today() - datetime.timedelta(days=365)
-        monthly_data = DailyWaterUsage.objects.filter(date__gte=twelve_months_ago)
-        
-        # Generate monthly water usage data (12 months)
+        # Monthly data for 12-month charts (rolling 12 months from current date)
         monthly_water_usage = []
         monthly_power_usage = []
         monthly_runtime_usage = []
         
+        # Generate data for the last 12 months (rolling window)
+        current_date = datetime.date.today()
+        
         for i in range(12):
-            month_start = datetime.date.today().replace(day=1) - datetime.timedelta(days=30*i)
-            month_end = (month_start + datetime.timedelta(days=32)).replace(day=1) - datetime.timedelta(days=1)
+            # Calculate month start and end dates
+            if i == 0:
+                # Current month
+                month_start = current_date.replace(day=1)
+                month_end = current_date
+            else:
+                # Previous months
+                month_date = current_date.replace(day=1) - datetime.timedelta(days=1)
+                for _ in range(i):
+                    month_date = month_date.replace(day=1) - datetime.timedelta(days=1)
+                
+                month_start = month_date.replace(day=1)
+                # Get last day of the month
+                if month_date.month == 12:
+                    next_month = month_date.replace(year=month_date.year + 1, month=1, day=1)
+                else:
+                    next_month = month_date.replace(month=month_date.month + 1, day=1)
+                month_end = next_month - datetime.timedelta(days=1)
             
-            month_data = monthly_data.filter(date__gte=month_start, date__lte=month_end)
+            # Get data for this month
+            month_data = DailyWaterUsage.objects.filter(
+                date__gte=month_start, 
+                date__lte=month_end
+            )
+            
             water_sum = month_data.aggregate(total=Sum('total_user_water_liters'))['total'] or 0
             power_sum = month_data.aggregate(total=Sum('total_power_kwh'))['total'] or 0
             runtime_sum = month_data.aggregate(total=Sum('total_pump_runtime_hours'))['total'] or 0
             
+            # Insert at beginning to maintain chronological order (oldest to newest)
             monthly_water_usage.insert(0, water_sum)
             monthly_power_usage.insert(0, power_sum)
             monthly_runtime_usage.insert(0, runtime_sum)
