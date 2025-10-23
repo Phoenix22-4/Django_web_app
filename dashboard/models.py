@@ -16,6 +16,24 @@ class Profile(models.Model):
     def __str__(self):
         return f'{self.user.username} Profile'
 
+
+class FCMToken(models.Model):
+    """Model to store FCM tokens for multiple devices per user"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fcm_tokens')
+    token = models.TextField(help_text="Firebase Cloud Messaging token")
+    device_type = models.CharField(max_length=50, default='web', help_text="Device type (web, mobile, etc.)")
+    user_agent = models.TextField(blank=True, null=True, help_text="User agent string")
+    is_active = models.BooleanField(default=True, help_text="Whether this token is active")
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_used = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('user', 'token')
+        ordering = ['-last_used']
+
+    def __str__(self):
+        return f'{self.user.username} - {self.device_type} ({self.token[:20]}...)'
+
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
