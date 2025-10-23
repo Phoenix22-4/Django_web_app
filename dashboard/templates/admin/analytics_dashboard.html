@@ -1,12 +1,12 @@
 {% extends "admin/base_site.html" %}
 {% load static %}
 
-{% block title %}Usage Analytics Dashboard{% endblock %}
+{% block title %}Water Usage Analytics{% endblock %}
 
 {% block content %}
 <div class="module">
-    <h1>Usage Analytics Dashboard (Last 30 Days)</h1>
-    <p>Comprehensive analytics for water usage, power consumption, and device performance. Data is anonymized and aggregated daily.</p>
+    <h1>Water & Power Usage Analytics (Last 30 Days)</h1>
+    <p>Data is anonymized and aggregated daily. Use this for regional planning.</p>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -23,7 +23,7 @@
 
     <div style="margin-top: 30px;">
         <h2>Download Data</h2>
-        <a href="{% url 'admin:download_usage_analytics_csv' %}" class="button">Download 30-Day Usage Report (CSV)</a>
+        <a href="{% url 'admin:download_analytics_csv' %}" class="button">Download 30-Day Report (CSV)</a>
     </div>
 
     <script>

@@ -121,19 +121,19 @@
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-label">Total Water Usage</div>
-            <div class="stat-value">{{ total_usage_liters|floatformat:0 }}L</div>
+            <div class="stat-value">{{ total_usage_liters|default:0|floatformat:0 }}L</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">Total Power Consumed</div>
-            <div class="stat-value">{{ total_power_kwh|floatformat:2 }} kWh</div>
+            <div class="stat-value">{{ total_power_kwh|default:0|floatformat:2 }} kWh</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">Total Pump Runtime</div>
-            <div class="stat-value">{{ total_runtime_hours|floatformat:1 }}h</div>
+            <div class="stat-value">{{ total_runtime_hours|default:0|floatformat:1 }}h</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">Active Devices</div>
-            <div class="stat-value">{{ active_devices }}</div>
+            <div class="stat-value">{{ active_devices|default:0 }}</div>
         </div>
     </div>
     
@@ -188,84 +188,96 @@ document.addEventListener('DOMContentLoaded', function() {
     const deviceLabels = {{ device_labels|safe }};
     const deviceUsage = {{ device_usage|safe }};
     
-    new Chart(document.getElementById('deviceUsageChart'), {
-        type: 'pie',
-        data: {
-            labels: deviceLabels,
-            datasets: [{
-                data: deviceUsage,
-                backgroundColor: [
-                    '#42A5F5', '#66BB6A', '#FFA726', '#EF5350',
-                    '#AB47BC', '#7E57C2', '#26A69A', '#FFCA28'
-                ]
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { position: 'bottom' },
-                title: { display: false }
+    if (deviceLabels.length > 0) {
+        new Chart(document.getElementById('deviceUsageChart'), {
+            type: 'pie',
+            data: {
+                labels: deviceLabels,
+                datasets: [{
+                    data: deviceUsage,
+                    backgroundColor: [
+                        '#42A5F5', '#66BB6A', '#FFA726', '#EF5350',
+                        '#AB47BC', '#7E57C2', '#26A69A', '#FFCA28'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    title: { display: false }
+                }
             }
-        }
-    });
+        });
+    } else {
+        document.getElementById('deviceUsageChart').innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No device usage data available</p>';
+    }
     
     // Device Power Pie Chart
     const devicePower = {{ device_power|safe }};
     
-    new Chart(document.getElementById('devicePowerChart'), {
-        type: 'pie',
-        data: {
-            labels: deviceLabels,
-            datasets: [{
-                data: devicePower,
-                backgroundColor: [
-                    '#42A5F5', '#66BB6A', '#FFA726', '#EF5350',
-                    '#AB47BC', '#7E57C2', '#26A69A', '#FFCA28'
-                ]
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { position: 'bottom' },
-                title: { display: false }
+    if (deviceLabels.length > 0) {
+        new Chart(document.getElementById('devicePowerChart'), {
+            type: 'pie',
+            data: {
+                labels: deviceLabels,
+                datasets: [{
+                    data: devicePower,
+                    backgroundColor: [
+                        '#42A5F5', '#66BB6A', '#FFA726', '#EF5350',
+                        '#AB47BC', '#7E57C2', '#26A69A', '#FFCA28'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    title: { display: false }
+                }
             }
-        }
-    });
+        });
+    } else {
+        document.getElementById('devicePowerChart').innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No device power data available</p>';
+    }
     
     // Daily Usage Line Chart
     const dailyDates = {{ daily_dates|safe }};
     const dailyUsage = {{ daily_usage|safe }};
     
-    new Chart(document.getElementById('dailyUsageChart'), {
-        type: 'line',
-        data: {
-            labels: dailyDates,
-            datasets: [{
-                label: 'Total Water Usage (L)',
-                data: dailyUsage,
-                borderColor: '#2196F3',
-                backgroundColor: 'rgba(33, 150, 243, 0.1)',
-                fill: true,
-                tension: 0.3
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: { display: true, text: 'Liters' }
-                },
-                x: {
-                    title: { display: true, text: 'Date' }
-                }
+    if (dailyDates.length > 0) {
+        new Chart(document.getElementById('dailyUsageChart'), {
+            type: 'line',
+            data: {
+                labels: dailyDates,
+                datasets: [{
+                    label: 'Total Water Usage (L)',
+                    data: dailyUsage,
+                    borderColor: '#2196F3',
+                    backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }]
             },
-            plugins: {
-                legend: { display: false }
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Liters' }
+                    },
+                    x: {
+                        title: { display: true, text: 'Date' }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
             }
-        }
-    });
+        });
+    } else {
+        document.getElementById('dailyUsageChart').innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No daily usage data available</p>';
+    }
 });
 </script>
 {% endblock %}
