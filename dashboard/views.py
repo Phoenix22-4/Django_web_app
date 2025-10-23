@@ -17,6 +17,10 @@ from .security_decorators import (
     secure_api_view, validate_json_input, device_ownership_required,
     rate_limit, sanitize_input
 )
+import logging
+
+logger = logging.getLogger(__name__)
+
 # Import with error handling for local development
 try:
     from .aws_iot_integration import aws_iot_manager
@@ -580,6 +584,66 @@ def device_data_view(request, device_id):
         }, status=500)
 
 @secure_api_view(require_auth=True, allowed_methods=['POST'], rate_limit_requests=10)
+@validate_json_input(required_fields={'token': 'string'})
+def save_fcm_token(request):
+    """Save FCM token from client-side (matches client endpoint)"""
+    try:
+        data = request.validated_data
+        fcm_token = sanitize_input(data.get('token', ''))
+        
+        if not request.user.is_authenticated:
+            return JsonResponse({'error': 'Authentication required'}, status=401)
+        
+        if not fcm_token:
+            return JsonResponse({'error': 'FCM token is required'}, status=400)
+        
+        # Store token in FCMToken model for multiple devices per user
+        from .models import FCMToken
+        from django.utils import timezone
+        
+        # Get user agent for device identification
+        user_agent = request.META.get('HTTP_USER_AGENT', 'unknown')
+        device_type = 'web'  # Default for web browsers
+        
+        # Create or update FCM token
+        fcm_token_obj, created = FCMToken.objects.get_or_create(
+            user=request.user,
+            token=fcm_token,
+            defaults={
+                'device_type': device_type,
+                'user_agent': user_agent,
+                'is_active': True,
+                'last_used': timezone.now()
+            }
+        )
+        
+        if not created:
+            # Update existing token
+            fcm_token_obj.is_active = True
+            fcm_token_obj.last_used = timezone.now()
+            fcm_token_obj.user_agent = user_agent
+            fcm_token_obj.save()
+        
+        # Also update Profile for backward compatibility
+        from .models import Profile
+        profile, _ = Profile.objects.get_or_create(user=request.user)
+        profile.fcm_token = fcm_token
+        profile.push_notifications_enabled = True
+        profile.save()
+        
+        print(f"📱 FCM token {'registered' if created else 'updated'} for user '{request.user.username}'")
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': 'FCM token saved successfully',
+            'token_id': fcm_token_obj.id
+        })
+        
+    except Exception as e:
+        print(f"❌ Error in save_fcm_token: {e}")
+        return JsonResponse({'error': 'Failed to save FCM token'}, status=500)
+
+@secure_api_view(require_auth=True, allowed_methods=['POST'], rate_limit_requests=10)
 @validate_json_input(optional_fields={'fcm_token': 'string', 'enabled': 'boolean'})
 def register_fcm_token(request):
     """Register FCM token for push notifications"""
@@ -596,7 +660,7 @@ def register_fcm_token(request):
             from .models import Profile
             profile, created = Profile.objects.get_or_create(user=request.user)
             profile.fcm_token = fcm_token or 'browser_notification'
-            profile.push_notifications = enabled
+            profile.push_notifications_enabled = enabled
             profile.save()
             
             print(f"📱 Notification preference updated for user '{request.user.username}': {enabled}")
@@ -722,7 +786,7 @@ def notification_preference_api(request):
                 # Update or create notification preference
                 from .models import Profile
                 profile, created = Profile.objects.get_or_create(user=request.user)
-                profile.push_notifications = enabled
+                profile.push_notifications_enabled = enabled
                 profile.save()
                 
                 return JsonResponse({

@@ -27,6 +27,7 @@ urlpatterns = [
     
     # --- NEW: PUSH NOTIFICATION URLs ---
     path('api/register_fcm_token/', views.register_fcm_token, name='register_fcm_token'),
+    path('api/save_fcm_token/', views.save_fcm_token, name='save_fcm_token'),  # Client-side endpoint
     path('api/test_notification/', views.test_notification, name='test_notification'),
     
     # --- NEW: LIVE DATA AND NOTIFICATION PREFERENCE URLs ---
