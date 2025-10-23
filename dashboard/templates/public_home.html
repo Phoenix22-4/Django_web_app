@@ -630,11 +630,11 @@
 
         const firebaseConfig = {
             apiKey: "AIzaSyDZ3lsOhZ4HRY9JmZlgulOjRrZ5KYZWdpk",
-            authDomain: "aquaguard-iot.firebaseapp.com",
-            projectId: "aquaguard-iot",
-            storageBucket: "aquaguard-iot.appspot.com",
-            messagingSenderId: "123456789012",
-            appId: "1:123456789012:web:abcdef1234567890"
+            authDomain: "aquasavvy-solution.firebaseapp.com",
+            projectId: "aquasavvy-solution",
+            storageBucket: "aquasavvy-solution.appspot.com",
+            messagingSenderId: "101190214775773908921",
+            appId: "1:101190214775773908921:web:aquasavvy-solution"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -644,7 +644,7 @@
         if ('Notification' in window) {
             Notification.requestPermission().then((permission) => {
                 if (permission === 'granted') {
-                    getToken(messaging, { vapidKey: 'YOUR_VAPID_KEY' }).then((currentToken) => {
+                    getToken(messaging, { vapidKey: 'BMLnBIiNgOMINbDOGA24NWnufsGSMP9GF-Z12V8dbEXA8NwBy-UFPOrF8kDpGdVjeIQsMRE-oxf-y60W1p4DEcY' }).then((currentToken) => {
                         if (currentToken) {
                             console.log('FCM Token:', currentToken);
                             // Send token to your Django backend
