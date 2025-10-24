@@ -633,7 +633,9 @@ def save_fcm_token(request):
         
         # Log with special user number for easy identification
         special_number = getattr(profile, 'special_user_number', 'N/A')
-        print(f"📱 FCM token {'registered' if created else 'updated'} for user '{request.user.username}' (Special #: {special_number})")
+        print(f"📱 FCM TOKEN REGISTRATION: {'NEW' if created else 'UPDATED'} token for user '{request.user.username}' (ID: {request.user.id}, Special #: {special_number})")
+        print(f"📱 FCM TOKEN DETAILS: Token ID: {fcm_token_obj.id}, Device Type: {fcm_token_obj.device_type}, Active: {fcm_token_obj.is_active}")
+        print(f"📱 FCM TOKEN PREVIEW: {fcm_token[:20]}...{fcm_token[-10:]}")
         
         return JsonResponse({
             'status': 'success',

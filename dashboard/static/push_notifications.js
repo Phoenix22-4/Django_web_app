@@ -6,14 +6,15 @@ console.log('Push notifications script loaded');
 
 // Initialize push notifications when the page loads
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Push notifications initialized');
+    console.log('🔔 FCM: Push notifications initialized');
     
-    // Only initialize FCM token generation on authenticated pages
+    // SECURITY GATE: Only initialize FCM token generation on authenticated pages
     if (window.user && window.user.isAuthenticated) {
-        console.log('User is authenticated, initializing FCM token generation');
+        console.log('🔔 FCM: User is authenticated, initializing FCM token generation');
+        console.log('🔔 FCM: User details - ID:', window.user.id, 'Username:', window.user.username);
         initializeFCMTokenGeneration();
     } else {
-        console.log('User not authenticated, skipping FCM token generation');
+        console.log('🔔 FCM: User not authenticated, skipping FCM token generation for security');
     }
 });
 
@@ -38,25 +39,35 @@ function initializeFCMTokenGeneration() {
 
             // Register service worker first
             if ('serviceWorker' in navigator) {
+                console.log('🔔 FCM: Registering service worker...');
                 navigator.serviceWorker.register('/firebase-messaging-sw.js')
                     .then((registration) => {
-                        console.log('✅ Service Worker registered:', registration);
+                        console.log('✅ FCM: Service Worker registered successfully:', registration);
                         
                         // Request permission and get token (AUTHENTICATION GATE)
                         if ('Notification' in window) {
+                            console.log('🔔 FCM: Notification API available, checking permission status...');
+                            console.log('🔔 FCM: Current permission status:', Notification.permission);
+                            
                             // Show custom notification permission request
                             if (Notification.permission === 'default') {
+                                console.log('🔔 FCM: Permission panel shown - user has not been asked yet');
                                 // Create a custom popup for notification permission
                                 showNotificationPermissionPopup();
                             } else {
+                                console.log('🔔 FCM: Permission already determined, proceeding with existing status');
                                 // If already granted or denied, proceed normally
                                 requestNotificationPermission();
                             }
+                        } else {
+                            console.log('❌ FCM: Notification API not available in this browser');
                         }
                     })
                     .catch((error) => {
-                        console.error('❌ Service Worker registration failed:', error);
+                        console.error('❌ FCM: Service Worker registration failed:', error);
                     });
+            } else {
+                console.log('❌ FCM: Service Worker not supported in this browser');
             }
 
             // Handle foreground messages
@@ -75,12 +86,15 @@ function initializeFCMTokenGeneration() {
 
 // Submit FCM token to Django backend
 function submitFCMToken(token) {
+    console.log('🔔 FCM: Submitting token to Django backend...');
+    
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
     if (!csrfToken) {
-        console.error('❌ CSRF token not found');
+        console.error('❌ FCM: CSRF token not found - cannot submit token');
         return;
     }
 
+    console.log('🔔 FCM: Sending POST request to /api/save_fcm_token/');
     fetch('/api/save_fcm_token/', {
         method: 'POST',
         headers: {
@@ -89,16 +103,20 @@ function submitFCMToken(token) {
         },
         body: JSON.stringify({ token: token })
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('🔔 FCM: Django response received:', response.status, response.statusText);
+        return response.json();
+    })
     .then(data => {
         if (data.status === 'success') {
-            console.log('✅ FCM token registered successfully for user #' + data.special_user_number);
+            console.log('✅ FCM: Token registered successfully for user #' + data.special_user_number);
+            console.log('✅ FCM: Token ID:', data.token_id);
         } else {
-            console.error('❌ FCM token registration failed:', data.error);
+            console.error('❌ FCM: Token registration failed:', data.error);
         }
     })
     .catch(error => {
-        console.error('❌ Error registering FCM token:', error);
+        console.error('❌ FCM: Error registering FCM token:', error);
     });
 }
 
@@ -195,25 +213,30 @@ function showNotificationPermissionPopup() {
 
 // Request notification permission
 function requestNotificationPermission() {
+    console.log('🔔 FCM: Requesting notification permission from browser...');
     Notification.requestPermission().then((permission) => {
+        console.log('🔔 FCM: Permission result received:', permission);
+        
         if (permission === 'granted') {
-            console.log('✅ Notification permission granted');
+            console.log('✅ FCM: Notification permission granted by user');
             
+            console.log('🔔 FCM: Generating FCM token...');
             getToken(messaging, { 
                 vapidKey: window.firebaseConfig?.vapidKey || "{{ vapid_public_key|escapejs }}"
             }).then((currentToken) => {
                 if (currentToken) {
-                    console.log('📱 FCM Token generated:', currentToken);
+                    console.log('✅ FCM: Token generated and sent to Django');
+                    console.log('📱 FCM: Token preview:', currentToken.substring(0, 20) + '...');
                     // Send token to Django backend with automatic registration
                     submitFCMToken(currentToken);
                 } else {
-                    console.log('❌ No FCM token available');
+                    console.log('❌ FCM: No FCM token available - this should not happen');
                 }
             }).catch((err) => {
-                console.error('❌ Error getting FCM token:', err);
+                console.error('❌ FCM: Error getting FCM token:', err);
             });
         } else {
-            console.log('❌ Notification permission denied:', permission);
+            console.log('❌ FCM: Notification permission denied by user:', permission);
         }
     });
 }

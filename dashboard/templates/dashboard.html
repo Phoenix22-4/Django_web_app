@@ -135,6 +135,25 @@
                 
             </div>
             
+            <!-- Real-Time Analytics Display -->
+            <div class="bg-blue-50 p-4 rounded-lg text-center">
+                <h3 class="text-lg font-semibold mb-3 text-blue-800">Live Analytics</h3>
+                <div class="grid grid-cols-1 gap-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Water Usage:</span>
+                        <span id="water-usage-display" class="text-lg font-bold text-blue-600">0.00 L/s</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Pump Runtime:</span>
+                        <span id="pump-runtime-display" class="text-lg font-bold text-green-600">0h 0m 0s</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Total Usage:</span>
+                        <span id="total-water-usage-display" class="text-lg font-bold text-purple-600">0.0 L</span>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Additional Status Messages Container for compatibility -->
             <div id="statusMessagesContainer" class="bg-gray-700 p-4 rounded-lg text-center hidden">
                 <h3 class="text-lg font-semibold mb-3 underline">Additional Status</h3>
@@ -158,14 +177,9 @@
                 <div id="pump-status-text" class="text-lg font-medium text-gray-800">...</div>
                 <div id="pump-current-text" class="text-sm text-gray-600 mb-2">Current: 0.0A</div>
                 <div class="pump-controls">
-                    <button id="pumpOnBtn" class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg w-32 transition-colors mr-2">
-                        Turn ON
-                    </button>
-                    <button id="pumpOffBtn" class="bg-red-600 text-white font-bold py-2 px-4 rounded-lg w-32 transition-colors">
-                        Turn OFF
-                    </button>
-                    <button id="pump-toggle-btn" class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg w-32 transition-colors hidden">
-                        Toggle
+                    <button id="pump-toggle-btn" class="pump-toggle-btn bg-red-600 text-white font-bold py-3 px-6 rounded-lg w-40 transition-all duration-300 hover:shadow-lg transform hover:scale-105">
+                        <span id="pump-toggle-text">PUMP OFF</span>
+                        <div id="pump-toggle-indicator" class="w-3 h-3 bg-white rounded-full ml-2 inline-block"></div>
                     </button>
                 </div>
             </div>

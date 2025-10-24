@@ -19,25 +19,36 @@ class PushNotificationService:
         # Initialize when first needed
 
     def initialize_firebase(self):
-        """Initialize Firebase Admin SDK"""
+        """Initialize Firebase Admin SDK with comprehensive logging"""
         try:
+            print("🔧 FIREBASE INIT: Starting Firebase Admin SDK initialization...")
+            
             # Check if Firebase is already initialized
             if not firebase_admin._apps:
+                print("🔧 FIREBASE INIT: No existing Firebase apps found, proceeding with initialization...")
+                
                 # Try to get Firebase service account JSON from environment variable
                 firebase_json = os.getenv('FIREBASE_SERVICE_ACCOUNT_JSON')
                 
                 if not firebase_json:
+                    print("❌ FIREBASE INIT: FIREBASE_SERVICE_ACCOUNT_JSON environment variable not found")
                     logger.warning("Firebase credentials not configured. Missing: FIREBASE_SERVICE_ACCOUNT_JSON")
                     self.firebase_initialized = False
                     return
                 
+                print(f"✅ FIREBASE INIT: Found FIREBASE_SERVICE_ACCOUNT_JSON (length: {len(firebase_json)})")
+                
                 try:
                     # Parse the JSON string
                     import json
+                    print("🔧 FIREBASE INIT: Parsing JSON configuration...")
                     firebase_config = json.loads(firebase_json)
+                    print("✅ FIREBASE INIT: JSON parsed successfully")
                     
                     # Fix private key format - replace literal \n with actual newlines
                     if 'private_key' in firebase_config and isinstance(firebase_config['private_key'], str):
+                        print("🔧 FIREBASE INIT: Processing private key format...")
+                        original_key = firebase_config['private_key']
                         firebase_config['private_key'] = firebase_config['private_key'].replace('\\n', '\n')
                         
                         # Ensure proper PEM format
@@ -46,27 +57,48 @@ class PushNotificationService:
                                 firebase_config['private_key'] += '\n'
                             else:
                                 firebase_config['private_key'] += '\n-----END PRIVATE KEY-----\n'
+                        
+                        print("✅ FIREBASE INIT: Private key format corrected")
+                    
+                    # Validate required fields
+                    required_fields = ['type', 'project_id', 'private_key_id', 'private_key', 'client_email']
+                    missing_fields = [field for field in required_fields if field not in firebase_config]
+                    if missing_fields:
+                        print(f"❌ FIREBASE INIT: Missing required fields: {missing_fields}")
+                        raise ValueError(f"Missing required Firebase fields: {missing_fields}")
+                    
+                    print(f"✅ FIREBASE INIT: All required fields present. Project ID: {firebase_config.get('project_id', 'N/A')}")
                     
                     # Initialize Firebase Admin SDK with the service account
+                    print("🔧 FIREBASE INIT: Creating credentials object...")
                     cred = credentials.Certificate(firebase_config)
+                    print("✅ FIREBASE INIT: Credentials object created successfully")
+                    
+                    print("🔧 FIREBASE INIT: Initializing Firebase app...")
                     firebase_admin.initialize_app(cred)
+                    print("✅ FIREBASE INIT: Firebase Admin SDK initialized successfully")
+                    
                     self.firebase_initialized = True
                     logger.info("Firebase Admin SDK initialized successfully")
                     
                 except json.JSONDecodeError as e:
+                    print(f"❌ FIREBASE INIT: Invalid JSON in FIREBASE_SERVICE_ACCOUNT_JSON: {e}")
                     logger.error(f"Invalid Firebase service account JSON: {e}")
                     self.firebase_initialized = False
                     return
                 except Exception as e:
+                    print(f"❌ FIREBASE INIT: Failed to initialize Firebase credentials: {e}")
                     logger.error(f"Failed to initialize Firebase credentials: {e}")
                     self.firebase_initialized = False
                     return
                     
             else:
+                print("✅ FIREBASE INIT: Firebase Admin SDK already initialized")
                 self.firebase_initialized = True
                 logger.info("Firebase Admin SDK already initialized")
                 
         except Exception as e:
+            print(f"❌ FIREBASE INIT: Critical error in Firebase initialization: {e}")
             logger.error(f"Failed to initialize Firebase Admin SDK: {e}")
             self.firebase_initialized = False
 
