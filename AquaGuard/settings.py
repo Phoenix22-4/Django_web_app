@@ -63,18 +63,26 @@ TEMPLATES = [
 WSGI_APPLICATION = 'AquaGuard.wsgi.application'
 
 # --- DATABASE CONFIGURATION ---
-# Check if running in Railway environment
-if 'RAILWAY_ENVIRONMENT' in os.environ:
-    print("Running in Railway environment. Using PostgreSQL.")
-    DATABASE_URL = os.environ.get('DATABASE_URL')
-    if DATABASE_URL:
+# Check if running in Railway environment or if DATABASE_URL is available
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    print("Found DATABASE_URL environment variable. Using PostgreSQL.")
+    try:
         DATABASES = {
             'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
         }
-    else:
-        raise ImproperlyConfigured("DATABASE_URL environment variable not found in Railway environment.")
+        print("✅ Database configuration loaded successfully")
+    except Exception as e:
+        print(f"❌ Error parsing DATABASE_URL: {e}")
+        print("Falling back to SQLite database.")
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
 else:
-    print("Not in Railway environment. Using local SQLite database.")
+    print("No DATABASE_URL found. Using local SQLite database.")
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',

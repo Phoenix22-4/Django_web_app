@@ -15,7 +15,8 @@ logger = logging.getLogger(__name__)
 class PushNotificationService:
     def __init__(self):
         self.firebase_initialized = False
-        self.initialize_firebase()
+        # Don't initialize immediately to avoid import errors
+        # Initialize when first needed
 
     def initialize_firebase(self):
         """Initialize Firebase Admin SDK"""
@@ -56,6 +57,10 @@ class PushNotificationService:
                     logger.error(f"Invalid Firebase service account JSON: {e}")
                     self.firebase_initialized = False
                     return
+                except Exception as e:
+                    logger.error(f"Failed to initialize Firebase credentials: {e}")
+                    self.firebase_initialized = False
+                    return
                     
             else:
                 self.firebase_initialized = True
@@ -68,6 +73,10 @@ class PushNotificationService:
     def send_notification_to_user(self, user, title, body, data=None):
         """Send push notification to a specific user"""
         try:
+            # Initialize Firebase if not already done
+            if not self.firebase_initialized:
+                self.initialize_firebase()
+                
             if not self.firebase_initialized:
                 logger.error("Firebase not initialized")
                 return False

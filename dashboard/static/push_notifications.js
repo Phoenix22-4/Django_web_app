@@ -44,27 +44,14 @@ function initializeFCMTokenGeneration() {
                         
                         // Request permission and get token (AUTHENTICATION GATE)
                         if ('Notification' in window) {
-                            Notification.requestPermission().then((permission) => {
-                                if (permission === 'granted') {
-                                    console.log('✅ Notification permission granted');
-                                    
-                                    getToken(messaging, { 
-                                        vapidKey: window.firebaseConfig?.vapidKey || "{{ vapid_public_key|escapejs }}"
-                                    }).then((currentToken) => {
-                                        if (currentToken) {
-                                            console.log('📱 FCM Token generated:', currentToken);
-                                            // Send token to Django backend with automatic registration
-                                            submitFCMToken(currentToken);
-                                        } else {
-                                            console.log('❌ No FCM token available');
-                                        }
-                                    }).catch((err) => {
-                                        console.error('❌ Error getting FCM token:', err);
-                                    });
-                                } else {
-                                    console.log('❌ Notification permission denied:', permission);
-                                }
-                            });
+                            // Show custom notification permission request
+                            if (Notification.permission === 'default') {
+                                // Create a custom popup for notification permission
+                                showNotificationPermissionPopup();
+                            } else {
+                                // If already granted or denied, proceed normally
+                                requestNotificationPermission();
+                            }
                         }
                     })
                     .catch((error) => {
@@ -130,6 +117,105 @@ function showNotification(title, body, icon) {
         
         return notification;
     }
+}
+
+// Custom notification permission popup
+function showNotificationPermissionPopup() {
+    // Create a modal popup for notification permission
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    `;
+    
+    const popup = document.createElement('div');
+    popup.style.cssText = `
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    `;
+    
+    popup.innerHTML = `
+        <div style="font-size: 48px; margin-bottom: 20px;">🔔</div>
+        <h2 style="margin: 0 0 15px 0; color: #333; font-size: 24px;">AquaSavvy wants to show notifications</h2>
+        <p style="margin: 0 0 25px 0; color: #666; line-height: 1.5;">
+            Stay updated with important alerts about your water management system, tank levels, and pump status.
+        </p>
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <button id="allow-notifications" style="
+                background: #007bff;
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 16px;
+                font-weight: 500;
+            ">Allow Notifications</button>
+            <button id="deny-notifications" style="
+                background: #6c757d;
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 16px;
+                font-weight: 500;
+            ">Not Now</button>
+        </div>
+    `;
+    
+    modal.appendChild(popup);
+    document.body.appendChild(modal);
+    
+    // Handle button clicks
+    document.getElementById('allow-notifications').onclick = () => {
+        document.body.removeChild(modal);
+        requestNotificationPermission();
+    };
+    
+    document.getElementById('deny-notifications').onclick = () => {
+        document.body.removeChild(modal);
+        console.log('❌ User denied notification permission');
+    };
+}
+
+// Request notification permission
+function requestNotificationPermission() {
+    Notification.requestPermission().then((permission) => {
+        if (permission === 'granted') {
+            console.log('✅ Notification permission granted');
+            
+            getToken(messaging, { 
+                vapidKey: window.firebaseConfig?.vapidKey || "{{ vapid_public_key|escapejs }}"
+            }).then((currentToken) => {
+                if (currentToken) {
+                    console.log('📱 FCM Token generated:', currentToken);
+                    // Send token to Django backend with automatic registration
+                    submitFCMToken(currentToken);
+                } else {
+                    console.log('❌ No FCM token available');
+                }
+            }).catch((err) => {
+                console.error('❌ Error getting FCM token:', err);
+            });
+        } else {
+            console.log('❌ Notification permission denied:', permission);
+        }
+    });
 }
 
 // Export for use in other scripts
