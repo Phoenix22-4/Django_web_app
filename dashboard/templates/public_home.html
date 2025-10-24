@@ -623,8 +623,37 @@
     </script>
 </div>
 
-    <!-- FCM notification logic removed from public homepage for security -->
-    <!-- FCM tokens will only be generated after successful authentication -->
+    <!-- Firebase SDK for Push Notifications - AUTHENTICATION GATE -->
+    <!-- NOTE: FCM token generation is moved to authenticated pages only for security -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getMessaging, onMessage } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js';
+
+        const firebaseConfig = {
+            apiKey: "{{ firebase_api_key|escapejs }}",
+            authDomain: "{{ firebase_project_id|escapejs }}.firebaseapp.com",
+            projectId: "{{ firebase_project_id|escapejs }}",
+            storageBucket: "{{ firebase_project_id|escapejs }}.appspot.com",
+            messagingSenderId: "{{ firebase_messaging_sender_id|escapejs }}",
+            appId: "{{ firebase_app_id|escapejs }}"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const messaging = getMessaging(app);
+
+        // Only handle foreground messages on public pages (no token generation)
+        // Token generation will happen on authenticated pages only
+        onMessage(messaging, (payload) => {
+            console.log('Message received:', payload);
+            // Show notification
+            if (payload.notification) {
+                new Notification(payload.notification.title, {
+                    body: payload.notification.body,
+                    icon: payload.notification.icon
+                });
+            }
+        });
+    </script>
     
     <!-- AquaSavvy AI Chat Widget -->
     <link rel="stylesheet" href="{% static 'aquasavvy-chat.css' %}">
