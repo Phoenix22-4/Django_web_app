@@ -40,13 +40,8 @@ try:
             cred = credentials.Certificate(cred_dict)
             firebase_admin.initialize_app(cred)
             print("✅ Firebase Admin SDK initialized from environment variable")
-        elif os.path.exists(settings.FIREBASE_CREDENTIALS_PATH):
-            # Fallback: Try to load from file
-            cred = credentials.Certificate(settings.FIREBASE_CREDENTIALS_PATH)
-            firebase_admin.initialize_app(cred)
-            print("✅ Firebase Admin SDK initialized from file")
         else:
-            print("⚠️ Firebase credentials not found. Push notifications will be disabled.")
+            print("⚠️ Firebase credentials not found in environment variables. Push notifications will be disabled.")
             firebase_admin = None
 except ImportError:
     print("⚠️ firebase-admin not installed. Push notifications will be disabled.")

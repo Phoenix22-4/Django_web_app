@@ -215,7 +215,7 @@ def dashboard_view(request, device_id):
         'is_monitoring_only': not device.pump_present,
     })
 
-@secure_api_view(require_auth=True, allowed_methods=['POST'], rate_limit_requests=20)
+@secure_api_view(require_auth=False, allowed_methods=['POST'], rate_limit_requests=20)
 @validate_json_input(required_fields=['message'], optional_fields={'stream': 'boolean'})
 def ai_chat_view(request):
     """Handle AI chat requests with streaming support"""
