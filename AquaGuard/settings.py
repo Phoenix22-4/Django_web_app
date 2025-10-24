@@ -62,60 +62,25 @@ TEMPLATES = [
 ]
 WSGI_APPLICATION = 'AquaGuard.wsgi.application'
 
-# --- PRODUCTION DATABASE CONFIGURATION ---
-# Check for Railway PostgreSQL service first
-RAILWAY_DATABASE_URL = os.environ.get('RAILWAY_DATABASE_URL')
-if RAILWAY_DATABASE_URL:
-    print("Found RAILWAY_DATABASE_URL environment variable.")
-    DATABASES = {
-        'default': dj_database_url.parse(RAILWAY_DATABASE_URL, conn_max_age=600)
-    }
-    DATABASES['default']['OPTIONS'] = {
-        'sslmode': 'require',
-        'connect_timeout': 10,  # Wait up to 10 seconds for connection
-        'options': '-c statement_timeout=30000'  # 30 second query timeout
-    }
-    # Add connection pooling settings for better reliability
-    DATABASES['default']['CONN_MAX_AGE'] = 600  # Keep connections alive for 10 minutes
-else:
-    DATABASE_URL_FROM_ENV = os.environ.get('DATABASE_URL')
-    if DATABASE_URL_FROM_ENV:
-        print("Found DATABASE_URL environment variable.") # Add this line for logging
+# --- DATABASE CONFIGURATION ---
+# Check if running in Railway environment
+if 'RAILWAY_ENVIRONMENT' in os.environ:
+    print("Running in Railway environment. Using PostgreSQL.")
+    DATABASE_URL = os.environ.get('DATABASE_URL')
+    if DATABASE_URL:
         DATABASES = {
-            'default': dj_database_url.parse(DATABASE_URL_FROM_ENV, conn_max_age=600)
+            'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
         }
-        DATABASES['default']['OPTIONS'] = {
-            'sslmode': 'require',
-            'connect_timeout': 10,  # Wait up to 10 seconds for connection
-            'options': '-c statement_timeout=30000'  # 30 second query timeout
-        }
-        # Add connection pooling settings for better reliability
-        DATABASES['default']['CONN_MAX_AGE'] = 600  # Keep connections alive for 10 minutes
     else:
-        print("WARNING: DATABASE_URL environment variable not found or empty. Using local fallback.") # Add this line for logging
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.postgresql',
-                'NAME': 'AquaGuard_db',
-                'USER': 'postgres',
-                'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-                'HOST': 'localhost',
-                'PORT': '5432',
-                'CONN_MAX_AGE': 600,  # Keep connections alive for 10 minutes
-                'OPTIONS': {
-                    'connect_timeout': 10,  # Wait up to 10 seconds for connection
-                    'options': '-c statement_timeout=30000'  # 30 second query timeout
-                }
-            }
+        raise ImproperlyConfigured("DATABASE_URL environment variable not found in Railway environment.")
+else:
+    print("Not in Railway environment. Using local SQLite database.")
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
-    # Verify database configuration
-    if not DATABASES['default'].get('ENGINE'):
-        raise ImproperlyConfigured("Database settings are not configured. DATABASE_URL env var is missing and fallback failed.")
-    
-    # Security check: Ensure no hardcoded passwords
-    if not os.environ.get('DB_PASSWORD') and not DATABASE_URL_FROM_ENV:
-        print("WARNING: DB_PASSWORD not set, using empty password for local development")
-        # For Railway deployment, we'll use DATABASE_URL instead
+    }
 
 
 # Password validation moved to Enhanced Security Settings below
@@ -175,6 +140,9 @@ if not DEBUG:
 
 # Firebase Admin SDK Configuration - Environment Variables Only
 FIREBASE_CREDENTIALS = os.environ.get('FIREBASE_SERVICE_ACCOUNT_JSON', '')
+if not FIREBASE_CREDENTIALS:
+    print("WARNING: 'FIREBASE_SERVICE_ACCOUNT_JSON' environment variable not found. Firebase Admin SDK will not be initialized.")
+
 # Firebase Configuration - Use environment variables for security
 FIREBASE_API_KEY = os.environ.get('FIREBASE_API_KEY', '')
 FIREBASE_PROJECT_ID = os.environ.get('FIREBASE_PROJECT_ID', '')
