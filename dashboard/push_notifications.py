@@ -35,6 +35,17 @@ class PushNotificationService:
                     import json
                     firebase_config = json.loads(firebase_json)
                     
+                    # Fix private key format - replace literal \n with actual newlines
+                    if 'private_key' in firebase_config and isinstance(firebase_config['private_key'], str):
+                        firebase_config['private_key'] = firebase_config['private_key'].replace('\\n', '\n')
+                        
+                        # Ensure proper PEM format
+                        if not firebase_config['private_key'].endswith('-----END PRIVATE KEY-----\n'):
+                            if firebase_config['private_key'].endswith('-----END PRIVATE KEY-----'):
+                                firebase_config['private_key'] += '\n'
+                            else:
+                                firebase_config['private_key'] += '\n-----END PRIVATE KEY-----\n'
+                    
                     # Initialize Firebase Admin SDK with the service account
                     cred = credentials.Certificate(firebase_config)
                     firebase_admin.initialize_app(cred)
