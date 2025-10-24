@@ -22,6 +22,21 @@ try:
         if firebase_creds_json:
             # Parse JSON string from environment variable
             cred_dict = json.loads(firebase_creds_json)
+            
+            # Fix private key format
+            if 'private_key' in cred_dict and isinstance(cred_dict['private_key'], str):
+                # Replace escaped newlines with actual newlines
+                cred_dict['private_key'] = cred_dict['private_key'].replace('\\n', '\n')
+                
+                # Check if the private key is missing the ending marker
+                if not cred_dict['private_key'].endswith('-----END PRIVATE KEY-----\n'):
+                    if cred_dict['private_key'].endswith('-----END PRIVATE KEY-----'):
+                        # Add missing newline
+                        cred_dict['private_key'] += '\n'
+                    else:
+                        # Add missing ending marker and newline
+                        cred_dict['private_key'] += '\n-----END PRIVATE KEY-----\n'
+            
             cred = credentials.Certificate(cred_dict)
             firebase_admin.initialize_app(cred)
             print("✅ Firebase Admin SDK initialized from environment variable")
