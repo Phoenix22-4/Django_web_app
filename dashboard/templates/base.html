@@ -24,15 +24,15 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
     <script>
-      // Your Firebase config
+      // Firebase config from environment variables (secure)
       const firebaseConfig = {
-        apiKey: "AIzaSyCuorzrk2791U7GwqK0EziVFUlWI0NUMKc",
-        authDomain: "aquasavvy-solution.firebaseapp.com",
-        projectId: "aquasavvy-solution",
-        storageBucket: "aquasavvy-solution.firebasestorage.app",
-        messagingSenderId: "106611964149",
-        appId: "1:106611964149:web:7beee215e4dedc406eedbc",
-        measurementId: "G-TYENWVXT5R"
+        apiKey: "{{ firebase_api_key }}",
+        authDomain: "{{ firebase_project_id }}.firebaseapp.com",
+        projectId: "{{ firebase_project_id }}",
+        storageBucket: "{{ firebase_project_id }}.appspot.com",
+        messagingSenderId: "{{ firebase_messaging_sender_id }}",
+        appId: "{{ firebase_app_id }}",
+        measurementId: "{{ firebase_measurement_id|default:'' }}"
       };
       if (window.firebase && !window.__firebaseInitialized) {
         firebase.initializeApp(firebaseConfig);

@@ -803,3 +803,98 @@ def notification_preference_api(request):
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
     
     return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+
+
+def firebase_service_worker(request):
+    """Serve Firebase service worker with dynamic configuration"""
+    from django.conf import settings
+    from django.http import HttpResponse
+    
+    # Get Firebase configuration from environment variables
+    firebase_config = {
+        'apiKey': settings.FIREBASE_API_KEY,
+        'authDomain': f"{settings.FIREBASE_PROJECT_ID}.firebaseapp.com",
+        'projectId': settings.FIREBASE_PROJECT_ID,
+        'storageBucket': f"{settings.FIREBASE_PROJECT_ID}.appspot.com",
+        'messagingSenderId': settings.FIREBASE_MESSAGING_SENDER_ID,
+        'appId': settings.FIREBASE_APP_ID,
+    }
+    
+    # Generate the service worker content
+    service_worker_content = f"""// Firebase Service Worker for AquaSavvy
+try {{
+    importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
+    importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
+
+    // Initialize Firebase with secure configuration
+    firebase.initializeApp({{
+        apiKey: "{firebase_config['apiKey']}",
+        authDomain: "{firebase_config['authDomain']}",
+        projectId: "{firebase_config['projectId']}",
+        storageBucket: "{firebase_config['storageBucket']}",
+        messagingSenderId: "{firebase_config['messagingSenderId']}",
+        appId: "{firebase_config['appId']}"
+    }});
+
+    // Initialize Firebase Messaging
+    const messaging = firebase.messaging();
+}} catch (error) {{
+    console.log('Firebase messaging not available in service worker context:', error);
+}}
+
+// Handle background messages
+try {{
+    if (typeof messaging !== 'undefined') {{
+        messaging.onBackgroundMessage(function(payload) {{
+            console.log('[firebase-messaging-sw.js] Received background message ', payload);
+            
+            const notificationTitle = payload.notification.title || 'AquaSavvy Notification';
+            const notificationOptions = {{
+                body: payload.notification.body || 'You have a new notification',
+                icon: '/static/images/chat-icon.png',
+                badge: '/static/images/chat-icon.png',
+                tag: 'aquasavvy-notification',
+                requireInteraction: true,
+                actions: [
+                    {{
+                        action: 'view',
+                        title: 'View Dashboard'
+                    }},
+                    {{
+                        action: 'dismiss',
+                        title: 'Dismiss'
+                    }}
+                ]
+            }};
+
+            self.registration.showNotification(notificationTitle, notificationOptions);
+        }});
+    }}
+}} catch (error) {{
+    console.log('Firebase messaging background handler not available:', error);
+}}
+
+// Handle notification clicks
+self.addEventListener('notificationclick', function(event) {{
+    console.log('[firebase-messaging-sw.js] Notification click received.');
+    
+    event.notification.close();
+    
+    if (event.action === 'view') {{
+        // Open the dashboard
+        event.waitUntil(
+            clients.openWindow('/devices/')
+        );
+    }} else if (event.action === 'dismiss') {{
+        // Just close the notification
+        return;
+    }} else {{
+        // Default action - open the app
+        event.waitUntil(
+            clients.openWindow('/')
+        );
+    }}
+}});
+"""
+    
+    return HttpResponse(service_worker_content, content_type='application/javascript')

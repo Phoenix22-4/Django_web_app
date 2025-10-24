@@ -33,4 +33,7 @@ urlpatterns = [
     # --- NEW: LIVE DATA AND NOTIFICATION PREFERENCE URLs ---
     path('api/device_data/<str:device_id>/', views.device_data_api, name='device_data_api'),
     path('api/notification-preference/', views.notification_preference_api, name='notification_preference_api'),
+    
+    # --- NEW: FIREBASE SERVICE WORKER (SECURE) ---
+    path('firebase-messaging-sw.js', views.firebase_service_worker, name='firebase_service_worker'),
 ]

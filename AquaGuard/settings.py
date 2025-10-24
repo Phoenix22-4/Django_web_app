@@ -180,6 +180,7 @@ FIREBASE_API_KEY = os.environ.get('FIREBASE_API_KEY', '')
 FIREBASE_PROJECT_ID = os.environ.get('FIREBASE_PROJECT_ID', '')
 FIREBASE_MESSAGING_SENDER_ID = os.environ.get('FIREBASE_MESSAGING_SENDER_ID', '')
 FIREBASE_APP_ID = os.environ.get('FIREBASE_APP_ID', '')
+FIREBASE_MEASUREMENT_ID = os.environ.get('FIREBASE_MEASUREMENT_ID', '')
 VAPID_PUBLIC_KEY = os.environ.get('VAPID_PUBLIC_KEY', '')
 
 # Site ID for sitemaps (required for Django sitemaps)

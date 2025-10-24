@@ -36,29 +36,40 @@ function initializeFCMTokenGeneration() {
             const app = initializeApp(firebaseConfig);
             const messaging = getMessaging(app);
 
-            // Request permission and get token (AUTHENTICATION GATE)
-            if ('Notification' in window) {
-                Notification.requestPermission().then((permission) => {
-                    if (permission === 'granted') {
-                        console.log('✅ Notification permission granted');
+            // Register service worker first
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/firebase-messaging-sw.js')
+                    .then((registration) => {
+                        console.log('✅ Service Worker registered:', registration);
                         
-                        getToken(messaging, { 
-                            vapidKey: window.firebaseConfig?.vapidKey || "{{ vapid_public_key|escapejs }}" 
-                        }).then((currentToken) => {
-                            if (currentToken) {
-                                console.log('📱 FCM Token generated:', currentToken);
-                                // Send token to Django backend with automatic registration
-                                submitFCMToken(currentToken);
-                            } else {
-                                console.log('❌ No FCM token available');
-                            }
-                        }).catch((err) => {
-                            console.error('❌ Error getting FCM token:', err);
-                        });
-                    } else {
-                        console.log('❌ Notification permission denied:', permission);
-                    }
-                });
+                        // Request permission and get token (AUTHENTICATION GATE)
+                        if ('Notification' in window) {
+                            Notification.requestPermission().then((permission) => {
+                                if (permission === 'granted') {
+                                    console.log('✅ Notification permission granted');
+                                    
+                                    getToken(messaging, { 
+                                        vapidKey: window.firebaseConfig?.vapidKey || "{{ vapid_public_key|escapejs }}"
+                                    }).then((currentToken) => {
+                                        if (currentToken) {
+                                            console.log('📱 FCM Token generated:', currentToken);
+                                            // Send token to Django backend with automatic registration
+                                            submitFCMToken(currentToken);
+                                        } else {
+                                            console.log('❌ No FCM token available');
+                                        }
+                                    }).catch((err) => {
+                                        console.error('❌ Error getting FCM token:', err);
+                                    });
+                                } else {
+                                    console.log('❌ Notification permission denied:', permission);
+                                }
+                            });
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('❌ Service Worker registration failed:', error);
+                    });
             }
 
             // Handle foreground messages
