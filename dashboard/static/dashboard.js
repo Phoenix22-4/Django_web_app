@@ -381,30 +381,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const currentHour = new Date().getHours();
         
-        // Update water usage (estimate based on pump usage and tank levels)
-        if (data.pump_status && lastPumpState !== data.pump_status) {
-            if (data.pump_status && !lastPumpState) {
-                // Pump turned on
-                pumpStartTime = new Date();
-                console.log('💧 Pump turned ON - starting water usage tracking');
-            } else if (!data.pump_status && lastPumpState) {
-                // Pump turned off
-                if (pumpStartTime) {
-                    const pumpDuration = (new Date() - pumpStartTime) / 1000 / 60; // minutes
-                    const estimatedWaterUsage = pumpDuration * 2; // 2 liters per minute estimate
-                    dailyWaterUsage += estimatedWaterUsage;
-                    
-                    // Update chart
-                    if (waterUsageChart) {
-                        waterUsageChart.data.datasets[0].data[currentHour] += estimatedWaterUsage;
-                        waterUsageChart.update('none');
-                    }
-                    
-                    console.log(`💧 Pump ran for ${pumpDuration.toFixed(1)} minutes, estimated ${estimatedWaterUsage.toFixed(1)}L used`);
-                }
-            }
-            lastPumpState = data.pump_status;
-        }
+        // Update water usage (REMOVE old estimation logic - now using backend calculation)
+        // Backend provides precise water_usage and pump_runtime calculations
+        console.log(`� Backend Analytics - Water: ${data.water_usage || 0}L, Pump: ${data.pump_runtime || 0}H`);
         
         // Update pump usage hours
         if (data.pump_status) {

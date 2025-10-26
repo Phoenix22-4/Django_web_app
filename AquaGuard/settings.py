@@ -152,10 +152,10 @@ if not FIREBASE_CREDENTIALS:
     print("WARNING: 'FIREBASE_SERVICE_ACCOUNT_JSON' environment variable not found. Firebase Admin SDK will not be initialized.")
 
 # Firebase Configuration - Use environment variables for security
-FIREBASE_API_KEY = os.environ.get('FIREBASE_API_KEY', '')
+FIREBASE_API_KEY = os.environ.get('FIREBASE_WEB_API_KEY', '')
 FIREBASE_PROJECT_ID = os.environ.get('FIREBASE_PROJECT_ID', '')
 FIREBASE_MESSAGING_SENDER_ID = os.environ.get('FIREBASE_MESSAGING_SENDER_ID', '')
-FIREBASE_APP_ID = os.environ.get('FIREBASE_APP_ID', '')
+FIREBASE_APP_ID = os.environ.get('FIREBASE_WEB_APP_ID', '')
 FIREBASE_MEASUREMENT_ID = os.environ.get('FIREBASE_MEASUREMENT_ID', '')
 VAPID_PUBLIC_KEY = os.environ.get('VAPID_PUBLIC_KEY', '')
 
