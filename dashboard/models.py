@@ -222,9 +222,6 @@ class AutomationRule(models.Model):
     max_level = models.PositiveIntegerField(default=95, help_text="Pump OFF when level is ABOVE this %")
     enabled = models.BooleanField(default=True)
 
-    def __str__(self):
-        return f"Rule '{self.name}' for {self.device.device_id}"
-
 
 # --- NEW MODEL FOR DATA ANALYTICS ---
 class DailyWaterUsage(models.Model):
@@ -234,6 +231,7 @@ class DailyWaterUsage(models.Model):
     total_stored_water_liters = models.FloatField(default=0.0)
     total_power_kwh = models.FloatField(default=0.0)
     total_pump_runtime_hours = models.FloatField(default=0.0)
+    peak_hours = models.JSONField(default=list, blank=True)  # List of peak hours
 
     class Meta:
         ordering = ['-date']

@@ -334,7 +334,7 @@ class WaterReadingAdmin(admin.ModelAdmin):
 
 # --- NEW: ADMINS for new models ---
 class DailyWaterUsageAdmin(admin.ModelAdmin):
-    list_display = ('date', 'device', 'total_user_water_liters', 'total_power_kwh')
+    list_display = ('date', 'device', 'total_user_water_liters', 'total_power_kwh', 'peak_hours')
     list_filter = ('device',)
     date_hierarchy = 'date'
     

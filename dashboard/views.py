@@ -11,12 +11,13 @@ from django.utils.decorators import method_decorator
 import json
 import google.generativeai as genai
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.utils import timezone
 from .security_decorators import (
     secure_api_view, validate_json_input, device_ownership_required,
     rate_limit, sanitize_input
 )
+from django.db.models import Sum
 import logging
 
 logger = logging.getLogger(__name__)

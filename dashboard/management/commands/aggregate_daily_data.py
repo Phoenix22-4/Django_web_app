@@ -24,12 +24,12 @@ class Command(BaseCommand):
             # 2. Calculate Power Usage
             total_kwh = 0.0
             if device.pump_present:
-                pump_on_readings = readings.filter(pump_status=True)
+                pump_on_readings = [r for r in readings if r.system_data.get('pump_status')]
                 # Assuming 1 reading every 5 seconds (12 readings per minute)
-                total_runtime_minutes = pump_on_readings.count() / 12.0 
+                total_runtime_minutes = len(pump_on_readings) / 12.0 
                 
                 if total_runtime_minutes > 0:
-                    average_current = pump_on_readings.aggregate(Avg('pump_current_amps'))['pump_current_amps__avg']
+                    average_current = sum([r.system_data.get('pump_current', 0) for r in pump_on_readings]) / len(pump_on_readings)
                     if average_current is None: average_current = 0.0
                     
                     # P = I * V. Using 240V for Kenya.
@@ -38,12 +38,28 @@ class Command(BaseCommand):
                 else:
                     total_kwh = 0.0
 
-            # 3. Calculate Water Usage (Placeholder)
-            # Real calculation is very complex. It requires knowing tank dimensions (from device.tank_capacity_liters)
-            # and accurately tracking the *change* in level, which is hard.
-            # We will store placeholder data for now.
-            total_user_liters = 0.0 # Placeholder
-            total_stored_liters = 0.0 # Placeholder
+            # 3. Calculate Water Usage (sum drops across all tanks)
+            total_user_liters = 0
+            total_stored_liters = 0
+            all_levels = {}
+            for r in readings:
+                if r.system_data:
+                    for key, value in r.system_data.items():
+                        if key.endswith('_level'):
+                            tank_key = key.replace('_level', '')
+                            if tank_key not in all_levels:
+                                all_levels[tank_key] = []
+                            all_levels[tank_key].append(value)
+            
+            for tank, levels in all_levels.items():
+                for i in range(1, len(levels)):
+                    diff = levels[i-1] - levels[i]
+                    if diff > 0:
+                        total_user_liters += diff
+            
+            for tank, levels in all_levels.items():
+                if len(levels) > 1:
+                    total_stored_liters += levels[-1] - levels[0]
 
             # 4. Save the aggregated data
             DailyWaterUsage.objects.update_or_create(
