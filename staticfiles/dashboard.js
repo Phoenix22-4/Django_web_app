@@ -34,6 +34,13 @@ document.addEventListener('DOMContentLoaded', function() {
     let simulatedCurrent = 0.0;
     let solenoidStates = {};
     let chartsInitialized = false;
+    
+    // Water Usage Calculation
+    let lastTankLevels = {}; // Store previous tank levels
+    let lastLevelTimestamp = null;
+    let waterUsagePerSecond = 0; // Litres per second
+    let totalWaterUsage = 0; // Total water usage in litres
+    let pumpRuntimeSeconds = 0; // Total pump runtime in seconds
 
     // --- DOM ELEMENTS ---
     const elements = {
@@ -44,8 +51,9 @@ document.addEventListener('DOMContentLoaded', function() {
         pumpSvg: document.getElementById('pump-svg'),
         pumpStatusText: document.getElementById('pump-status-text'),
         pumpToggleButton: document.getElementById('pump-toggle-btn'),
-        pumpOnBtn: document.getElementById('pumpOnBtn'),
-        pumpOffBtn: document.getElementById('pumpOffBtn'),
+        pumpToggleBtn: document.getElementById('pump-toggle-btn'),
+        pumpToggleText: document.getElementById('pump-toggle-text'),
+        pumpToggleIndicator: document.getElementById('pump-toggle-indicator'),
         modeAutoBtn: document.getElementById('mode-auto'),
         modeTimeslotBtn: document.getElementById('mode-timeslot'),
         modeStatusMsg: document.querySelector('#mode-status-message span'),
@@ -114,6 +122,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update live analytics
             console.log("🔄 Calling updateLiveAnalytics with data:", data);
             updateLiveAnalytics(data);
+            
+            // Calculate water usage (new realistic calculation)
+            console.log("🔄 Calling calculateWaterUsage with data:", data);
+            calculateWaterUsage(data);
 
             console.log("✅ All real-time updates completed successfully");
 
@@ -268,23 +280,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    aspectRatio: 2.5,
+                    aspectRatio: 1.8,
                     scales: {
                         x: {
                             title: {
                                 display: true,
                                 text: 'Hours',
-                                font: { size: 10 }
+                                font: { size: 12 }
                             },
-                            ticks: { font: { size: 9 } }
+                            ticks: { font: { size: 10 } }
                         },
                         y: {
                             title: {
                                 display: true,
                                 text: 'Liters',
-                                font: { size: 10 }
+                                font: { size: 12 }
                             },
-                            ticks: { font: { size: 9 } },
+                            ticks: { font: { size: 10 } },
                             beginAtZero: true
                         }
                     },
@@ -316,23 +328,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    aspectRatio: 2.5,
+                    aspectRatio: 1.8,
                     scales: {
                         x: {
                             title: {
                                 display: true,
                                 text: 'Hours',
-                                font: { size: 10 }
+                                font: { size: 12 }
                             },
-                            ticks: { font: { size: 9 } }
+                            ticks: { font: { size: 10 } }
                         },
                         y: {
                             title: {
                                 display: true,
                                 text: 'Hours',
-                                font: { size: 10 }
+                                font: { size: 12 }
                             },
-                            ticks: { font: { size: 9 } },
+                            ticks: { font: { size: 10 } },
                             beginAtZero: true
                         }
                     },
@@ -369,30 +381,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const currentHour = new Date().getHours();
         
-        // Update water usage (estimate based on pump usage and tank levels)
-        if (data.pump_status && lastPumpState !== data.pump_status) {
-            if (data.pump_status && !lastPumpState) {
-                // Pump turned on
-                pumpStartTime = new Date();
-                console.log('💧 Pump turned ON - starting water usage tracking');
-            } else if (!data.pump_status && lastPumpState) {
-                // Pump turned off
-                if (pumpStartTime) {
-                    const pumpDuration = (new Date() - pumpStartTime) / 1000 / 60; // minutes
-                    const estimatedWaterUsage = pumpDuration * 2; // 2 liters per minute estimate
-                    dailyWaterUsage += estimatedWaterUsage;
-                    
-                    // Update chart
-                    if (waterUsageChart) {
-                        waterUsageChart.data.datasets[0].data[currentHour] += estimatedWaterUsage;
-                        waterUsageChart.update('none');
-                    }
-                    
-                    console.log(`💧 Pump ran for ${pumpDuration.toFixed(1)} minutes, estimated ${estimatedWaterUsage.toFixed(1)}L used`);
-                }
-            }
-            lastPumpState = data.pump_status;
-        }
+        // Update water usage (REMOVE old estimation logic - now using backend calculation)
+        // Backend provides precise water_usage and pump_runtime calculations
+        console.log(`� Backend Analytics - Water: ${data.water_usage || 0}L, Pump: ${data.pump_runtime || 0}H`);
         
         // Update pump usage hours
         if (data.pump_status) {
@@ -781,13 +772,22 @@ document.addEventListener('DOMContentLoaded', function() {
             pumpCurrentText.style.fontWeight = 'bold';
         }
         
-        // Update pump button to reflect current state
+        // Update pump toggle button to reflect current state
         if (pumpToggleBtn) {
-            safeUpdate(pumpToggleBtn, pumpIsOn ? "Turn OFF" : "Turn ON");
-            // Update button colors
-            pumpToggleBtn.className = pumpIsOn ? 
-                'bg-red-600 text-white font-bold py-2 px-4 rounded-lg w-32 transition-colors' : 
-                'bg-green-600 text-white font-bold py-2 px-4 rounded-lg w-32 transition-colors';
+            const pumpToggleText = document.getElementById('pump-toggle-text');
+            const pumpToggleIndicator = document.getElementById('pump-toggle-indicator');
+            
+            if (pumpIsOn) {
+                // Pump is ON - Green state
+                pumpToggleBtn.className = 'pump-toggle-btn bg-green-600 text-white font-bold py-3 px-6 rounded-lg w-40 transition-all duration-300 hover:shadow-lg transform hover:scale-105';
+                if (pumpToggleText) pumpToggleText.textContent = 'PUMP ON';
+                if (pumpToggleIndicator) pumpToggleIndicator.className = 'w-3 h-3 bg-white rounded-full ml-2 inline-block animate-pulse';
+            } else {
+                // Pump is OFF - Red state
+                pumpToggleBtn.className = 'pump-toggle-btn bg-red-600 text-white font-bold py-3 px-6 rounded-lg w-40 transition-all duration-300 hover:shadow-lg transform hover:scale-105';
+                if (pumpToggleText) pumpToggleText.textContent = 'PUMP OFF';
+                if (pumpToggleIndicator) pumpToggleIndicator.className = 'w-3 h-3 bg-white rounded-full ml-2 inline-block';
+            }
         }
         
         // Update pump animation - THIS IS THE KEY FOR THE ANIMATION
@@ -978,6 +978,144 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         updateManualButtonUI();
+        updatePumpToggleButton(isOn);
+    }
+    
+    function updatePumpToggleButton(isOn) {
+        if (elements.pumpToggleBtn && elements.pumpToggleText && elements.pumpToggleIndicator) {
+            if (isOn) {
+                // Pump is ON - Green state
+                elements.pumpToggleBtn.className = 'pump-toggle-btn bg-green-600 text-white font-bold py-3 px-6 rounded-lg w-40 transition-all duration-300 hover:shadow-lg transform hover:scale-105';
+                elements.pumpToggleText.textContent = 'PUMP ON';
+                elements.pumpToggleIndicator.className = 'w-3 h-3 bg-white rounded-full ml-2 inline-block animate-pulse';
+            } else {
+                // Pump is OFF - Red state
+                elements.pumpToggleBtn.className = 'pump-toggle-btn bg-red-600 text-white font-bold py-3 px-6 rounded-lg w-40 transition-all duration-300 hover:shadow-lg transform hover:scale-105';
+                elements.pumpToggleText.textContent = 'PUMP OFF';
+                elements.pumpToggleIndicator.className = 'w-3 h-3 bg-white rounded-full ml-2 inline-block';
+            }
+        }
+    }
+    
+    // --- WATER USAGE CALCULATION ---
+    function calculateWaterUsage(currentData) {
+        console.log('💧 WATER USAGE: Calculating water consumption...');
+        
+        if (!window.tankConfigs || window.tankConfigs.length === 0) {
+            console.log('⚠️ WATER USAGE: No tank configurations available');
+            return;
+        }
+        
+        const currentTime = new Date();
+        const currentTankLevels = {};
+        
+        // Extract current tank levels (only secondary tanks - destination tanks)
+        window.tankConfigs.forEach(tank => {
+            if (!tank.isSource && tank.id) {
+                const level = currentData[tank.id] || 0;
+                currentTankLevels[tank.id] = {
+                    level: level,
+                    capacity: tank.capacity || 500, // Default capacity if not set
+                    name: tank.name || tank.id
+                };
+            }
+        });
+        
+        // Only calculate usage when pump is OFF (water consumption phase)
+        if (!pumpIsOn && lastLevelTimestamp && Object.keys(lastTankLevels).length > 0) {
+            const timeDiff = (currentTime - lastLevelTimestamp) / 1000; // Time difference in seconds
+            
+            if (timeDiff > 0) {
+                let totalUsageThisInterval = 0;
+                
+                // Calculate usage for each secondary tank
+                Object.keys(currentTankLevels).forEach(tankId => {
+                    const currentLevel = currentTankLevels[tankId].level;
+                    const lastLevel = lastTankLevels[tankId]?.level || 0;
+                    const capacity = currentTankLevels[tankId].capacity;
+                    
+                    // Water usage = level decrease * capacity / 100
+                    const levelDecrease = Math.max(0, lastLevel - currentLevel);
+                    const tankUsage = (levelDecrease / 100) * capacity;
+                    
+                    totalUsageThisInterval += tankUsage;
+                    
+                    console.log(`💧 Tank ${tankId}: ${lastLevel}% → ${currentLevel}% = ${tankUsage.toFixed(2)}L`);
+                });
+                
+                // Update water usage metrics
+                totalWaterUsage += totalUsageThisInterval;
+                waterUsagePerSecond = totalUsageThisInterval / timeDiff;
+                
+                console.log(`💧 WATER USAGE: +${totalUsageThisInterval.toFixed(2)}L (${waterUsagePerSecond.toFixed(3)}L/s)`);
+                console.log(`💧 TOTAL USAGE: ${totalWaterUsage.toFixed(2)}L`);
+                
+                // Update analytics charts
+                updateWaterUsageChart(totalUsageThisInterval);
+            }
+        }
+        
+        // Update pump runtime
+        if (pumpIsOn) {
+            if (pumpStartTime) {
+                const runtime = (currentTime - pumpStartTime) / 1000;
+                pumpRuntimeSeconds = runtime;
+                console.log(`⏱️ PUMP RUNTIME: ${runtime.toFixed(1)}s`);
+            } else {
+                pumpStartTime = currentTime;
+            }
+        } else {
+            pumpStartTime = null;
+        }
+        
+        // Store current levels for next calculation
+        lastTankLevels = { ...currentTankLevels };
+        lastLevelTimestamp = currentTime;
+        
+        // Update real-time analytics display
+        updateRealtimeAnalytics();
+    }
+    
+    function updateRealtimeAnalytics() {
+        // Update water usage display
+        const waterUsageElement = document.getElementById('water-usage-display');
+        if (waterUsageElement) {
+            waterUsageElement.textContent = `${waterUsagePerSecond.toFixed(2)} L/s`;
+        }
+        
+        // Update pump runtime display
+        const pumpRuntimeElement = document.getElementById('pump-runtime-display');
+        if (pumpRuntimeElement) {
+            const hours = Math.floor(pumpRuntimeSeconds / 3600);
+            const minutes = Math.floor((pumpRuntimeSeconds % 3600) / 60);
+            const seconds = Math.floor(pumpRuntimeSeconds % 60);
+            pumpRuntimeElement.textContent = `${hours}h ${minutes}m ${seconds}s`;
+        }
+        
+        // Update total water usage display
+        const totalUsageElement = document.getElementById('total-water-usage-display');
+        if (totalUsageElement) {
+            totalUsageElement.textContent = `${totalWaterUsage.toFixed(1)} L`;
+        }
+    }
+    
+    function updateWaterUsageChart(usage) {
+        if (!waterUsageChart) return;
+        
+        const now = new Date();
+        const timeLabel = now.toLocaleTimeString();
+        
+        // Add new data point
+        waterUsageChart.data.labels.push(timeLabel);
+        waterUsageChart.data.datasets[0].data.push(usage);
+        
+        // Keep only last 24 hours of data (1440 minutes)
+        if (waterUsageChart.data.labels.length > 1440) {
+            waterUsageChart.data.labels.shift();
+            waterUsageChart.data.datasets[0].data.shift();
+        }
+        
+        waterUsageChart.update('none');
     }
 
     // --- SOLENOID VALVE UPDATES ---
@@ -1176,11 +1314,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Pump control buttons
-        if (elements.pumpOnBtn) {
-            elements.pumpOnBtn.addEventListener('click', () => controlPump(true));
-        }
-        if (elements.pumpOffBtn) {
-            elements.pumpOffBtn.addEventListener('click', () => controlPump(false));
+        // Single toggle button for pump control
+        if (elements.pumpToggleBtn) {
+            elements.pumpToggleBtn.addEventListener('click', () => {
+                console.log('🎛️ PUMP TOGGLE: Current state:', pumpIsOn);
+                controlPump(!pumpIsOn);
+            });
         }
         
         // Timeslot controls

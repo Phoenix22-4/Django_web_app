@@ -5,84 +5,28 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-# --- NEW: A PROFILE FOR EACH USER TO STORE PUSH TOKENS ---
-class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    special_user_number = models.CharField(max_length=10, unique=True, blank=True, null=True, help_text="4-digit special user number for easy identification")
-    phone_number = models.CharField(max_length=20, blank=True) # Kept from previous
-    fcm_token = models.TextField(blank=True, null=True, help_text="Firebase Cloud Messaging token for push notifications")
-    push_notifications_enabled = models.BooleanField(default=True, help_text="Enable/disable push notifications")
-    last_notification_sent = models.DateTimeField(blank=True, null=True)
-
-    def save(self, *args, **kwargs):
-        # Auto-generate special user number if not provided
-        if not self.special_user_number:
-            import random
-            while True:
-                # Generate 4-digit number
-                special_num = f"{random.randint(1000, 9999)}"
-                if not Profile.objects.filter(special_user_number=special_num).exists():
-                    self.special_user_number = special_num
-                    break
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f'{self.user.username} Profile (#{self.special_user_number})'
-
-
-class FCMToken(models.Model):
-    """Model to store FCM tokens for multiple devices per user"""
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fcm_tokens')
-    token = models.TextField(help_text="Firebase Cloud Messaging token")
-    user_special_id = models.CharField(max_length=10, blank=True, help_text="User's special number for easy lookup")
-    device_type = models.CharField(max_length=50, default='web', help_text="Device type (web, mobile, etc.)")
-    user_agent = models.TextField(blank=True, null=True, help_text="User agent string")
-    is_active = models.BooleanField(default=True, help_text="Whether this token is active")
-    created_at = models.DateTimeField(auto_now_add=True)
-    last_used = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        unique_together = ('user', 'token')
-        ordering = ['-last_used']
-
-    def save(self, *args, **kwargs):
-        # Auto-populate user_special_id from user's profile
-        if not self.user_special_id:
-            try:
-                self.user_special_id = self.user.profile.special_user_number
-            except:
-                self.user_special_id = "N/A"
-        super().save(*args, **kwargs)
-
-    @property
-    def special_user_number(self):
-        """Get the user's special number for easy identification"""
-        return self.user_special_id or "N/A"
-
-    def __str__(self):
-        return f'{self.user.username} (#{self.special_user_number}) - {self.device_type} ({self.token[:20]}...)'
-
 class DeviceFCMToken(models.Model):
-    """NEW: Model to store FCM tokens with device ID tracking for multi-device support"""
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='device_fcm_tokens')
+    """Model to store FCM tokens with device ID tracking - no user dependency"""
     device_id = models.CharField(max_length=255, db_index=True, help_text="Unique device identifier (UUID or browser fingerprint)")
     fcm_token = models.TextField(unique=True, db_index=True, help_text="Firebase Cloud Messaging token")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
-        unique_together = ('user', 'device_id')
         ordering = ['-updated_at']
         verbose_name = 'Device FCM Token'
         verbose_name_plural = 'Device FCM Tokens'
     
     def __str__(self):
-        return f'{self.user.username} - Device: {self.device_id[:20]}... - Token: {self.fcm_token[:20]}...'
-
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        Profile.objects.get_or_create(user=instance)
+        return f'Device: {self.device_id[:20]}... - Token: {self.fcm_token[:20]}...'
+    
+    def get_device_owner(self):
+        """Get the device owner for sending notifications"""
+        try:
+            device = Device.objects.get(device_id=self.device_id)
+            return device.owner
+        except Device.DoesNotExist:
+            return None
 
 
 class Device(models.Model):

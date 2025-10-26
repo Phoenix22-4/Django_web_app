@@ -583,17 +583,14 @@ def device_data_view(request, device_id):
             'status': 'error'
         }, status=500)
 
-@secure_api_view(require_auth=True, allowed_methods=['POST'], rate_limit_requests=10)
+@require_http_methods(['POST'])
 @validate_json_input(required_fields={'token': 'string', 'device_id': 'string'})
 def save_fcm_token(request):
-    """Save FCM token with device ID from client-side"""
+    """Save FCM token with device ID from client-side - no user authentication required"""
     try:
         data = request.validated_data
         fcm_token = sanitize_input(data.get('token', ''))
         device_id = sanitize_input(data.get('device_id', ''))
-        
-        if not request.user.is_authenticated:
-            return JsonResponse({'error': 'Authentication required'}, status=401)
         
         if not fcm_token:
             return JsonResponse({'error': 'FCM token is required'}, status=400)
@@ -607,7 +604,6 @@ def save_fcm_token(request):
         
         # Use update_or_create to save the token with device_id
         device_fcm_token, created = DeviceFCMToken.objects.update_or_create(
-            user=request.user,
             device_id=device_id,
             defaults={
                 'fcm_token': fcm_token,
@@ -616,12 +612,11 @@ def save_fcm_token(request):
         )
         
         # LOGGING: Success message as per requirements
-        print(f"SUCCESS: Token saved for User ID: {request.user.id} and Device ID: {device_id}")
+        print(f"SUCCESS: Token saved for Device ID: {device_id}")
         
         return JsonResponse({
             'status': 'success',
             'message': 'FCM token saved successfully',
-            'user_id': request.user.id,
             'device_id': device_id
         })
         
@@ -880,4 +875,73 @@ self.addEventListener('notificationclick', function(event) {{
 }});
 """
     
-    return HttpResponse(service_worker_content, content_type='application/javascript')
+# --- FCM API VIEWS (Missing from implementation) ---
+@require_http_methods(["POST"])
+@csrf_exempt
+@secure_api_view
+def save_fcm_token(request):
+    """Save FCM token from client-side JavaScript"""
+    try:
+        data = json.loads(request.body)
+        token = data.get('token')
+        device_id = data.get('device_id')
+
+        if not token or not device_id:
+            return JsonResponse({'status': 'error', 'error': 'Token and device_id required'}, status=400)
+
+        if not request.user.is_authenticated:
+            return JsonResponse({'status': 'error', 'error': 'Authentication required'}, status=401)
+
+        # Save to DeviceFCMToken model
+        fcm_token, created = DeviceFCMToken.objects.get_or_create(
+            user=request.user,
+            device_id=device_id,
+            defaults={'fcm_token': token}
+        )
+
+        if not created:
+            # Update existing token
+            fcm_token.fcm_token = token
+            fcm_token.save()
+
+        print(f"✅ FCM: Token saved for User {request.user.username} (Device: {device_id[:20]}...)")
+        return JsonResponse({
+            'status': 'success',
+            'user_id': request.user.id,
+            'device_id': device_id
+        })
+
+    except Exception as e:
+        print(f"❌ FCM: Error saving token: {e}")
+        return JsonResponse({'status': 'error', 'error': str(e)}, status=500)
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def register_fcm_token(request):
+    """Alternative FCM token registration endpoint"""
+    return save_fcm_token(request)  # Same implementation
+
+@secure_api_view(require_auth=True, allowed_methods=['POST'], rate_limit_requests=5)
+@validate_json_input(required_fields={'device_id': 'string'}, optional_fields={'title': 'string', 'body': 'string'})
+def test_notification(request):
+    """Send test notification to a registered device"""
+    try:
+        data = request.validated_data
+        device_id = data['device_id']
+        title = sanitize_input(data.get('title') or 'AquaSavvy Test Notification')
+        body = sanitize_input(data.get('body') or 'This is a test notification from AquaSavvy!')
+        payload = {
+            'device_id': device_id,
+            'type': 'test_notification',
+            'timestamp': timezone.now().isoformat()
+        }
+
+        success = push_notification_service.send_notification_to_device(device_id, title, body, payload)
+
+        if success:
+            return JsonResponse({'status': 'success', 'message': 'Test notification sent'})
+        else:
+            return JsonResponse({'status': 'error', 'error': 'Failed to send notification'}, status=500)
+
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'error': str(e)}, status=500)

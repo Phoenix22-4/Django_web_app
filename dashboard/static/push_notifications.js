@@ -140,7 +140,7 @@ function submitFCMToken(token) {
     })
     .then(data => {
         if (data.status === 'success') {
-            console.log('✅ SUCCESS: Token saved for User ID: ' + data.user_id + ' and Device ID: ' + deviceId);
+            console.log('✅ SUCCESS: Token saved for Device ID: ' + deviceId);
         } else {
             console.error('❌ FCM: Token registration failed:', data.error);
         }

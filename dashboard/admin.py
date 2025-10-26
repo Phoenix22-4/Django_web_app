@@ -3,7 +3,8 @@ from django.contrib import admin
 from django.urls import path
 from django.shortcuts import render
 from django.db.models import Sum, Count
-from .models import Device, WaterReading, Profile, AutomationRule, DailyWaterUsage, FCMToken, DeviceFCMToken
+from .models import Device, WaterReading, AutomationRule, DailyWaterUsage, DeviceFCMToken
+
 import csv
 from django.http import HttpResponse
 import datetime
@@ -343,28 +344,11 @@ class DailyWaterUsageAdmin(admin.ModelAdmin):
         return redirect('admin:analytics_dashboard')
 
 
-class FCMTokenAdmin(admin.ModelAdmin):
-    list_display = ('special_user_number', 'user', 'device_type', 'is_active', 'created_at', 'last_used', 'token_preview')
-    list_filter = ('is_active', 'device_type', 'created_at')
-    search_fields = ('user__username', 'token', 'user_agent', 'user_special_id')
-    readonly_fields = ('token', 'created_at', 'last_used', 'special_user_number')
-    list_editable = ('is_active',)
-    
-    def special_user_number(self, obj):
-        return obj.special_user_number
-    special_user_number.short_description = "Special #"
-    special_user_number.admin_order_field = 'user_special_id'
-    
-    def token_preview(self, obj):
-        return f"{obj.token[:20]}..." if obj.token else "No token"
-    token_preview.short_description = "Token Preview"
-
-
 class DeviceFCMTokenAdmin(admin.ModelAdmin):
-    """Admin for new DeviceFCMToken model with device ID tracking"""
-    list_display = ('user', 'device_id_preview', 'token_preview', 'created_at', 'updated_at')
+    """Admin for DeviceFCMToken model - device-only tracking"""
+    list_display = ('device_id', 'token_preview', 'created_at', 'updated_at')
     list_filter = ('created_at', 'updated_at')
-    search_fields = ('user__username', 'device_id', 'fcm_token')
+    search_fields = ('device_id', 'fcm_token')
     readonly_fields = ('created_at', 'updated_at')
     
     def device_id_preview(self, obj):
@@ -373,11 +357,15 @@ class DeviceFCMTokenAdmin(admin.ModelAdmin):
     
     def token_preview(self, obj):
         return f"{obj.fcm_token[:20]}..." if obj.fcm_token else "No token"
-    token_preview.short_description = "FCM Token Preview"
+    token_preview.short_description = "FCM Token"
+    
+    def get_queryset(self, request):
+        # Show all device FCM tokens regardless of user
+        return super().get_queryset(request)
 
 
 admin.site.register(Device, DeviceAdmin)
 admin.site.register(WaterReading, WaterReadingAdmin)
 admin.site.register(DailyWaterUsage, DailyWaterUsageAdmin)
 admin.site.register(DeviceFCMToken, DeviceFCMTokenAdmin)
-# Profile and FCMToken PERMANENTLY REMOVED from admin as per Phase 1 requirements
+# FCM tokens are now device-based only - no user dependency required

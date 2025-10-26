@@ -4,11 +4,10 @@ import logging
 import os
 from datetime import datetime, timedelta
 from django.conf import settings
-from django.contrib.auth.models import User
 from firebase_admin import messaging
 from firebase_admin import credentials
 import firebase_admin
-from .models import Device, Profile
+from .models import Device
 
 logger = logging.getLogger(__name__)
 
@@ -102,8 +101,8 @@ class PushNotificationService:
             logger.error(f"Failed to initialize Firebase Admin SDK: {e}")
             self.firebase_initialized = False
 
-    def send_notification_to_user(self, user, title, body, data=None):
-        """Send push notification to a specific user"""
+    def send_notification_to_device(self, device_id, title, body, data=None):
+        """Send push notification to all devices associated with a device_id"""
         try:
             # Initialize Firebase if not already done
             if not self.firebase_initialized:
@@ -113,44 +112,50 @@ class PushNotificationService:
                 logger.error("Firebase not initialized")
                 return False
 
-            # Get user's FCM token (you'll need to store this in the Profile model)
-            try:
-                profile = user.get_profile()
-                fcm_token = getattr(profile, 'fcm_token', None)
-                
-                if not fcm_token:
-                    logger.warning(f"No FCM token found for user {user.username}")
-                    return False
-                
-                # Create the message
-                message = messaging.Message(
-                    notification=messaging.Notification(
-                        title=title,
-                        body=body
-                    ),
-                    data=data or {},
-                    token=fcm_token
-                )
-                
-                # Send the message
-                response = messaging.send(message)
-                logger.info(f"Successfully sent notification to {user.username}: {response}")
-                return True
-                
-            except Exception as e:
-                logger.error(f"Error sending notification to user {user.username}: {e}")
+            # Get all FCM tokens for this device_id
+            from .models import DeviceFCMToken
+            device_tokens = DeviceFCMToken.objects.filter(device_id=device_id)
+            
+            if not device_tokens:
+                logger.warning(f"No FCM tokens found for device {device_id}")
                 return False
-                
+            
+            success_count = 0
+            
+            # Send to all tokens for this device
+            for device_token in device_tokens:
+                try:
+                    # Create the message
+                    message = messaging.Message(
+                        notification=messaging.Notification(
+                            title=title,
+                            body=body
+                        ),
+                        data=data or {},
+                        token=device_token.fcm_token
+                    )
+                    
+                    # Send the message
+                    response = messaging.send(message)
+                    logger.info(f"Successfully sent notification for device {device_id}: {response}")
+                    success_count += 1
+                    
+                except Exception as e:
+                    logger.error(f"Error sending notification for device {device_id}, token {device_token.fcm_token[:20]}...: {e}")
+                    
+            return success_count > 0
+            
         except Exception as e:
-            logger.error(f"Error in send_notification_to_user: {e}")
+            logger.error(f"Error in send_notification_to_device: {e}")
             return False
 
     def send_notification_to_device_owner(self, device_id, title, body, data=None):
-        """Send notification to device owner"""
+        """Send notification to device owner via device_id lookup"""
         try:
             device = Device.objects.get(device_id=device_id)
             if device.owner:
-                return self.send_notification_to_user(device.owner, title, body, data)
+                logger.info(f"Sending notification to owner of device {device_id}: {device.owner.username}")
+                return self.send_notification_to_device(device_id, title, body, data)
             else:
                 logger.warning(f"Device {device_id} has no owner")
                 return False
