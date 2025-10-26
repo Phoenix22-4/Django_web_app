@@ -21,50 +21,68 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.WARNING(f"No readings for device {device.device_id} on {day}"))
                 continue
             
-            # Calculate water usage (overhead tank consumption)
-            levels = list(readings.values_list('overhead_level', flat=True))
+            # Calculate water usage (sum drops across all tanks)
             total_drop = 0
-            for i in range(1, len(levels)):
-                diff = levels[i-1] - levels[i]
-                if diff > 0:
-                    total_drop += diff
+            all_levels = {}
+            for r in readings:
+                if r.system_data:
+                    for key, value in r.system_data.items():
+                        if key.endswith('_level'):
+                            tank_key = key.replace('_level', '')
+                            if tank_key not in all_levels:
+                                all_levels[tank_key] = []
+                            all_levels[tank_key].append(value)
             
-            # Calculate stored water (underground tank refill)
-            underground_levels = list(readings.values_list('underground_level', flat=True))
-            if underground_levels:
-                total_stored = underground_levels[-1] - underground_levels[0]
-            else:
-                total_stored = 0
+            for tank, levels in all_levels.items():
+                for i in range(1, len(levels)):
+                    diff = levels[i-1] - levels[i]
+                    if diff > 0:
+                        total_drop += diff
+            
+            # Calculate stored water (sum refills for source tanks)
+            total_stored = 0
+            for tank, levels in all_levels.items():
+                if len(levels) > 1:
+                    total_stored += levels[-1] - levels[0]
             
             # Calculate pump runtime and power consumption
-            pump_on_count = readings.filter(pump_status=True).count()
-            total_readings = readings.count()
+            pump_on_readings = [r for r in readings if r.system_data.get('pump_status')]
+            pump_on_count = len(pump_on_readings)
+            total_readings = len(readings)
             
             # Estimate runtime hours (assuming readings are evenly spaced)
             reading_interval_seconds = (end_dt - start_dt).total_seconds() / max(total_readings, 1)
             pump_runtime_hours = (pump_on_count * reading_interval_seconds) / 3600
             
             # Calculate average current when pump was on
-            pump_on_readings = readings.filter(pump_status=True)
-            if pump_on_readings.exists():
-                avg_current = sum([r.pump_current_amps for r in pump_on_readings]) / pump_on_readings.count()
+            if pump_on_readings:
+                avg_current = sum([r.system_data.get('pump_current', 0) for r in pump_on_readings]) / len(pump_on_readings)
             else:
                 avg_current = 0.0
             
             # Power calculation: kWh = (runtime_hours * avg_current * voltage) / 1000
-            # Assuming 240V single-phase pump
             voltage = 240
             total_power_kwh = (pump_runtime_hours * avg_current * voltage) / 1000
+            
+            # Calculate peak hours (hours with most pump activity)
+            peak_hours = []
+            if pump_on_readings:
+                hour_counts = {}
+                for r in pump_on_readings:
+                    hour = r.timestamp.hour
+                    hour_counts[hour] = hour_counts.get(hour, 0) + 1
+                sorted_hours = sorted(hour_counts.items(), key=lambda x: x[1], reverse=True)
+                peak_hours = [h for h, c in sorted_hours[:3]]  # Top 3 peak hours
             
             # Save aggregated data
             DailyWaterUsage.objects.update_or_create(
                 device=device, 
-                day=day, 
+                date=day, 
                 defaults={
-                    'total_usage_liters': int(total_drop),
-                    'total_stored_liters': int(total_stored),
+                    'total_user_water_liters': int(total_drop),
+                    'total_stored_water_liters': int(total_stored),
                     'total_power_kwh': round(total_power_kwh, 3),
-                    'pump_runtime_hours': round(pump_runtime_hours, 2)
+                    'total_pump_runtime_hours': round(pump_runtime_hours, 2)
                 }
             )
             
@@ -82,8 +100,8 @@ class Command(BaseCommand):
 
         # Delete daily aggregates older than 35 days
         cutoff_daily = timezone.localdate() - timedelta(days=35)
-        deleted_daily = DailyWaterUsage.objects.filter(day__lt=cutoff_daily).count()
-        DailyWaterUsage.objects.filter(day__lt=cutoff_daily).delete()
+        deleted_daily = DailyWaterUsage.objects.filter(date__lt=cutoff_daily).count()
+        DailyWaterUsage.objects.filter(date__lt=cutoff_daily).delete()
         self.stdout.write(self.style.WARNING(f"Deleted {deleted_daily} old daily summaries (>35d)"))
 
         # ===================================================================================
