@@ -28,7 +28,7 @@ except ImportError:
     print("WARNING: AWS IoT integration not available")
     aws_iot_manager = None
 
-from .models import Device, WaterReading, AutomationRule
+from .models import Device, WaterReading, AutomationRule, DeviceFCMToken
 
 try:
     from .push_notifications import push_notification_service
@@ -583,106 +583,6 @@ def device_data_view(request, device_id):
             'status': 'error'
         }, status=500)
 
-@require_http_methods(['POST'])
-@validate_json_input(required_fields={'token': 'string', 'device_id': 'string'})
-def save_fcm_token(request):
-    """Save FCM token with device ID from client-side - no user authentication required"""
-    try:
-        data = request.validated_data
-        fcm_token = sanitize_input(data.get('token', ''))
-        device_id = sanitize_input(data.get('device_id', ''))
-        
-        if not fcm_token:
-            return JsonResponse({'error': 'FCM token is required'}, status=400)
-        
-        if not device_id:
-            return JsonResponse({'error': 'Device ID is required'}, status=400)
-        
-        # Store token in DeviceFCMToken model with device_id tracking
-        from .models import DeviceFCMToken
-        from django.utils import timezone
-        
-        # Use update_or_create to save the token with device_id
-        device_fcm_token, created = DeviceFCMToken.objects.update_or_create(
-            device_id=device_id,
-            defaults={
-                'fcm_token': fcm_token,
-                'updated_at': timezone.now()
-            }
-        )
-        
-        # LOGGING: Success message as per requirements
-        print(f"SUCCESS: Token saved for Device ID: {device_id}")
-        
-        return JsonResponse({
-            'status': 'success',
-            'message': 'FCM token saved successfully',
-            'device_id': device_id
-        })
-        
-    except Exception as e:
-        print(f"❌ Error in save_fcm_token: {e}")
-        return JsonResponse({'error': 'Failed to save FCM token'}, status=500)
-
-@secure_api_view(require_auth=True, allowed_methods=['POST'], rate_limit_requests=10)
-@validate_json_input(optional_fields={'fcm_token': 'string', 'enabled': 'boolean'})
-def register_fcm_token(request):
-    """Register FCM token for push notifications"""
-    try:
-        data = request.validated_data
-        fcm_token = sanitize_input(data.get('fcm_token', ''))
-        enabled = data.get('enabled', False)
-        
-        if not request.user.is_authenticated:
-            return JsonResponse({'error': 'Authentication required'}, status=401)
-        
-        # Update user's notification preference
-        try:
-            from .models import Profile
-            profile, created = Profile.objects.get_or_create(user=request.user)
-            profile.fcm_token = fcm_token or 'browser_notification'
-            profile.push_notifications_enabled = enabled
-            profile.save()
-            
-            print(f"📱 Notification preference updated for user '{request.user.username}': {enabled}")
-            
-            return JsonResponse({
-                'status': 'success',
-                'message': f'Notification preference {"enabled" if enabled else "disabled"} successfully'
-            })
-        except Exception as e:
-            print(f"❌ Error updating notification preference: {e}")
-            return JsonResponse({
-                'error': f'Error updating notification preference: {str(e)}',
-                'status': 'error'
-            }, status=500)
-        
-    except Exception as e:
-        return JsonResponse({
-            'error': f'Error registering FCM token: {str(e)}',
-            'status': 'error'
-        }, status=500)
-
-@secure_api_view(require_auth=True, allowed_methods=['POST'], rate_limit_requests=5)
-def test_notification(request):
-    """Send test notification"""
-    try:
-        
-        # For browser notifications, we'll just return success
-        # The actual notification will be shown by the JavaScript
-        print(f"🔔 Test notification requested by user '{request.user.username}'")
-        
-        return JsonResponse({
-            'status': 'success',
-            'message': 'Test notification sent successfully'
-        })
-            
-    except Exception as e:
-        return JsonResponse({
-            'error': f'Error sending test notification: {str(e)}',
-            'status': 'error'
-        }, status=500)
-
 @login_required
 def device_data_api(request, device_id):
     """API endpoint for live device data updates"""
@@ -797,7 +697,7 @@ def firebase_service_worker(request):
         'messagingSenderId': settings.FIREBASE_MESSAGING_SENDER_ID,
         'appId': settings.FIREBASE_APP_ID,
     }
-    
+
     # Generate the service worker content
     service_worker_content = f"""// Firebase Service Worker for AquaSavvy
 try {{
@@ -825,7 +725,7 @@ try {{
     if (typeof messaging !== 'undefined') {{
         messaging.onBackgroundMessage(function(payload) {{
             console.log('[firebase-messaging-sw.js] Received background message ', payload);
-            
+
             const notificationTitle = payload.notification.title || 'AquaSavvy Notification';
             const notificationOptions = {{
                 body: payload.notification.body || 'You have a new notification',
@@ -855,30 +755,28 @@ try {{
 // Handle notification clicks
 self.addEventListener('notificationclick', function(event) {{
     console.log('[firebase-messaging-sw.js] Notification click received.');
-    
+
     event.notification.close();
-    
+
     if (event.action === 'view') {{
-        // Open the dashboard
         event.waitUntil(
             clients.openWindow('/devices/')
         );
     }} else if (event.action === 'dismiss') {{
-        // Just close the notification
         return;
     }} else {{
-        // Default action - open the app
         event.waitUntil(
             clients.openWindow('/')
         );
     }}
 }});
 """
-    
+    return HttpResponse(service_worker_content, content_type='application/javascript')
+
 # --- FCM API VIEWS (Missing from implementation) ---
 @require_http_methods(["POST"])
 @csrf_exempt
-@secure_api_view
+@secure_api_view(require_auth=True, allowed_methods=['POST'], rate_limit_requests=30)
 def save_fcm_token(request):
     """Save FCM token from client-side JavaScript"""
     try:
