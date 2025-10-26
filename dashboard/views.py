@@ -892,23 +892,21 @@ def save_fcm_token(request):
         if not request.user.is_authenticated:
             return JsonResponse({'status': 'error', 'error': 'Authentication required'}, status=401)
 
-        # Save to DeviceFCMToken model
+        # Save to DeviceFCMToken model (device-centric)
         fcm_token, created = DeviceFCMToken.objects.get_or_create(
-            user=request.user,
             device_id=device_id,
             defaults={'fcm_token': token}
         )
 
-        if not created:
-            # Update existing token
+        if not created and fcm_token.fcm_token != token:
             fcm_token.fcm_token = token
-            fcm_token.save()
+            fcm_token.save(update_fields=['fcm_token', 'updated_at'])
 
-        print(f"✅ FCM: Token saved for User {request.user.username} (Device: {device_id[:20]}...)")
+        print(f"✅ FCM: Token saved for Device: {device_id[:20]}...")
         return JsonResponse({
             'status': 'success',
-            'user_id': request.user.id,
-            'device_id': device_id
+            'device_id': device_id,
+            'created': created
         })
 
     except Exception as e:
