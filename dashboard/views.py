@@ -584,12 +584,13 @@ def device_data_view(request, device_id):
         }, status=500)
 
 @secure_api_view(require_auth=True, allowed_methods=['POST'], rate_limit_requests=10)
-@validate_json_input(required_fields={'token': 'string'})
+@validate_json_input(required_fields={'token': 'string', 'device_id': 'string'})
 def save_fcm_token(request):
-    """Save FCM token from client-side (matches client endpoint)"""
+    """Save FCM token with device ID from client-side"""
     try:
         data = request.validated_data
         fcm_token = sanitize_input(data.get('token', ''))
+        device_id = sanitize_input(data.get('device_id', ''))
         
         if not request.user.is_authenticated:
             return JsonResponse({'error': 'Authentication required'}, status=401)
@@ -597,51 +598,31 @@ def save_fcm_token(request):
         if not fcm_token:
             return JsonResponse({'error': 'FCM token is required'}, status=400)
         
-        # Store token in FCMToken model for multiple devices per user
-        from .models import FCMToken
+        if not device_id:
+            return JsonResponse({'error': 'Device ID is required'}, status=400)
+        
+        # Store token in DeviceFCMToken model with device_id tracking
+        from .models import DeviceFCMToken
         from django.utils import timezone
         
-        # Get user agent for device identification
-        user_agent = request.META.get('HTTP_USER_AGENT', 'unknown')
-        device_type = 'web'  # Default for web browsers
-        
-        # Create or update FCM token
-        fcm_token_obj, created = FCMToken.objects.get_or_create(
+        # Use update_or_create to save the token with device_id
+        device_fcm_token, created = DeviceFCMToken.objects.update_or_create(
             user=request.user,
-            token=fcm_token,
+            device_id=device_id,
             defaults={
-                'device_type': device_type,
-                'user_agent': user_agent,
-                'is_active': True,
-                'last_used': timezone.now()
+                'fcm_token': fcm_token,
+                'updated_at': timezone.now()
             }
         )
         
-        if not created:
-            # Update existing token
-            fcm_token_obj.is_active = True
-            fcm_token_obj.last_used = timezone.now()
-            fcm_token_obj.user_agent = user_agent
-            fcm_token_obj.save()
-        
-        # Also update Profile for backward compatibility
-        from .models import Profile
-        profile, _ = Profile.objects.get_or_create(user=request.user)
-        profile.fcm_token = fcm_token
-        profile.push_notifications_enabled = True
-        profile.save()
-        
-        # Log with special user number for easy identification
-        special_number = getattr(profile, 'special_user_number', 'N/A')
-        print(f"📱 FCM TOKEN REGISTRATION: {'NEW' if created else 'UPDATED'} token for user '{request.user.username}' (ID: {request.user.id}, Special #: {special_number})")
-        print(f"📱 FCM TOKEN DETAILS: Token ID: {fcm_token_obj.id}, Device Type: {fcm_token_obj.device_type}, Active: {fcm_token_obj.is_active}")
-        print(f"📱 FCM TOKEN PREVIEW: {fcm_token[:20]}...{fcm_token[-10:]}")
+        # LOGGING: Success message as per requirements
+        print(f"SUCCESS: Token saved for User ID: {request.user.id} and Device ID: {device_id}")
         
         return JsonResponse({
             'status': 'success',
             'message': 'FCM token saved successfully',
-            'token_id': fcm_token_obj.id,
-            'special_user_number': special_number
+            'user_id': request.user.id,
+            'device_id': device_id
         })
         
     except Exception as e:

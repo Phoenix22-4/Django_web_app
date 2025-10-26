@@ -28,6 +28,11 @@ def send_pump_command(device_id, command):
     client_instance.client.publish(command_topic, payload)
     print(f"Web app sent command '{command}' to device '{device_id}'")
 
+# Global storage for previous tank levels and pump state (per device)
+previous_tank_levels = {}
+previous_pump_state = {}
+pump_start_time = {}
+
 # --- This is the Web App's Brain (Your Dynamic Logic) ---
 @sync_to_async
 def process_and_save_data(topic, payload_str):
@@ -39,6 +44,63 @@ def process_and_save_data(topic, payload_str):
         if created:
             print(f"✅ NEW DEVICE: '{device_id}' connected and registered")
         # Skip logging for existing devices to reduce noise
+
+        # --- WATER USAGE CALCULATION (CRITICAL) ---
+        # Calculate water usage based on secondary tank level when pump is OFF
+        water_usage = 0.0
+        pump_runtime = 0.0
+        pump_status = payload.get('pump_status', False)
+        
+        # Get secondary tank info from device configuration
+        secondary_tanks = device.get_secondary_tanks_info()
+        
+        # Calculate water usage for each secondary tank
+        if not pump_status and device_id in previous_tank_levels:
+            # Pump is OFF - water consumption occurs
+            for tank_info in secondary_tanks:
+                reading_id = tank_info['reading_id']
+                current_level = payload.get(reading_id, 0)
+                
+                if reading_id in previous_tank_levels.get(device_id, {}):
+                    previous_level = previous_tank_levels[device_id][reading_id]
+                    
+                    # Calculate litres used: Previous - Current
+                    if previous_level > current_level:
+                        capacity = getattr(device, f'tank_{tank_info["slot"]}_capacity_liters', 500)
+                        level_drop = previous_level - current_level
+                        litres_used = (level_drop / 100.0) * capacity
+                        water_usage += litres_used
+                        
+                        print(f"💧 WATER USAGE: Device {device_id}, Tank {tank_info['name']}: {litres_used:.2f}L used (Level: {previous_level}% → {current_level}%)")
+        
+        # Calculate pump runtime when pump is ON
+        if pump_status:
+            if device_id not in pump_start_time:
+                pump_start_time[device_id] = datetime.now()
+            else:
+                # Calculate runtime in hours
+                runtime_seconds = (datetime.now() - pump_start_time[device_id]).total_seconds()
+                pump_runtime = runtime_seconds / 3600.0
+        else:
+            # Pump turned off, reset start time
+            if device_id in pump_start_time:
+                del pump_start_time[device_id]
+        
+        # Store current tank levels for next calculation
+        if device_id not in previous_tank_levels:
+            previous_tank_levels[device_id] = {}
+        
+        for tank_info in secondary_tanks:
+            reading_id = tank_info['reading_id']
+            current_level = payload.get(reading_id, 0)
+            previous_tank_levels[device_id][reading_id] = current_level
+        
+        # Store previous pump state
+        previous_pump_state[device_id] = pump_status
+        
+        # Add calculated values to payload for real-time analytics
+        payload['water_usage'] = water_usage
+        payload['pump_runtime'] = pump_runtime
 
         # --- MODIFIED: Save new dynamic data format ---
         # Remove thing_id from payload as it's not needed in system_data

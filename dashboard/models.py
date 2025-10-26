@@ -62,6 +62,23 @@ class FCMToken(models.Model):
     def __str__(self):
         return f'{self.user.username} (#{self.special_user_number}) - {self.device_type} ({self.token[:20]}...)'
 
+class DeviceFCMToken(models.Model):
+    """NEW: Model to store FCM tokens with device ID tracking for multi-device support"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='device_fcm_tokens')
+    device_id = models.CharField(max_length=255, db_index=True, help_text="Unique device identifier (UUID or browser fingerprint)")
+    fcm_token = models.TextField(unique=True, db_index=True, help_text="Firebase Cloud Messaging token")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ('user', 'device_id')
+        ordering = ['-updated_at']
+        verbose_name = 'Device FCM Token'
+        verbose_name_plural = 'Device FCM Tokens'
+    
+    def __str__(self):
+        return f'{self.user.username} - Device: {self.device_id[:20]}... - Token: {self.fcm_token[:20]}...'
+
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:

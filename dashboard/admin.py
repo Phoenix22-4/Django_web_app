@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.urls import path
 from django.shortcuts import render
 from django.db.models import Sum, Count
-from .models import Device, WaterReading, Profile, AutomationRule, DailyWaterUsage, FCMToken
+from .models import Device, WaterReading, Profile, AutomationRule, DailyWaterUsage, FCMToken, DeviceFCMToken
 import csv
 from django.http import HttpResponse
 import datetime
@@ -358,20 +358,26 @@ class FCMTokenAdmin(admin.ModelAdmin):
     def token_preview(self, obj):
         return f"{obj.token[:20]}..." if obj.token else "No token"
     token_preview.short_description = "Token Preview"
+
+
+class DeviceFCMTokenAdmin(admin.ModelAdmin):
+    """Admin for new DeviceFCMToken model with device ID tracking"""
+    list_display = ('user', 'device_id_preview', 'token_preview', 'created_at', 'updated_at')
+    list_filter = ('created_at', 'updated_at')
+    search_fields = ('user__username', 'device_id', 'fcm_token')
+    readonly_fields = ('created_at', 'updated_at')
     
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related('user', 'user__profile')
-
-
-class ProfileAdmin(admin.ModelAdmin):
-    list_display = ('special_user_number', 'user', 'push_notifications_enabled', 'last_notification_sent')
-    list_filter = ('push_notifications_enabled', 'last_notification_sent')
-    search_fields = ('user__username', 'special_user_number', 'phone_number')
-    readonly_fields = ('special_user_number',)
+    def device_id_preview(self, obj):
+        return f"{obj.device_id[:30]}..." if len(obj.device_id) > 30 else obj.device_id
+    device_id_preview.short_description = "Device ID"
+    
+    def token_preview(self, obj):
+        return f"{obj.fcm_token[:20]}..." if obj.fcm_token else "No token"
+    token_preview.short_description = "FCM Token Preview"
 
 
 admin.site.register(Device, DeviceAdmin)
 admin.site.register(WaterReading, WaterReadingAdmin)
 admin.site.register(DailyWaterUsage, DailyWaterUsageAdmin)
-admin.site.register(FCMToken, FCMTokenAdmin)
-admin.site.register(Profile, ProfileAdmin)
+admin.site.register(DeviceFCMToken, DeviceFCMTokenAdmin)
+# Profile and FCMToken PERMANENTLY REMOVED from admin as per Phase 1 requirements
