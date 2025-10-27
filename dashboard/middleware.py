@@ -22,7 +22,8 @@ class DatabaseHealthCheckMiddleware:
             request.path.startswith('/favicon.ico') or
             request.path.startswith('/sitemap.xml') or
             request.path.startswith('/sw.js') or
-            request.path.startswith('/firebase-messaging-sw.js')):
+            request.path.startswith('/firebase-messaging-sw.js') or
+            request.path.startswith('/manifest.json')): # <-- ✅ THIS IS THE FIX
             return self.get_response(request)
         
         try:

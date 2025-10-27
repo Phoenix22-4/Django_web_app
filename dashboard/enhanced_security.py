@@ -1,4 +1,3 @@
-# dashboard/enhanced_security.py
 """
 Enhanced security middleware and utilities for AquaGuard Django application.
 Implements comprehensive OWASP Top 10 mitigation strategies.
@@ -102,7 +101,8 @@ class EnhancedSecurityMiddleware(MiddlewareMixin):
             '/', '/home/', '/about/', '/contact/',
             '/static/', '/media/', '/favicon.ico',
             '/sitemap.xml', '/robots.txt', '/sw.js',
-            '/firebase-messaging-sw.js'
+            '/firebase-messaging-sw.js',
+            '/manifest.json'  # <-- ✅ THIS IS THE FIX
         ]
         return any(path.startswith(public_path) for public_path in public_paths)
     
@@ -182,7 +182,8 @@ class SecurityAuditMiddleware(MiddlewareMixin):
             '/', '/home/', '/about/', '/contact/',
             '/static/', '/media/', '/favicon.ico',
             '/sitemap.xml', '/robots.txt', '/sw.js',
-            '/firebase-messaging-sw.js'
+            '/firebase-messaging-sw.js',
+            '/manifest.json'  # <-- ✅ THIS IS THE FIX
         ]
         return any(path.startswith(public_path) for public_path in public_paths)
     
@@ -223,7 +224,8 @@ class CSRFProtectionMiddleware(MiddlewareMixin):
             '/', '/home/', '/about/', '/contact/',
             '/static/', '/media/', '/favicon.ico',
             '/sitemap.xml', '/robots.txt', '/sw.js',
-            '/firebase-messaging-sw.js'
+            '/firebase-messaging-sw.js',
+            '/manifest.json'  # <-- ✅ THIS IS THE FIX
         ]
         return any(path.startswith(public_path) for public_path in public_paths)
     
@@ -235,6 +237,8 @@ class CSRFProtectionMiddleware(MiddlewareMixin):
         else:
             ip = request.META.get('REMOTE_ADDR')
         return ip
+
+# ... (rest of the file from generate_secure_token downwards is unchanged) ...
 
 def generate_secure_token(data, secret_key=None):
     """
