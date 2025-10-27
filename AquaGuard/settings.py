@@ -9,14 +9,26 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # --- CORE Django Configuration (Security: ENV variables only) ---
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-fallback-for-local-dev')
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
-# Ensure ALLOWED_HOSTS includes your custom domain if you have one, or is more specific if needed
-ALLOWED_HOSTS = ['localhost', '127.0.0.1'] + os.environ.get('ALLOWED_HOSTS', '').split(',')
-# Ensure CSRF_TRUSTED_ORIGINS uses https in production
-CSRF_TRUSTED_ORIGINS_STRING = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
-CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS if host not in ['localhost', '127.0.0.1']]
-if DEBUG:
-    CSRF_TRUSTED_ORIGINS.extend(['http://localhost:8000', 'http://127.0.0.1:8000']) # Add local dev origins if needed
 
+# ✅ FIX: Correctly configure ALLOWED_HOSTS for Railway and local development
+RAILWAY_HOST = os.environ.get('RAILWAY_STATIC_URL')
+ALLOWED_HOSTS = ['localhost', '127.0.0.1'] # Always allow local
+if RAILWAY_HOST:
+    ALLOWED_HOSTS.append(RAILWAY_HOST)
+# Add any custom domain you might have here from environment variables if needed
+# CUSTOM_DOMAIN = os.environ.get('CUSTOM_DOMAIN')
+# if CUSTOM_DOMAIN:
+#     ALLOWED_HOSTS.append(CUSTOM_DOMAIN)
+
+# ✅ FIX: Correctly configure CSRF_TRUSTED_ORIGINS for Railway and potentially local HTTPS
+CSRF_TRUSTED_ORIGINS = []
+if RAILWAY_HOST:
+    CSRF_TRUSTED_ORIGINS.append(f"https://{RAILWAY_HOST}")
+# if CUSTOM_DOMAIN:
+#     CSRF_TRUSTED_ORIGINS.append(f"https://{CUSTOM_DOMAIN}")
+if DEBUG:
+    # Allow local origins only if DEBUG is True
+    CSRF_TRUSTED_ORIGINS.extend(['http://localhost:8000', 'http://127.0.0.1:8000'])
 
 # Application definition
 INSTALLED_APPS = [
@@ -52,7 +64,7 @@ MIDDLEWARE = [
     # 5. CUSTOM ENHANCED SECURITY (Run after authentication is complete)
     'dashboard.enhanced_security.EnhancedSecurityMiddleware',
     'dashboard.enhanced_security.SecurityAuditMiddleware',
-    # 'dashboard.enhanced_security.CSRFProtectionMiddleware', # Django's CsrfViewMiddleware usually sufficient unless you have specific needs
+    # 'dashboard.enhanced_security.CSRFProtectionMiddleware', # Django's CsrfViewMiddleware usually sufficient
 
     # 6. CORE CONTENT/MESSAGING (Must run near the end)
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -150,7 +162,6 @@ LOGOUT_REDIRECT_URL = 'public_home' # Where to go after logout
 FIREBASE_CREDENTIALS = os.environ.get('FIREBASE_SERVICE_ACCOUNT_JSON', '')
 if not FIREBASE_CREDENTIALS and not DEBUG: # Only warn in production
     print("WARNING: 'FIREBASE_SERVICE_ACCOUNT_JSON' environment variable not found. Firebase Admin SDK will not be initialized.")
-# Consider initializing Firebase Admin SDK more robustly, maybe in apps.py
 
 # Firebase Configuration (For Frontend/Templates) - Use environment variables
 FIREBASE_API_KEY = os.environ.get('FIREBASE_WEB_API_KEY', '')
@@ -164,9 +175,6 @@ VAPID_PUBLIC_KEY = os.environ.get('VAPID_PUBLIC_KEY', '') # For web push
 SITE_ID = 1
 
 # --- ENHANCED SECURITY SETTINGS ---
-# Custom admin URL (Obscurity, not primary security)
-# ADMIN_URL variable is not standard Django, ensure your urls.py uses it if needed
-# Example: path(settings.ADMIN_URL, admin.site.urls)
 ADMIN_URL = os.environ.get('ADMIN_URL', 'admin/') # Default back to 'admin/' if not set
 
 # Enhanced password validation (Good settings)
@@ -175,7 +183,6 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', 'OPTIONS': {'min_length': 12}},
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
-    # Optional: Add custom validators if needed
 ]
 
 # Enhanced session security (Good settings)
@@ -187,14 +194,7 @@ SESSION_COOKIE_SAMESITE = 'Lax' # Default protection against CSRF, 'Strict' can 
 CSRF_COOKIE_HTTPONLY = False # Must be False for JavaScript access (e.g., AJAX)
 CSRF_COOKIE_SECURE = not DEBUG # Send only over HTTPS in production
 CSRF_COOKIE_SAMESITE = 'Lax' # Default protection, 'Strict' is more secure but can be restrictive
-# CSRF_USE_SESSIONS = True # Consider if needed, stores token in session instead of cookie
 CSRF_FAILURE_VIEW = 'dashboard.views.csrf_failure_view' # Custom view for CSRF errors
-
-# Enhanced security headers (Applied by middleware now, but defaults are good)
-# SECURE_BROWSER_XSS_FILTER = True # Deprecated, use CSP
-# SECURE_CONTENT_TYPE_NOSNIF = True # Set by middleware
-# X_FRAME_OPTIONS = 'DENY' # Set by middleware
-# SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin' # Set by middleware
 
 # Production security settings (Applied when DEBUG=False)
 if not DEBUG:
@@ -203,17 +203,14 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 31536000 # 1 year HSTS
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True # Submit to browser preload lists (requires commitment)
-    # SESSION_COOKIE_SECURE = True # Already set above based on DEBUG
-    # CSRF_COOKIE_SECURE = True # Already set above based on DEBUG
 
 # Rate limiting settings (Used by your custom middleware/decorators)
-# These are just flags/values, the logic is in your middleware
 RATE_LIMIT_ENABLED = True
 RATE_LIMIT_REQUESTS_PER_MINUTE = int(os.environ.get('RATE_LIMIT_REQUESTS_PER_MINUTE', 60))
 RATE_LIMIT_LOGIN_ATTEMPTS = int(os.environ.get('RATE_LIMIT_LOGIN_ATTEMPTS', 5))
 RATE_LIMIT_LOGIN_WINDOW = int(os.environ.get('RATE_LIMIT_LOGIN_WINDOW', 300)) # 5 minutes
 
-# Logging Configuration (Consider adding more detailed logging)
+# Logging Configuration
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
