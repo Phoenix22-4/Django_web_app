@@ -1,8 +1,9 @@
-﻿{
+﻿{% load static %}
+{
   "name": "AquaSavvy Water Management",
   "short_name": "AquaSavvy",
   "description": "IoT water management dashboard for Kenya.",
-  "start_url": "/",
+  "start_url": "{% url 'login' %}",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#111827",
