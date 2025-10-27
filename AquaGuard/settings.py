@@ -6,11 +6,17 @@ from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ... (Keep SECRET_KEY, DEBUG, ALLOWED_HOSTS, CSRF_TRUSTED_ORIGINS as they were) ...
+# --- CORE Django Configuration (Security: ENV variables only) ---
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-fallback-for-local-dev')
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
-ALLOWED_HOSTS = [os.environ.get('RAILWAY_STATIC_URL', '.railway.app')]
-CSRF_TRUSTED_ORIGINS = ['https://' + os.environ.get('RAILWAY_STATIC_URL', '.railway.app')]
+# Ensure ALLOWED_HOSTS includes your custom domain if you have one, or is more specific if needed
+ALLOWED_HOSTS = ['localhost', '127.0.0.1'] + os.environ.get('ALLOWED_HOSTS', '').split(',')
+# Ensure CSRF_TRUSTED_ORIGINS uses https in production
+CSRF_TRUSTED_ORIGINS_STRING = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
+CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS if host not in ['localhost', '127.0.0.1']]
+if DEBUG:
+    CSRF_TRUSTED_ORIGINS.extend(['http://localhost:8000', 'http://127.0.0.1:8000']) # Add local dev origins if needed
+
 
 # Application definition
 INSTALLED_APPS = [
@@ -20,55 +26,68 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.sites',  # Required for sitemaps
-    'django.contrib.sitemaps',  # Required for sitemaps
-    'channels', # Django Channels
-    'dashboard.apps.DashboardConfig', # Your app
+    'django.contrib.sites',
+    'django.contrib.sitemaps',
+    'channels',
+    'dashboard.apps.DashboardConfig',
 ]
 
+# --- CORRECTED MIDDLEWARE ORDER (Crucial for security and function) ---
 MIDDLEWARE = [
+    # 1. SECURITY & HOSTING (Must be first)
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'dashboard.middleware.DatabaseHealthCheckMiddleware',  # Database health check
-    'dashboard.enhanced_security.EnhancedSecurityMiddleware',  # Enhanced security
-    'dashboard.enhanced_security.SecurityAuditMiddleware',  # Security audit logging
-    'dashboard.enhanced_security.CSRFProtectionMiddleware',  # Enhanced CSRF protection
+
+    # 2. CORE SESSION MANAGEMENT (Must run before anything uses 'request.session')
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
+
+    # 3. CUSTOM PRE-AUTH CHECKS (Run checks before authentication)
+    'dashboard.middleware.DatabaseHealthCheckMiddleware',
+
+    # 4. CORE AUTHENTICATION AND CSRF (Must run after SessionMiddleware)
+    'django.middleware.common.CommonMiddleware', # CommonMiddleware needed for locale, etc., before auth
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+
+    # 5. CUSTOM ENHANCED SECURITY (Run after authentication is complete)
+    'dashboard.enhanced_security.EnhancedSecurityMiddleware',
+    'dashboard.enhanced_security.SecurityAuditMiddleware',
+    # 'dashboard.enhanced_security.CSRFProtectionMiddleware', # Django's CsrfViewMiddleware usually sufficient unless you have specific needs
+
+    # 6. CORE CONTENT/MESSAGING (Must run near the end)
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'AquaGuard.urls'
+ROOT_URLCONF = 'AquaGuard.urls' # Ensure this matches your project folder name
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'dashboard' / 'templates'],
+        'DIRS': [BASE_DIR / 'dashboard' / 'templates'], # Correct path using pathlib
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug', # Often useful
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                        'dashboard.context_processors.canonical_url',
-                        'dashboard.context_processors.device_context',
-                        'dashboard.context_processors.security_context',
-                        'dashboard.context_processors.firebase_context',
+                'dashboard.context_processors.canonical_url',
+                'dashboard.context_processors.device_context',
+                'dashboard.context_processors.security_context',
+                'dashboard.context_processors.firebase_context',
             ],
         },
     },
 ]
-WSGI_APPLICATION = 'AquaGuard.wsgi.application'
+WSGI_APPLICATION = 'AquaGuard.wsgi.application' # Ensure this matches your project folder name
 
 # --- DATABASE CONFIGURATION ---
-# Check if running in Railway environment or if DATABASE_URL is available
 DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL:
     print("Found DATABASE_URL environment variable. Using PostgreSQL.")
     try:
         DATABASES = {
+            # Ensure SSL is required for Railway Postgres
             'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
         }
         print("✅ Database configuration loaded successfully")
@@ -90,27 +109,24 @@ else:
         }
     }
 
-
-# Password validation moved to Enhanced Security Settings below
-
 # Internationalization
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'UTC' # Or your specific timezone like 'Africa/Nairobi'
 USE_I18N = True
 USE_TZ = True
 
-# Static files (WhiteNoise)
+# Static files (WhiteNoise configuration is correct)
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'dashboard/static')]
+# Correct STATICFILES_DIRS using pathlib
+STATICFILES_DIRS = [BASE_DIR / 'dashboard' / 'static']
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# --- Channels Configuration (UPDATED) ---
-ASGI_APPLICATION = 'AquaGuard.asgi.application'
-# **Use Redis for production channel layer**
-REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379') # Get Redis URL from env vars
+# --- Channels Configuration ---
+ASGI_APPLICATION = 'AquaGuard.asgi.application' # Ensure this matches your project folder name
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379')
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
@@ -120,110 +136,106 @@ CHANNEL_LAYERS = {
     },
 }
 
-# Session settings
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_COOKIE_AGE = 900
-SESSION_SAVE_EVERY_REQUEST = True
+# Session settings (Ensure these match your security requirements)
+SESSION_ENGINE = 'django.contrib.sessions.backends.db' # Or cache-based for performance
+SESSION_COOKIE_AGE = 1800 # 30 minutes idle timeout
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True # Log out when browser closes
 
 # Authentication URLs
 LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'device_list'
-LOGOUT_REDIRECT_URL = 'public_home' # <-- **CHANGED**
-
-# ... (Keep ENHANCED SECURITY SETTINGS as they were) ...
-SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = not DEBUG
-SESSION_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_HTTPONLY = False
-CSRF_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SAMESITE = 'Lax'
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIF = True
-X_FRAME_OPTIONS = 'DENY'
-if not DEBUG:
-    SECURE_SSL_REDIRECT = True
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+LOGIN_REDIRECT_URL = 'device_list' # Where to go after successful login
+LOGOUT_REDIRECT_URL = 'public_home' # Where to go after logout
 
 # Firebase Admin SDK Configuration - Environment Variables Only
 FIREBASE_CREDENTIALS = os.environ.get('FIREBASE_SERVICE_ACCOUNT_JSON', '')
-if not FIREBASE_CREDENTIALS:
+if not FIREBASE_CREDENTIALS and not DEBUG: # Only warn in production
     print("WARNING: 'FIREBASE_SERVICE_ACCOUNT_JSON' environment variable not found. Firebase Admin SDK will not be initialized.")
+# Consider initializing Firebase Admin SDK more robustly, maybe in apps.py
 
-# Firebase Configuration - Use environment variables for security
+# Firebase Configuration (For Frontend/Templates) - Use environment variables
 FIREBASE_API_KEY = os.environ.get('FIREBASE_WEB_API_KEY', '')
 FIREBASE_PROJECT_ID = os.environ.get('FIREBASE_PROJECT_ID', '')
 FIREBASE_MESSAGING_SENDER_ID = os.environ.get('FIREBASE_MESSAGING_SENDER_ID', '')
 FIREBASE_APP_ID = os.environ.get('FIREBASE_WEB_APP_ID', '')
-FIREBASE_MEASUREMENT_ID = os.environ.get('FIREBASE_MEASUREMENT_ID', '')
-VAPID_PUBLIC_KEY = os.environ.get('VAPID_PUBLIC_KEY', '')
+FIREBASE_MEASUREMENT_ID = os.environ.get('FIREBASE_MEASUREMENT_ID', '') # Optional
+VAPID_PUBLIC_KEY = os.environ.get('VAPID_PUBLIC_KEY', '') # For web push
 
-# Site ID for sitemaps (required for Django sitemaps)
+# Site ID for sitemaps
 SITE_ID = 1
 
 # --- ENHANCED SECURITY SETTINGS ---
-# Custom admin URL for security
-ADMIN_URL = os.environ.get('ADMIN_URL', 'AquaSavvy-Control/')
+# Custom admin URL (Obscurity, not primary security)
+# ADMIN_URL variable is not standard Django, ensure your urls.py uses it if needed
+# Example: path(settings.ADMIN_URL, admin.site.urls)
+ADMIN_URL = os.environ.get('ADMIN_URL', 'admin/') # Default back to 'admin/' if not set
 
-# Enhanced password validation
+# Enhanced password validation (Good settings)
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-        'OPTIONS': {
-            'min_length': 12,  # Increased minimum length
-        }
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-        'OPTIONS': {
-            'user_attributes': ('username', 'email', 'first_name', 'last_name'),
-            'max_similarity': 0.7,
-        }
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', 'OPTIONS': {'min_length': 12}},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+    # Optional: Add custom validators if needed
 ]
 
-# Enhanced session security
-SESSION_COOKIE_AGE = 1800  # 30 minutes
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = not DEBUG
-SESSION_COOKIE_SAMESITE = 'Strict'
+# Enhanced session security (Good settings)
+SESSION_COOKIE_HTTPONLY = True # Prevents client-side script access
+SESSION_COOKIE_SECURE = not DEBUG # Send only over HTTPS in production
+SESSION_COOKIE_SAMESITE = 'Lax' # Default protection against CSRF, 'Strict' can break some flows
 
-# Enhanced CSRF security
-CSRF_COOKIE_HTTPONLY = False  # Must be False for AJAX
-CSRF_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SAMESITE = 'Strict'
-CSRF_USE_SESSIONS = True
-CSRF_FAILURE_VIEW = 'dashboard.views.csrf_failure_view'
+# Enhanced CSRF security (Good settings)
+CSRF_COOKIE_HTTPONLY = False # Must be False for JavaScript access (e.g., AJAX)
+CSRF_COOKIE_SECURE = not DEBUG # Send only over HTTPS in production
+CSRF_COOKIE_SAMESITE = 'Lax' # Default protection, 'Strict' is more secure but can be restrictive
+# CSRF_USE_SESSIONS = True # Consider if needed, stores token in session instead of cookie
+CSRF_FAILURE_VIEW = 'dashboard.views.csrf_failure_view' # Custom view for CSRF errors
 
-# Enhanced security headers
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIF = True
-X_FRAME_OPTIONS = 'DENY'
-SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+# Enhanced security headers (Applied by middleware now, but defaults are good)
+# SECURE_BROWSER_XSS_FILTER = True # Deprecated, use CSP
+# SECURE_CONTENT_TYPE_NOSNIF = True # Set by middleware
+# X_FRAME_OPTIONS = 'DENY' # Set by middleware
+# SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin' # Set by middleware
 
-# Production security settings
+# Production security settings (Applied when DEBUG=False)
 if not DEBUG:
-    SECURE_SSL_REDIRECT = True
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_SSL_REDIRECT = True # Redirect HTTP to HTTPS
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') # Trust proxy headers
+    SECURE_HSTS_SECONDS = 31536000 # 1 year HSTS
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_PRELOAD = True # Submit to browser preload lists (requires commitment)
+    # SESSION_COOKIE_SECURE = True # Already set above based on DEBUG
+    # CSRF_COOKIE_SECURE = True # Already set above based on DEBUG
 
-# Rate limiting settings
+# Rate limiting settings (Used by your custom middleware/decorators)
+# These are just flags/values, the logic is in your middleware
 RATE_LIMIT_ENABLED = True
-RATE_LIMIT_REQUESTS_PER_MINUTE = 60
-RATE_LIMIT_LOGIN_ATTEMPTS = 5
-RATE_LIMIT_LOGIN_WINDOW = 300  # 5 minutes
+RATE_LIMIT_REQUESTS_PER_MINUTE = int(os.environ.get('RATE_LIMIT_REQUESTS_PER_MINUTE', 60))
+RATE_LIMIT_LOGIN_ATTEMPTS = int(os.environ.get('RATE_LIMIT_LOGIN_ATTEMPTS', 5))
+RATE_LIMIT_LOGIN_WINDOW = int(os.environ.get('RATE_LIMIT_LOGIN_WINDOW', 300)) # 5 minutes
+
+# Logging Configuration (Consider adding more detailed logging)
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO', # Set to 'DEBUG' for more verbose logs during development
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'propagate': False,
+        },
+        'dashboard': { # Your app's logger
+             'handlers': ['console'],
+             'level': 'INFO', # Or 'DEBUG'
+             'propagate': False,
+        }
+    },
+}
