@@ -45,7 +45,7 @@ ROOT_URLCONF = 'AquaGuard.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'dashboard/templates')],
+        'DIRS': [BASE_DIR / 'dashboard' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

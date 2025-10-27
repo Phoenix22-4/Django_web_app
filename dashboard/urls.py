@@ -1,5 +1,6 @@
 # dashboard/urls.py
 from django.urls import path
+from django.views.generic import TemplateView # <--- IMPORT THIS
 from . import views
 
 urlpatterns = [
@@ -36,4 +37,11 @@ urlpatterns = [
     
     # --- NEW: FIREBASE SERVICE WORKER (SECURE) ---
     path('firebase-messaging-sw.js', views.firebase_service_worker, name='firebase_service_worker'),
+    
+    # --- ADD THIS URL FOR THE PWA OFFLINE PAGE ---
+    path(
+        'offline/', 
+        TemplateView.as_view(template_name='offline.html'), 
+        name='offline_page'
+    ),
 ]

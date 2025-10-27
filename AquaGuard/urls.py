@@ -1,18 +1,6 @@
 """
 URL configuration for AquaGuard_Django project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+...
 """
 from django.contrib import admin
 from django.urls import path, include
@@ -20,13 +8,22 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.views import LogoutView
-from django.shortcuts import redirect
+from django.shortcuts import render # <--- IMPORT RENDER
 from django.contrib.sitemaps.views import sitemap
 from .sitemaps import PublicViewSitemap
 
+# View for Service Worker (renders with context from processors)
 def service_worker(request):
-    content = render_to_string('sw.js')
+    # We pass the request to render_to_string to make sure
+    # context processors (like your Firebase keys) are included.
+    content = render_to_string('sw.js', request=request)
     return HttpResponse(content, content_type='application/javascript')
+
+# View for Manifest (renders with context for static paths)
+def manifest(request):
+    # We pass the request to render to make sure
+    # the {% static %} template tag works correctly.
+    return render(request, 'manifest.json', content_type='application/json')
 
 def firebase_service_worker(request):
     try:
@@ -52,6 +49,7 @@ sitemaps = {
 
 urlpatterns = [
     path('sw.js', service_worker, name='service_worker'),
+    path('manifest.json', manifest, name='manifest'), # <--- ADD THIS LINE
     path('firebase-messaging-sw.js', firebase_service_worker, name='firebase_service_worker'),
     path('admin/logout/', AdminLogoutView.as_view(), name='admin_logout'),
     path('AquaSavvy-Control/', admin.site.urls),

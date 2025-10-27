@@ -5,22 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-site-verification" content="gozFYv5nyWjXLad_h2RbQmBXExLGXbRUvxqDMgDW4Es" />
     
-    <!-- Canonical URL for SEO - Level 1 SEO requirement -->
+    <meta name="theme-color" content="#22c55e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AquaSavvy">
+    <link rel="apple-touch-icon" href="{% static 'icons/icon-192.png' %}">
+    <link rel="manifest" href="{% url 'manifest' %}">
     <link rel="canonical" href="{{ canonical_url }}" />
     
     <title>{% block title %}AquaSavvy Solution{% endblock %}</title>
     {% load static %}
-    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{% static 'dashboard.css' %}">
 </head>
 <body>
-    <!-- This hidden form makes the CSRF token available to all JS scripts -->
     <form style="display:none;">{% csrf_token %}</form>
 
     {% block content %}{% endblock %}
 
-    <!-- Firebase SDK for Push Notifications -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
     <script>
@@ -40,10 +42,22 @@
       }
     </script>
     
-    <!-- Load our custom scripts -->
     <script src="{% static 'push_handler.js' %}"></script>
-    <!-- AquaSavvy AI Chat System -->
     <link rel="stylesheet" href="{% static 'aquasavvy-chat.css' %}">
     <script src="{% static 'aquasavvy-chat.js' %}"></script>
-</body>
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('{% url "service_worker" %}')
+            .then(registration => {
+              console.log('✅ AquaSavvy Service Worker registered:', registration);
+            })
+            .catch(error => {
+              console.error('❌ Service Worker registration failed:', error);
+            });
+        });
+      }
+    </script>
+    </body>
 </html>
