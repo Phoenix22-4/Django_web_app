@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Devices • AquaSavvy Solution</title>
     {% load static %}
+    
+    <link rel="icon" href="{% static 'icon-192.png' %}" type="image/png">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{% static 'dashboard.css' %}">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -31,7 +34,6 @@
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
-    <!-- Password Change Notification (hidden, for JavaScript to pick up) -->
     {% if password_change_notification %}
     <div data-password-change-notification 
          data-notification-title="{{ password_change_notification.title }}"
@@ -40,7 +42,6 @@
     </div>
     {% endif %}
     
-    <!-- Header -->
     <header class="bg-gradient-to-r from-sky-blue to-sky-blue-dark text-white shadow-lg">
         <div class="container mx-auto px-4 py-6">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between">
@@ -68,7 +69,6 @@
             </div>
         </div>
     </header>
-    <!-- Main Content -->
     <main class="flex-1 container mx-auto px-4 py-8">
         {% if devices %}
         <div class="mb-8">
@@ -151,7 +151,6 @@
         {% endif %}
     </main>
 
-    <!-- Footer -->
     <footer class="bg-gradient-to-r from-sky-blue to-sky-blue-dark text-white py-6">
         <div class="container mx-auto px-4 text-center">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between">
