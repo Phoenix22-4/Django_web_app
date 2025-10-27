@@ -1,23 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- Canonical URL for SEO - Level 1 SEO requirement -->
-    <link rel="canonical" href="{{ canonical_url }}" />
-    
-    <title>Login - AquaSavvy</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'dashboard.css' %}">
-</head>
-<body>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login - AquaSavvy{% endblock %}
+
+{% block content %}
     <div class="header">
         <h1>AquaSavvy System Login</h1>
     </div>
     <div class="login-container">
         <form method="post">
-            {% csrf_token %} {{ form.as_p }}
+            {% csrf_token %}
+            {{ form.as_p }}
             <div class="button-row">
                 <button type="submit" class="control-button on">Login</button>
                 <a href="{% url 'public_home' %}" class="nav-button home-button" title="Back to Home">
@@ -26,72 +19,101 @@
             </div>
         </form>
     </div>
-</body>
-</html>
 
-<style>
-    .login-container {
-        max-width: 400px;
-        margin: 50px auto;
-        padding: 30px;
-        background-color: rgba(255, 255, 255, 0.95);
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    .login-container form p {
-        margin-bottom: 15px;
-    }
-    .login-container label {
-        display: block;
-        margin-bottom: 5px;
-        font-weight: bold;
-    }
-    .login-container input {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        box-sizing: border-box;
-    }
-    .home-button {
-        display: inline-block;
-        padding: 10px 15px;
-        background-color: #007bff;
-        color: white;
-        text-decoration: none;
-        border-radius: 5px;
-        font-size: 16px;
-        transition: background-color 0.3s;
-    }
-    .home-button:hover {
-        background-color: #0056b3;
-        color: white;
-    }
-    .button-row {
-        display: flex;
-        gap: 15px;
-        justify-content: center;
-        align-items: center;
-        margin-top: 20px;
-    }
-    .button-row .control-button {
-        flex: 1;
-        max-width: 120px;
-        background-color: #22c55e !important; /* Green color for login button */
-        border: none;
-        color: white;
-        padding: 12px 20px;
-        border-radius: 6px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: background-color 0.3s;
-    }
-    .button-row .control-button:hover {
-        background-color: #16a34a !important; /* Darker green on hover */
-    }
-    .button-row .home-button {
-        flex: 1;
-        max-width: 120px;
-        text-align: center;
-    }
-</style>
+    <style>
+        .login-container {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 30px;
+            /* Changed background to inherit from base or use a more theme-consistent color */
+            background-color: #1f2937; /* Example dark theme color */
+            color: #d1d5db; /* Light text for dark background */
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Slightly darker shadow */
+        }
+        .login-container form p {
+            margin-bottom: 20px; /* Increased spacing */
+        }
+        .login-container label {
+            display: block;
+            margin-bottom: 8px; /* Increased spacing */
+            font-weight: bold;
+            color: #9ca3af; /* Lighter label color */
+        }
+        .login-container input[type="text"],
+        .login-container input[type="password"] {
+            width: 100%;
+            padding: 12px; /* Increased padding */
+            border: 1px solid #4b5563; /* Darker border */
+            border-radius: 6px; /* Slightly more rounded */
+            box-sizing: border-box;
+            background-color: #374151; /* Darker input background */
+            color: #e5e7eb; /* Light input text */
+        }
+        .login-container input:focus {
+             border-color: #22c55e; /* Highlight border on focus */
+             outline: none; /* Remove default outline */
+             box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.5); /* Add subtle glow */
+        }
+
+        .home-button {
+            display: inline-flex; /* Use flex for icon alignment */
+            align-items: center;
+            justify-content: center;
+            padding: 10px 15px;
+            background-color: #3b82f6; /* Blue color */
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            border: none; /* Ensure no border */
+        }
+        .home-button i {
+            margin-right: 5px; /* Space between icon and text */
+        }
+        .home-button:hover {
+            background-color: #2563eb; /* Darker blue */
+            color: white;
+        }
+        .button-row {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            margin-top: 25px; /* Increased top margin */
+        }
+        .button-row .control-button {
+            flex: 1;
+            max-width: 150px; /* Slightly wider */
+            background-color: #22c55e !important; /* Green */
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 16px; /* Ensure consistent font size */
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .button-row .control-button:hover {
+            background-color: #16a34a !important; /* Darker green */
+        }
+        .button-row .home-button {
+            flex: 1;
+            max-width: 150px; /* Slightly wider */
+            text-align: center;
+        }
+        /* Style adjustments for Django's default form rendering (form.as_p) */
+        .login-container form p input[type="text"],
+        .login-container form p input[type="password"] {
+             margin-top: 5px; /* Add space below label */
+        }
+        .login-container .errorlist { /* Style form errors if needed */
+            color: #f87171; /* Red error text */
+            list-style: none;
+            padding: 0;
+            margin-bottom: 15px;
+        }
+    </style>
+{% endblock %}
