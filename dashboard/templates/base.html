@@ -1,20 +1,28 @@
 <!DOCTYPE html>
-{% load static %} <html lang="en">
+{% load static %}
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-site-verification" content="gozFYv5nyWjXLad_h2RbQmBXExLGXbRUvxqDMgDW4Es" />
-    
+
     <meta name="theme-color" content="#22c55e">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes"> <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="AquaSavvy">
-    <link rel="apple-touch-icon" href="{% static 'icons/icon-192.png' %}"> <link rel="manifest" href="{% url 'manifest' %}">
-    <link rel="icon" href="{% static 'icons/icon-192.png' %}" type="image/png"> <link rel="canonical" href="{{ canonical_url }}" />
-    
+    <link rel="apple-touch-icon" href="{% static 'icons/icon-192.png' %}">
+    <link rel="manifest" href="{% url 'manifest' %}">
+    <link rel="icon" href="{% static 'icons/icon-192.png' %}" type="image/png">
+
+    <link rel="canonical" href="{{ canonical_url }}" />
+
     <title>{% block title %}AquaSavvy Solution{% endblock %}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'dashboard.css' %}"> </head>
+    <link rel="stylesheet" href="{% static 'dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'aquasavvy-chat.css' %}">
+
+    {% block extra_css %}{% endblock %}
+</head>
 <body>
     <form style="display:none;">{% csrf_token %}</form>
 
@@ -23,34 +31,61 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
     <script>
-      // Firebase config from environment variables (secure)
+      // Firebase config from environment variables (securely passed via context processor)
+      // Ensure these context variables are correctly set in settings.py and context_processors.py
       const firebaseConfig = {
-        apiKey: "{{ firebase_api_key }}",
-        authDomain: "{{ firebase_project_id }}.firebaseapp.com",
-        projectId: "{{ firebase_project_id }}",
-        storageBucket: "{{ firebase_project_id }}.appspot.com",
-        messagingSenderId: "{{ firebase_messaging_sender_id }}",
-        appId: "{{ firebase_app_id }}",
-        measurementId: "{{ firebase_measurement_id|default:'' }}"
+        apiKey: "{{ firebase_api_key|escapejs }}", // Use escapejs for safety
+        authDomain: "{{ firebase_project_id|escapejs }}.firebaseapp.com",
+        projectId: "{{ firebase_project_id|escapejs }}",
+        storageBucket: "{{ firebase_project_id|escapejs }}.appspot.com",
+        messagingSenderId: "{{ firebase_messaging_sender_id|escapejs }}",
+        appId: "{{ firebase_app_id|escapejs }}",
+        measurementId: "{{ firebase_measurement_id|default:''|escapejs }}"
       };
-      if (window.firebase && !window.__firebaseInitialized) {
-        firebase.initializeApp(firebaseConfig);
-        window.__firebaseInitialized = true;
+
+      // Initialize Firebase only if it hasn't been initialized yet
+      if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+          try {
+              firebase.initializeApp(firebaseConfig);
+              console.log("Firebase initialized successfully.");
+              window.__firebaseInitialized = true; // Optional flag if needed elsewhere
+          } catch (e) {
+              console.error("Firebase initialization failed:", e);
+              // Handle initialization error (e.g., show a message to the user)
+          }
+      } else if (typeof firebase === 'undefined') {
+          console.error("Firebase SDK not loaded.");
+      } else {
+          console.log("Firebase already initialized.");
       }
     </script>
-    
-    <script src="{% static 'push_handler.js' %}"></script> <link rel="stylesheet" href="{% static 'aquasavvy-chat.css' %}"> <script src="{% static 'aquasavvy-chat.js' %}"></script> <script>
+
+    <script src="{% static 'push_handler.js' %}" defer></script>
+    <script src="{% static 'aquasavvy-chat.js' %}" defer></script>
+
+    <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
+          // Register the service worker, ensuring the URL is correct
           navigator.serviceWorker.register('{% url "service_worker" %}')
             .then(registration => {
-              console.log('✅ AquaSavvy Service Worker registered:', registration);
+              console.log('✅ AquaSavvy Service Worker registered with scope:', registration.scope);
+              // Optional: You can add logic here for updates, etc.
+              // registration.addEventListener('updatefound', () => {
+              //   console.log('New service worker found!');
+              // });
             })
             .catch(error => {
               console.error('❌ Service Worker registration failed:', error);
+              // Provide more context if possible (e.g., check server logs for 500 errors on sw.js)
             });
         });
+      } else {
+          console.warn('Service workers are not supported in this browser.');
       }
     </script>
-    </body>
+
+    {% block extra_js %}{% endblock %}
+
+</body>
 </html>

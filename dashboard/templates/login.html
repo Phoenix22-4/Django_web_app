@@ -10,7 +10,20 @@
     <div class="login-container">
         <form method="post">
             {% csrf_token %}
-            {{ form.as_p }}
+            {{ form.as_p }} {# Renders form fields as paragraphs #}
+
+            {% if form.errors %}
+                <div class="form-errors">
+                    <p>Please correct the errors below:</p>
+                    {{ form.non_field_errors }}
+                    {% for field in form %}
+                        {% if field.errors %}
+                            <p><strong>{{ field.label }}:</strong> {{ field.errors|striptags }}</p>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
             <div class="button-row">
                 <button type="submit" class="control-button on">Login</button>
                 <a href="{% url 'public_home' %}" class="nav-button home-button" title="Back to Home">
@@ -21,56 +34,100 @@
     </div>
 
     <style>
+        /* ✅ FIX: Added text-align and adjusted styles */
+        .header {
+            text-align: center;
+            padding: 25px 0 15px 0; /* Adjusted padding */
+            background-color: #111827; /* Dark background consistent with theme */
+            color: #e5e7eb; /* Light text */
+            border-bottom: 2px solid #22c55e; /* Theme color accent */
+        }
+        .header h1 {
+            margin: 0; /* Remove default margin */
+            font-size: 2em; /* Adjust size as needed */
+            font-weight: 600;
+        }
+
         .login-container {
             max-width: 400px;
-            margin: 50px auto;
+            margin: 40px auto; /* Reduced top margin slightly */
             padding: 30px;
-            /* Changed background to inherit from base or use a more theme-consistent color */
-            background-color: #1f2937; /* Example dark theme color */
-            color: #d1d5db; /* Light text for dark background */
+            background-color: #1f2937; /* Dark theme container background */
+            color: #d1d5db; /* Light text */
             border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Slightly darker shadow */
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3); /* Enhanced shadow */
         }
         .login-container form p {
-            margin-bottom: 20px; /* Increased spacing */
+            margin-bottom: 20px;
         }
         .login-container label {
             display: block;
-            margin-bottom: 8px; /* Increased spacing */
+            margin-bottom: 8px;
             font-weight: bold;
             color: #9ca3af; /* Lighter label color */
+            font-size: 0.9em;
         }
         .login-container input[type="text"],
         .login-container input[type="password"] {
             width: 100%;
-            padding: 12px; /* Increased padding */
+            padding: 12px;
             border: 1px solid #4b5563; /* Darker border */
-            border-radius: 6px; /* Slightly more rounded */
+            border-radius: 6px;
             box-sizing: border-box;
             background-color: #374151; /* Darker input background */
             color: #e5e7eb; /* Light input text */
+            font-size: 1em;
         }
         .login-container input:focus {
              border-color: #22c55e; /* Highlight border on focus */
-             outline: none; /* Remove default outline */
-             box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.5); /* Add subtle glow */
+             outline: none;
+             box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.4); /* Softer glow */
         }
 
+        /* Styling for Django's form.as_p output */
+        .login-container form p input[type="text"],
+        .login-container form p input[type="password"] {
+             /* No extra margin needed if label is above */
+        }
+
+        /* Error message styling */
+        .form-errors {
+            background-color: rgba(239, 68, 68, 0.1); /* Light red background */
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #f87171; /* Red text */
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+         .form-errors p {
+             margin: 5px 0;
+             font-size: 0.9em;
+         }
+        .login-container .errorlist { /* Default Django error list */
+            color: #f87171;
+            list-style: none;
+            padding: 0;
+            margin: 0 0 10px 0;
+            font-size: 0.9em;
+        }
+
+        /* Button styling */
         .home-button {
-            display: inline-flex; /* Use flex for icon alignment */
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             padding: 10px 15px;
-            background-color: #3b82f6; /* Blue color */
+            background-color: #3b82f6; /* Blue */
             color: white;
             text-decoration: none;
             border-radius: 6px;
             font-size: 16px;
             transition: background-color 0.3s;
-            border: none; /* Ensure no border */
+            border: none;
+            font-weight: 500;
         }
         .home-button i {
-            margin-right: 5px; /* Space between icon and text */
+            margin-right: 8px; /* Increased space */
         }
         .home-button:hover {
             background-color: #2563eb; /* Darker blue */
@@ -79,41 +136,30 @@
         .button-row {
             display: flex;
             gap: 15px;
-            justify-content: center;
+            justify-content: space-between; /* Space out buttons */
             align-items: center;
-            margin-top: 25px; /* Increased top margin */
+            margin-top: 25px;
         }
         .button-row .control-button {
-            flex: 1;
-            max-width: 150px; /* Slightly wider */
+            flex-grow: 1; /* Allow login button to grow */
+             /* Removed max-width to let it fill space */
             background-color: #22c55e !important; /* Green */
             border: none;
             color: white;
             padding: 12px 20px;
             border-radius: 6px;
             font-weight: bold;
-            font-size: 16px; /* Ensure consistent font size */
+            font-size: 16px;
             cursor: pointer;
             transition: background-color 0.3s;
+            text-align: center;
         }
         .button-row .control-button:hover {
             background-color: #16a34a !important; /* Darker green */
         }
         .button-row .home-button {
-            flex: 1;
-            max-width: 150px; /* Slightly wider */
-            text-align: center;
-        }
-        /* Style adjustments for Django's default form rendering (form.as_p) */
-        .login-container form p input[type="text"],
-        .login-container form p input[type="password"] {
-             margin-top: 5px; /* Add space below label */
-        }
-        .login-container .errorlist { /* Style form errors if needed */
-            color: #f87171; /* Red error text */
-            list-style: none;
-            padding: 0;
-            margin-bottom: 15px;
+             /* Removed flex: 1 and max-width, let it size naturally */
+             padding: 10px 25px; /* Adjust padding for visual balance */
         }
     </style>
 {% endblock %}
