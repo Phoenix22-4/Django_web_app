@@ -103,8 +103,6 @@ document.addEventListener('DOMContentLoaded', function() {
             updateTankLevelsLive(data);
             updatePumpStatusLive(data);
             updateStatusMessagesLive(data);
-            
-            // ✅ FIX: calculateWaterUsage now updates charts internally
             calculateWaterUsage(data); 
 
         } catch (error) {
@@ -186,10 +184,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (waterUsageChart) waterUsageChart.destroy();
         if (pumpUsageChart) pumpUsageChart.destroy();
         
-        // ✅ FIX: Use the correct IDs from the "Analytics Floor"
         const waterCtx = document.getElementById('water-usage-chart'); 
         if (waterCtx) {
-            waterUsageChart = new Chart(waterCtx.getContext('2d'), { // Ensure getContext('2d')
+            waterUsageChart = new Chart(waterCtx.getContext('2d'), { 
                 type: 'line',
                 data: {
                     labels: generate24HourLabels(),
@@ -214,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const pumpCtx = document.getElementById('pump-usage-chart');
         if (pumpCtx) {
-            pumpUsageChart = new Chart(pumpCtx.getContext('2d'), { // Ensure getContext('2d')
+            pumpUsageChart = new Chart(pumpCtx.getContext('2d'), { 
                 type: 'line',
                 data: {
                     labels: generate24HourLabels(),
@@ -287,7 +284,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const readingId = tankConfig.data_key;
         const tankName = tankConfig.name;
         const capacity = tankConfig.capacity || 500;
-        const isSource = tankConfig.is_source || false; // Get source status
+        const isSource = tankConfig.is_source || false; 
         
         const slot = window.tankConfigs.length + 1;
         const newTankConfig = {
@@ -295,7 +292,7 @@ document.addEventListener('DOMContentLoaded', function() {
             name: tankName,
             slot: slot,
             capacity: capacity,
-            isSource: isSource // Store source status
+            isSource: isSource 
         };
         
         window.tankConfigs.push(newTankConfig);
@@ -367,7 +364,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- SOLENOID VALVE INITIALIZATION ---
     function initializeSolenoidValves() {
-        // This function is fine, no changes needed.
         if (!window.deviceData || !elements.solenoidValvesContainer) return;
         const solenoidNames = [];
         for (let i = 1; i <= 4; i++) {
@@ -402,7 +398,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- LIVE TANK LEVEL UPDATES ---
     function updateTankLevelsLive(data) {
-        // This function is fine, no changes needed.
         let tanksUpdated = 0;
         for (const [key, value] of Object.entries(data)) {
             if (key.endsWith('_level') && typeof value === 'number') {
@@ -417,7 +412,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // --- LIVE PUMP STATUS UPDATES ---
     function updatePumpStatusLive(data) {
-        // This function is fine, no changes needed.
         const pumpOn = data.pump_status || false;
         const pumpCurrent = data.pump_current || 0;
         
@@ -457,7 +451,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // --- LIVE STATUS MESSAGES ---
     function updateStatusMessagesLive(data) {
-        // This function is fine, no changes needed.
         if (window.tankConfigs && elements.tankStatusMessages) {
             elements.tankStatusMessages.innerHTML = ''; // Clear old messages
             window.tankConfigs.forEach(tank => {
@@ -508,7 +501,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- PUMP TOGGLE BUTTON ---
     function updatePumpToggleButton(isOn) {
-        // This function is fine, no changes needed.
         if (elements.pumpToggleBtn && elements.pumpToggleText && elements.pumpToggleIndicator) {
             elements.pumpToggleBtn.disabled = false; // Enable button
             if (isOn) {
@@ -523,10 +515,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // --- ✅ FIX: WATER USAGE CALCULATION & CHART UPDATE ---
+    // --- WATER USAGE CALCULATION & CHART UPDATE ---
     function calculateWaterUsage(currentData) {
         if (!window.tankConfigs || window.tankConfigs.length === 0 || !lastLevelTimestamp) {
-             // Not enough data to calculate, store current state and exit
              lastLevelTimestamp = new Date();
              window.tankConfigs.forEach(tank => {
                  if (!tank.isSource && tank.id) {
@@ -540,7 +531,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const currentHour = currentTime.getHours();
         const currentTankLevels = {};
         
-        // Extract current tank levels (only secondary/destination tanks)
         window.tankConfigs.forEach(tank => {
             if (!tank.isSource && tank.id) {
                 const level = currentData[tank.id];
@@ -554,21 +544,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         let totalUsageThisInterval = 0;
-        let pumpRuntimeChange = 0; // In seconds
-        
-        const timeDiff = (currentTime - lastLevelTimestamp) / 1000; // Time difference in seconds
-        if (timeDiff <= 0) return; // Avoid division by zero if messages are too fast
+        const timeDiff = (currentTime - lastLevelTimestamp) / 1000;
+        if (timeDiff <= 0) return; 
 
         // --- Water Usage (Consumption) ---
-        // Only calculate usage when pump is OFF
         if (!currentData.pump_status && Object.keys(lastTankLevels).length > 0) {
             Object.keys(currentTankLevels).forEach(tankId => {
                 if (lastTankLevels[tankId]) {
                     const currentLevel = currentTankLevels[tankId].level;
                     const lastLevel = lastTankLevels[tankId].level;
                     const capacity = currentTankLevels[tankId].capacity;
-                    
-                    const levelDecrease = Math.max(0, lastLevel - currentLevel); // Only count decreases
+                    const levelDecrease = Math.max(0, lastLevel - currentLevel);
                     const tankUsage = (levelDecrease / 100) * capacity;
                     
                     if (tankUsage > 0) {
@@ -578,26 +564,26 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             if (totalUsageThisInterval > 0) {
-                totalWaterUsage += totalUsageThisInterval; // Add to daily total
+                totalWaterUsage += totalUsageThisInterval; 
                 waterUsagePerSecond = totalUsageThisInterval / timeDiff;
                 
                 // ✅ FIX: Update the 24-hour water chart
                 if (waterUsageChart) {
                     waterUsageChart.data.datasets[0].data[currentHour] += totalUsageThisInterval;
-                    waterUsageChart.update('none'); // Update chart without animation
+                    waterUsageChart.update('none'); 
                 }
             } else {
-                waterUsagePerSecond = 0; // No usage this interval
+                waterUsagePerSecond = 0;
             }
         } else {
-             waterUsagePerSecond = 0; // Pump is on, so net consumption is zero or negative
+             waterUsagePerSecond = 0;
         }
         
         // --- Pump Runtime ---
         if (currentData.pump_status) {
             if (pumpStartTime) {
                 const runtimeDiff = (currentTime - pumpStartTime) / 1000; // seconds
-                pumpRuntimeSeconds += runtimeDiff; // Add to total
+                pumpRuntimeSeconds += runtimeDiff; 
                 
                 // ✅ FIX: Update the 24-hour pump chart
                 if (pumpUsageChart) {
@@ -606,22 +592,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     pumpUsageChart.update('none');
                 }
             }
-            pumpStartTime = currentTime; // Reset start time for next interval
+            pumpStartTime = currentTime; 
         } else {
-            pumpStartTime = null; // Pump is off
+            pumpStartTime = null; 
         }
         
-        // Store current levels for next calculation
         lastTankLevels = { ...currentTankLevels };
         lastLevelTimestamp = currentTime;
         
-        // Update real-time text displays
         updateRealtimeAnalytics();
     }
     
     // --- UPDATE REALTIME TEXTS ---
     function updateRealtimeAnalytics() {
-        // This function is fine, no changes needed.
         safeUpdate(document.getElementById('water-usage-display'), `${waterUsagePerSecond.toFixed(2)} L/s`);
         const hours = Math.floor(pumpRuntimeSeconds / 3600);
         const minutes = Math.floor((pumpRuntimeSeconds % 3600) / 60);
@@ -632,7 +615,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- SOLENOID TOGGLE HANDLER ---
     function handleSolenoidToggle(solenoidIndex, solenoidName) {
-        // This function is fine, no changes needed.
         const currentState = solenoidStates[solenoidIndex] || false;
         const newState = !currentState;
         solenoidStates[solenoidIndex] = newState;
@@ -644,7 +626,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- MODE MANAGEMENT ---
     function setMode(newMode) {
-        // This function is fine, no changes needed.
         currentMode = newMode;
         manualOverride = false;
         if (elements.modeAutoBtn && elements.modeTimeslotBtn) {
@@ -660,14 +641,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- EVENT LISTENERS ---
     function setupEventListeners() {
-        // This function is fine, no changes needed.
         if (elements.modeAutoBtn) elements.modeAutoBtn.addEventListener('click', () => setMode('auto'));
         if (elements.modeTimeslotBtn) elements.modeTimeslotBtn.addEventListener('click', () => setMode('timeslot'));
         
         if (elements.pumpToggleBtn) {
             elements.pumpToggleBtn.addEventListener('click', () => {
-                if (window.lastData) { // Only toggle if we have data
-                    controlPump(!window.lastData.pump_status); // Toggle based on last known state
+                if (window.lastData) { 
+                    controlPump(!window.lastData.pump_status); 
                 } else {
                     console.log("No data yet, cannot toggle pump.");
                 }
@@ -685,30 +665,91 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- CONTROL PUMP ---
+    // --- ✅ FIX: CONTROL PUMP ---
     function controlPump(turnOn) {
-        // This function is fine, no changes needed.
-        if (turnOn && window.lastData && window.tankConfigs) {
-            const sourceTank = window.tankConfigs.find(tank => tank.isSource);
-            if (sourceTank) {
-                const sourceLevel = window.lastData[sourceTank.id] || 0;
-                if (sourceLevel < 10) {
-                    alert('Cannot turn on pump: Source tank level too low (less than 10%)');
-                    return;
+        console.log(`🎛️ PUMP CONTROL: Attempting to turn ${turnOn ? 'ON' : 'OFF'}`);
+        
+        // --- Safety Check: Only block turning ON, not OFF ---
+        if (turnOn) { // Only check when trying to turn ON
+            if (window.lastData && window.tankConfigs) {
+                const sourceTank = window.tankConfigs.find(tank => tank.isSource);
+                if (sourceTank) {
+                    const sourceLevel = window.lastData[sourceTank.id] || 0;
+                    if (sourceLevel < 10) {
+                        console.log('❌ BLOCKED: Cannot turn on pump. Source tank level is too low (< 10%).');
+                        alert('Cannot turn on pump: Source tank level is critically low!');
+                        return; // Stop the function here
+                    }
                 }
+            } else {
+                 console.warn("⚠️ No device data or tank config. Cannot verify source tank level. Allowing pump command at user's risk.");
+                 // Allow to proceed but warn
             }
         }
+        
+        // --- Send Command ---
+        // If we are turning OFF, or if we are turning ON and passed the safety check, send the command.
         if (socket && socket.readyState === WebSocket.OPEN) {
             const command = turnOn ? 'PUMP_ON' : 'PUMP_OFF';
             socket.send(JSON.stringify({command: command}));
+            console.log(`✅ ${command} command sent via WebSocket.`);
+            
+            // Set manual override flag if user initiates action
+            manualOverride = true; 
+            if(elements.modeStatusMsg) {
+                 safeUpdate(elements.modeStatusMsg, "Manual Override");
+                 elements.modeStatusMsg.style.color = "#f59e0b"; // Amber color for manual
+            }
+            // Auto-reset manual override after a while (e.g., 5 mins)
+            setTimeout(() => {
+                manualOverride = false;
+                if(elements.modeStatusMsg) { // Reset text if still in manual
+                     safeUpdate(elements.modeStatusMsg, currentMode.charAt(0).toUpperCase() + currentMode.slice(1));
+                     elements.modeStatusMsg.style.color = "#000000"; // Reset color
+                }
+            }, 300000); // 5 minutes
+
         } else {
-            alert('Cannot send command: WebSocket not connected');
+            console.error('❌ WebSocket not connected, cannot send command.');
+            alert('Cannot send command: WebSocket is not connected.');
         }
     }
 
     // --- TIMESLOT HANDLERS ---
-    function handleTimeslotActivate() { /* ... function is fine ... */ }
-    function handleSaveTimeslot() { /* ... function is fine ... */ }
+    function handleTimeslotActivate() {
+        if (!isTimeslotActive) {
+            if (elements.timeslotForm) {
+                elements.timeslotForm.classList.remove('hidden');
+            }
+        } else {
+            isTimeslotActive = false;
+            if (elements.timeslotActivateBtn) {
+                elements.timeslotActivateBtn.innerText = 'Deactivated';
+                elements.timeslotActivateBtn.classList.replace('timeslot-btn-active', 'timeslot-btn-inactive');
+            }
+        }
+    }
+
+    function handleSaveTimeslot() {
+        const minLevelInput = document.getElementById('min-level');
+        const maxLevelInput = document.getElementById('max-level');
+        
+        if (minLevelInput && maxLevelInput) {
+            timeslotSettings.min = parseInt(minLevelInput.value) || 20;
+            timeslotSettings.max = parseInt(maxLevelInput.value) || 95;
+        }
+        
+        isTimeslotActive = true;
+        
+        if (elements.timeslotActivateBtn) {
+            elements.timeslotActivateBtn.innerText = `Active (Min: ${timeslotSettings.min}%, Max: ${timeslotSettings.max}%)`;
+            elements.timeslotActivateBtn.classList.replace('timeslot-btn-inactive', 'timeslot-btn-active');
+        }
+        
+        if (elements.timeslotForm) {
+            elements.timeslotForm.classList.add('hidden');
+        }
+    }
 
     // --- SOLENOID VALVES CREATION ---
     function createSolenoidValves() {
@@ -719,8 +760,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- INITIALIZATION ---
     setupEventListeners();
-    // initializeCharts(); // Old, replaced
-    initializeTanks(); // This now calls initializeLiveAnalytics
+    initializeTanks(); 
     createSolenoidValves();
     startConnectionMonitoring();
     checkPasswordChangeNotification();
@@ -728,22 +768,33 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // --- CONNECTION MONITORING ---
     function startConnectionMonitoring() {
-        // This function is fine, no changes needed.
         connectionCheckInterval = setInterval(() => {
             if (lastMessageTime && (new Date() - lastMessageTime > 10000) && !connectionFailureNotified) {
                  connectionFailureNotified = true;
-                 if (window.showNotification) { /* ... show notification ... */ }
+                 if (window.showNotification) { 
+                     window.showNotification(
+                        '🔌 AquaGuard Alert - Connection Lost',
+                        'Device or WebSocket connection lost. Please check connection.',
+                        '/static/images/logo.png'
+                     );
+                 }
             }
         }, 5000);
     }
     
-    // --- NOTIFICATION SYSTEM ---
-    function sendTankNotification(tankName, level, tankType, isSource = false) { /* ... function is fine ... */ }
-    function sendPumpNotification(pumpStatus, current, isOverload = false, isDryRun = false) { /* ... function is fine ... */ }
+    // --- NOTIFICATION SYSTEM (Placeholders) ---
+    // Make sure push_notifications.js defines window.showNotification
+    function sendTankNotification(tankName, level, tankType, isSource = false) { 
+        if (!window.showNotification) return;
+        // ... (Logic from previous version is fine) ...
+    }
+    function sendPumpNotification(pumpStatus, current, isOverload = false, isDryRun = false) { 
+         if (!window.showNotification) return;
+        // ... (Logic from previous version is fine) ...
+    }
     
     // --- PASSWORD CHANGE NOTIFICATION ---
     function checkPasswordChangeNotification() {
-        // This function is fine, no changes needed.
         const notification = document.querySelector('[data-password-change-notification]');
         if (notification && window.showNotification) {
             window.showNotification(notification.dataset.notificationTitle, notification.dataset.notificationMessage, '/static/images/logo.png');
