@@ -55,7 +55,7 @@
         <span class="welcome-text">Welcome, {{ user.username|escape }}!</span>
         <div class="header-actions">
             <a href="{% url 'device_list' %}" class="action-btn" title="Back to Devices"><i class="fas fa-arrow-left"></i></a>
-            <a href="{% static 'docs/index.html' %}" class="action-btn" title="Docs"><i class="fas fa-book"></i></a>
+            <a href="{% url 'documentation' %}" class="action-btn" title="Docs" target="_blank" rel="noopener"><i class="fas fa-book"></i></a>
             <form method="post" action="{% url 'logout' %}" style="display: inline;">
                 {% csrf_token %}
                 <button type="submit" class="action-btn logout" title="Logout"><i class="fas fa-sign-out-alt"></i></button>

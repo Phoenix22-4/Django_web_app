@@ -37,6 +37,13 @@ urlpatterns = [
     
     # --- NEW: FIREBASE SERVICE WORKER (SECURE) ---
     path('firebase-messaging-sw.js', views.firebase_service_worker, name='firebase_service_worker'),
+
+    # --- DOCUMENTATION PAGE ---
+    path(
+        'documentation/',
+        TemplateView.as_view(template_name='documentation.html'),
+        name='documentation'
+    ),
     
     # --- ADD THIS URL FOR THE PWA OFFLINE PAGE ---
     path(
