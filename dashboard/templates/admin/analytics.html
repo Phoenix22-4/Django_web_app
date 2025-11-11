@@ -241,31 +241,25 @@
 
 {% block content %}
 <div class="analytics-container">
-    <!-- Header -->
     <div class="analytics-header">
         <h1>Analytical Dashboard</h1>
         <div class="hamburger-menu">☰</div>
     </div>
     
-    <!-- Two Column Grid -->
     <div class="analytics-grid">
-        <!-- LEFT COLUMN: Water Usage Analytics -->
         <div class="analytics-card">
             <div class="card-title">Water Usage Analytics</div>
             
-            <!-- KPI Display -->
             <div class="kpi-display">
                 <div class="kpi-value">{{ total_usage_liters|default:0|floatformat:0 }}L</div>
                 <div class="kpi-label">Total Water Usage (30 Days)</div>
-        </div>
+            </div>
             
-             <!-- Water Usage Bar Chart -->
              <div class="chart-container">
                  <h3 style="color: #ffffff; text-align: center; margin-bottom: 15px; font-size: 1rem;">Monthly Water Usage Comparison (12 Months)</h3>
                  <canvas id="waterUsageBarChart"></canvas>
-        </div>
+            </div>
             
-            <!-- Daily Water Usage Table -->
             <div class="data-table">
                 <h3>Daily Water Usage & Totals (Current Month)</h3>
                 <table>
@@ -290,32 +284,27 @@
                         {% endfor %}
                     </tbody>
                 </table>
+            </div>
         </div>
-    </div>
     
-        <!-- RIGHT COLUMN: Power & Pump Runtimes Analytics -->
         <div class="analytics-card">
             <div class="card-title">Power & Pump Analytics</div>
             
-            <!-- KPI Display -->
             <div class="kpi-display">
                 <div class="kpi-value">{{ total_power_kwh|default:0|floatformat:1 }} kWh</div>
                 <div class="kpi-label">Total Power Consumed (30 Days)</div>
-        </div>
+            </div>
             
-             <!-- Pump Runtimes & Power Usage Combined Chart -->
              <div class="chart-container">
                  <h3 style="color: #ffffff; text-align: center; margin-bottom: 15px; font-size: 1rem;">Power & Pump Runtime Comparison (12 Months)</h3>
                  <canvas id="powerRuntimeChart"></canvas>
-        </div>
+            </div>
              
-             <!-- Power Usage Pie Chart -->
              <div class="chart-container">
                  <h3 style="color: #ffffff; text-align: center; margin-bottom: 15px; font-size: 1rem;">Power Usage Distribution (12 Months)</h3>
                  <canvas id="powerUsagePieChart"></canvas>
-    </div>
+            </div>
     
-            <!-- Power & Pump Runtime at Peak Times Table -->
             <div class="data-table">
                 <h3>Power & Pump Runtime at Peak Times (Current Month)</h3>
                 <table>
@@ -340,44 +329,41 @@
                         {% endfor %}
                     </tbody>
                 </table>
-    </div>
+            </div>
     
-            <!-- Daily Power Usage Table -->
-    <div class="data-table">
+            <div class="data-table">
                 <h3>Daily Power Usage (Current Month)</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Date</th>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
                             <th>Device</th>
-                    <th>Power (kWh)</th>
+                            <th>Power (kWh)</th>
                             <th>Runtime (h)</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for entry in daily_data %}
-                <tr>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in daily_data %}
+                        <tr>
                             <td>{{ entry.date|date:"M d" }}</td>
                             <td>{{ entry.device|default:"All" }}</td>
                             <td>{{ entry.total_power|default:0|floatformat:2 }}</td>
                             <td>{{ entry.total_runtime|default:0|floatformat:1 }}</td>
-                </tr>
-                {% empty %}
+                        </tr>
+                        {% empty %}
                         <tr><td colspan="4" style="text-align: center; color: #adb5bd;">No data available</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
     
-    <!-- Download Section -->
     <div class="download-section">
         <h2>📥 Download Data Reports</h2>
         <p style="color: #adb5bd; margin-bottom: 20px;">Download CSV reports for different time periods and data types:</p>
         
         <div class="download-grid">
-            <!-- Water Usage Downloads -->
             <div class="download-card">
                 <h3>💧 Water Usage Data</h3>
                 <p>Water usage and storage data</p>
@@ -388,7 +374,6 @@
                 </div>
             </div>
             
-            <!-- Power & Runtime Downloads -->
             <div class="download-card">
                 <h3>⚡ Power & Runtime Data</h3>
                 <p>Power consumption and pump runtime data</p>
@@ -399,7 +384,6 @@
                 </div>
             </div>
             
-            <!-- Comprehensive Report -->
             <div class="download-card">
                 <h3>📊 Comprehensive Report</h3>
                 <p>All data types combined (water usage, power, runtime)</p>
@@ -423,7 +407,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const currentDate = new Date();
         const labels = [];
-        
         for (let i = 11; i >= 0; i--) {
             const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
             labels.push(months[date.getMonth()] + ' ' + date.getFullYear().toString().slice(-2));
@@ -440,31 +423,28 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Ensure data arrays have 12 elements (pad with zeros if needed)
     function padDataArray(data, length = 12) {
-        while (data.length < length) {
-            data.unshift(0);
+        const paddedData = [...data];
+        while (paddedData.length < length) {
+            paddedData.unshift(0);
         }
-        return data.slice(-length);
+        return paddedData.slice(-length);
     }
     
-    const paddedWaterData = padDataArray([...waterUsageData]);
-    const paddedPowerData = padDataArray([...powerData]);
-    const paddedRuntimeData = padDataArray([...runtimeData]);
+    const paddedWaterData = padDataArray(waterUsageData);
+    const paddedPowerData = padDataArray(powerData);
+    const paddedRuntimeData = padDataArray(runtimeData);
     
-    // Water Usage Bar Chart (12 months with dynamic positioning)
+    // Water Usage Bar Chart
     const waterUsageCtx = document.getElementById('waterUsageBarChart').getContext('2d');
-    
-    new Chart(waterUsageCtx, {
+    if (window.waterUsageBarChartInstance) { window.waterUsageBarChartInstance.destroy(); }
+    window.waterUsageBarChartInstance = new Chart(waterUsageCtx, {
         type: 'bar',
         data: {
             labels: monthLabels,
             datasets: [{
                 label: 'Water Usage (L)',
                 data: paddedWaterData,
-                backgroundColor: [
-                    '#42A5F5', '#66BB6A', '#FFA726', '#EF5350',
-                    '#AB47BC', '#7E57C2', '#26A69A', '#FFCA28',
-                    '#FF7043', '#8D6E63', '#78909C', '#9575CD'
-                ],
+                backgroundColor: [ '#42A5F5', '#66BB6A', '#FFA726', '#EF5350', '#AB47BC', '#7E57C2', '#26A69A', '#FFCA28', '#FF7043', '#8D6E63', '#78909C', '#9575CD' ],
                 borderColor: '#ffffff',
                 borderWidth: 1
             }]
@@ -474,37 +454,19 @@ document.addEventListener('DOMContentLoaded', function() {
             maintainAspectRatio: false,
             plugins: {
                 legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return 'Water Usage: ' + context.parsed.y.toLocaleString() + 'L';
-                        }
-                    }
-                }
+                tooltip: { callbacks: { label: (ctx) => 'Water Usage: ' + ctx.parsed.y.toLocaleString() + 'L' } }
             },
             scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: { color: '#3a3f44' },
-                    ticks: { 
-                        color: '#ffffff',
-                        callback: function(value) {
-                            return value.toLocaleString() + 'L';
-                        }
-                    }
-                },
-                x: {
-                    grid: { color: '#3a3f44' },
-                    ticks: { color: '#ffffff' }
-                }
+                y: { beginAtZero: true, grid: { color: '#3a3f44' }, ticks: { color: '#ffffff', callback: (val) => val.toLocaleString() + 'L' } },
+                x: { grid: { color: '#3a3f44' }, ticks: { color: '#ffffff' } }
             }
         }
     });
     
-    // Power & Runtime Combined Chart (12 months with dynamic positioning)
+    // Power & Runtime Combined Chart
     const powerRuntimeCtx = document.getElementById('powerRuntimeChart').getContext('2d');
-    
-    new Chart(powerRuntimeCtx, {
+    if (window.powerRuntimeChartInstance) { window.powerRuntimeChartInstance.destroy(); }
+    window.powerRuntimeChartInstance = new Chart(powerRuntimeCtx, {
         type: 'bar',
         data: {
             labels: monthLabels,
@@ -531,71 +493,27 @@ document.addEventListener('DOMContentLoaded', function() {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { 
-                    display: true,
-                    labels: { color: '#ffffff' }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            if (context.datasetIndex === 0) {
-                                return 'Power: ' + context.parsed.y.toFixed(2) + ' kWh';
-                            } else {
-                                return 'Runtime: ' + context.parsed.y.toFixed(1) + ' hours';
-                            }
-                        }
-                    }
-                }
+                legend: { display: true, labels: { color: '#ffffff' } },
+                tooltip: { callbacks: { label: (ctx) => ctx.datasetIndex === 0 ? 'Power: ' + ctx.parsed.y.toFixed(2) + ' kWh' : 'Runtime: ' + ctx.parsed.y.toFixed(1) + ' hours' } }
             },
             scales: {
-                y: {
-                    type: 'linear',
-                    display: true,
-                    position: 'left',
-                    beginAtZero: true,
-                    grid: { color: '#3a3f44' },
-                    ticks: { 
-                        color: '#ffffff',
-                        callback: function(value) {
-                            return value.toFixed(1) + ' kWh';
-                        }
-                    }
-                },
-                y1: {
-                    type: 'linear',
-                    display: true,
-                    position: 'right',
-                    beginAtZero: true,
-                    grid: { drawOnChartArea: false },
-                    ticks: { 
-                        color: '#4CAF50',
-                        callback: function(value) {
-                            return value.toFixed(1) + 'h';
-                        }
-                    }
-                },
-                x: {
-                    grid: { color: '#3a3f44' },
-                    ticks: { color: '#ffffff' }
-                }
+                y: { type: 'linear', display: true, position: 'left', beginAtZero: true, grid: { color: '#3a3f44' }, ticks: { color: '#ffffff', callback: (val) => val.toFixed(1) + ' kWh' } },
+                y1: { type: 'linear', display: true, position: 'right', beginAtZero: true, grid: { drawOnChartArea: false }, ticks: { color: '#4CAF50', callback: (val) => val.toFixed(1) + 'h' } },
+                x: { grid: { color: '#3a3f44' }, ticks: { color: '#ffffff' } }
             }
         }
     });
     
-    // Power Usage Pie Chart (12 months with dynamic angles and positioning)
+    // Power Usage Pie Chart
     const powerPieCtx = document.getElementById('powerUsagePieChart').getContext('2d');
-    
-    new Chart(powerPieCtx, {
-        type: 'pie',
+    if (window.powerPieChartInstance) { window.powerPieChartInstance.destroy(); }
+    window.powerPieChartInstance = new Chart(powerPieCtx, {
+        type: 'pie', // ✅ FIX: Changed type to 'pie' to make it a solid circle
         data: {
             labels: monthLabels,
             datasets: [{
                 data: paddedPowerData,
-                backgroundColor: [
-                    '#42A5F5', '#66BB6A', '#FFA726', '#EF5350',
-                    '#AB47BC', '#7E57C2', '#26A69A', '#FFCA28',
-                    '#FF7043', '#8D6E63', '#78909C', '#9575CD'
-                ],
+                backgroundColor: [ '#42A5F5', '#66BB6A', '#FFA726', '#EF5350', '#AB47BC', '#7E57C2', '#26A69A', '#FFCA28', '#FF7043', '#8D6E63', '#78909C', '#9575CD' ],
                 borderColor: '#ffffff',
                 borderWidth: 2,
                 hoverBorderWidth: 3
@@ -605,14 +523,7 @@ document.addEventListener('DOMContentLoaded', function() {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { 
-                    position: 'bottom',
-                    labels: { 
-                        color: '#ffffff',
-                        usePointStyle: true,
-                        padding: 15
-                    }
-                },
+                legend: { position: 'bottom', labels: { color: '#ffffff', usePointStyle: true, padding: 15 } },
                 tooltip: {
                     callbacks: {
                         label: function(context) {
@@ -623,32 +534,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             },
-            // Dynamic positioning - each month gets its angle based on data
-            rotation: -90, // Start from top
-            circumference: 360, // Full circle
-            cutout: '0%', // Full pie chart (no donut)
-            animation: {
-                animateRotate: true,
-                animateScale: true,
-                duration: 2000
-            }
+            cutout: '0%', // ✅ FIX: Changed from '50%' to '0%' for a solid pie
+            animation: { animateRotate: true, animateScale: true, duration: 2000 }
         }
     });
     
-    // Function to update charts when new data arrives (for future real-time updates)
+    // Function to update charts (if you need real-time updates on this page)
     window.updateAnalyticsCharts = function(newWaterData, newPowerData, newRuntimeData) {
-        // Update water usage chart
-        waterUsageCtx.chart.data.datasets[0].data = padDataArray([...newWaterData]);
-        waterUsageCtx.chart.update('active');
-        
-        // Update power/runtime chart
-        powerRuntimeCtx.chart.data.datasets[0].data = padDataArray([...newPowerData]);
-        powerRuntimeCtx.chart.data.datasets[1].data = padDataArray([...newRuntimeData]);
-        powerRuntimeCtx.chart.update('active');
-        
-        // Update power pie chart
-        powerPieCtx.chart.data.datasets[0].data = padDataArray([...newPowerData]);
-        powerPieCtx.chart.update('active');
+        if (window.waterUsageBarChartInstance) {
+            window.waterUsageBarChartInstance.data.datasets[0].data = padDataArray([...newWaterData]);
+            window.waterUsageBarChartInstance.update('none'); // Use 'none' for no animation
+        }
+        if (window.powerRuntimeChartInstance) {
+            window.powerRuntimeChartInstance.data.datasets[0].data = padDataArray([...newPowerData]);
+            window.powerRuntimeChartInstance.data.datasets[1].data = padDataArray([...newRuntimeData]);
+            window.powerRuntimeChartInstance.update('none');
+        }
+        if (window.powerPieChartInstance) {
+            window.powerPieChartInstance.data.datasets[0].data = padDataArray([...newPowerData]);
+            window.powerPieChartInstance.update('none');
+        }
     };
 });
 </script>

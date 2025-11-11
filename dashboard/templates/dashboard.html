@@ -1,7 +1,7 @@
- {% extends 'base.html' %}
+{% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Dashboard for {{ device.name }}{% endblock %}
+{% block title %}Dashboard for {{ device.name|escape }}{% endblock %}
 
 {% block content %}
 <meta name="device-id" id="device-id" content="{{ device.device_id }}">
@@ -28,12 +28,11 @@
     
     // User authentication status (for FCM token generation security)
     window.user = {
-        isAuthenticated: true,
+        isAuthenticated: {% if user.is_authenticated %}true{% else %}false{% endif %},
         username: "{{ user.username|escapejs }}"
     };
 </script>
 
-<!-- Clean Header with Connection Status in Center -->
 <div class="dashboard-header">
     <div class="header-left">
         <h1 class="dashboard-title">AquaSavvy: {{ device.name|escape }}</h1>
@@ -65,42 +64,21 @@
     </div>
 </div>
 
-<!-- Main Dashboard Grid - New Advanced Design -->
 <div class="dashboard-grid" id="dashboard-container" data-device-id="{{ device.device_id }}">
+    
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-        <!-- Left Column: Controls & Analytics (1/3 width) -->
+        
         <div class="md:col-span-1 bg-white p-4 rounded-lg shadow-lg flex flex-col space-y-4">
-            <h2 class="text-2xl font-semibold text-center text-gray-800">Controls & Analytics</h2>
+            <h2 class="text-2xl font-semibold text-center text-gray-800">Controls & Status</h2>
 
-            <!-- Mode Selection -->
             <div class="bg-gray-100 p-3 rounded-lg">
                 <h3 class="text-lg font-semibold mb-2 text-center text-gray-800">Operation Mode</h3>
                 <div class="grid grid-cols-2 gap-2">
                     <button id="mode-auto" class="mode-btn mode-btn-active p-2 rounded-lg">Auto</button>
                     <button id="mode-timeslot" class="mode-btn p-2 rounded-lg bg-gray-600">Timeslot</button>
+                </div>
             </div>
-        </div>
-        
-            <!-- Charts -->
-            <div class="space-y-4">
-                <div>
-                    <h3 class="text-xl text-center text-gray-800">Water Usage (Litres)</h3>
-                    <canvas id="waterUsageChart"></canvas>
-        </div>
-                {% if has_pump %}
-                <div>
-                    <h3 class="text-xl text-center text-gray-800">Pump Runtimes</h3>
-                    <canvas id="pumpRuntimeChart"></canvas>
-                </div>
-                {% else %}
-                <div>
-                    <h3 class="text-xl text-center text-gray-800">Water Level Trends</h3>
-                    <canvas id="waterLevelChart"></canvas>
-                </div>
-                {% endif %}
-    </div>
-
-            <!-- Timeslot Controls -->
+            
             <div id="timeslot-controls" class="bg-gray-700 p-3 rounded-lg hidden">
                 <h3 class="text-lg font-semibold mb-2 text-center">Timeslot Settings (Secondary Tanks)</h3>
                 <button id="timeslot-activate-btn" class="w-full p-2 rounded-lg text-white font-bold timeslot-btn-inactive mb-2">Deactivated</button>
@@ -116,7 +94,6 @@
                 </div>
             </div>
 
-            <!-- Status Messages -->
             <div id="status-messages" class="bg-gray-100 p-4 rounded-lg text-center">
                 <h3 class="text-lg font-semibold mb-3 underline text-gray-800">System Status</h3>
                 <div id="safety-status-message" class="mb-2 text-red-600 text-lg font-bold hidden"></div>
@@ -130,88 +107,80 @@
                 <div id="connection-status-message" class="mb-3 text-base text-gray-800">Connection: <span class="font-bold">Online</span></div>
                 {% endif %}
                 <div id="tank-status-messages" class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                    <!-- Tank status messages will be dynamically created here -->
-                </div>
-                
+                    </div>
             </div>
             
-            <!-- Real-Time Analytics Display -->
             <div class="bg-blue-50 p-4 rounded-lg text-center">
-                <h3 class="text-lg font-semibold mb-3 text-blue-800">Live Analytics</h3>
+                <h3 class="text-lg font-semibold mb-3 text-blue-800">Live Data</h3>
                 <div class="grid grid-cols-1 gap-3">
                     <div class="flex justify-between items-center">
-                        <span class="text-sm text-gray-600">Water Usage:</span>
+                        <span class="text-sm text-gray-600">Water Usage Rate:</span>
                         <span id="water-usage-display" class="text-lg font-bold text-blue-600">0.00 L/s</span>
                     </div>
+                    {% if has_pump %}
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-600">Pump Runtime:</span>
                         <span id="pump-runtime-display" class="text-lg font-bold text-green-600">0h 0m 0s</span>
                     </div>
+                    {% endif %}
                     <div class="flex justify-between items-center">
-                        <span class="text-sm text-gray-600">Total Usage:</span>
+                        <span class="text-sm text-gray-600">Total Usage (Today):</span>
                         <span id="total-water-usage-display" class="text-lg font-bold text-purple-600">0.0 L</span>
                     </div>
                 </div>
             </div>
             
-            <!-- Additional Status Messages Container for compatibility -->
             <div id="statusMessagesContainer" class="bg-gray-700 p-4 rounded-lg text-center hidden">
                 <h3 class="text-lg font-semibold mb-3 underline">Additional Status</h3>
                 <div class="text-sm text-gray-300">Additional status information will appear here</div>
             </div>
-
         </div>
         
-        <!-- Right Column for Tanks (2/3 width) -->
-        <div class="md:col-span-2 bg-white p-4 rounded-lg shadow-lg flex flex-col items-center justify-center">
+        <div class="md:col-span-2 bg-white p-4 rounded-lg shadow-lg flex flex-col items-center justify-start">
             <h2 class="text-2xl font-semibold mb-6 text-gray-800">Live Tank Status</h2>
-            <div id="tanks-wrapper" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-6 mb-8"></div>
-            <div id="tanksContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-6 mb-8 hidden"></div>
+            <div id="tanks-wrapper" class="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-6 mb-8 place-items-center">
+                <p id="tanks-loading-placeholder" class="text-gray-500 col-span-full text-center">Loading tank data...</p>
+            </div>
+            
             {% if has_pump %}
-            <div class="flex flex-col items-center space-y-4">
-                <h3 class="text-xl text-gray-800">Main Pump (Fills Secondary Tanks)</h3>
-                <svg id="pump-svg" class="pump-svg" width="100" height="100" viewBox="0 0 100 100">
-                    <g id="pump-body"><path d="M20 85 V 35 H 30 V 25 H 70 V 35 H 80 V 85 H 20 Z" fill="#6b7280" stroke-width="4"/><circle cx="50" cy="55" r="28" fill="#374151" stroke-width="4"/></g>
+            <div class="flex flex-col items-center space-y-4 mt-auto pt-6 border-t border-gray-200 w-full max-w-xs">
+                <h3 class="text-xl text-gray-800">Main Pump Control</h3>
+                <svg id="pump-svg" class="pump-svg w-20 h-20" viewBox="0 0 100 100">
+                    <g id="pump-body" fill="#6b7280"><path d="M20 85 V 35 H 30 V 25 H 70 V 35 H 80 V 85 H 20 Z" /><circle cx="50" cy="55" r="28" fill="#374151" /></g>
                     <path id="pump-motor" d="M50 40 L 50 70 M 35 55 L 65 55" stroke="#9ca3af" stroke-width="6" stroke-linecap="round"/>
                 </svg>
-                <div id="pump-status-text" class="text-lg font-medium text-gray-800">...</div>
-                <div id="pump-current-text" class="text-sm text-gray-600 mb-2">Current: 0.0A</div>
+                <div id="pump-status-text" class="text-lg font-medium text-gray-800">Status: Loading...</div>
+                <div id="pump-current-text" class="text-sm text-gray-600 mb-2">Current: ... A</div>
                 <div class="pump-controls">
-                    <button id="pump-toggle-btn" class="pump-toggle-btn bg-red-600 text-white font-bold py-3 px-6 rounded-lg w-40 transition-all duration-300 hover:shadow-lg transform hover:scale-105">
-                        <span id="pump-toggle-text">PUMP OFF</span>
-                        <div id="pump-toggle-indicator" class="w-3 h-3 bg-white rounded-full ml-2 inline-block"></div>
+                    <button id="pump-toggle-btn" class="pump-toggle-btn bg-gray-400 text-white font-bold py-3 px-6 rounded-lg w-40 transition-all duration-300 hover:shadow-lg transform hover:scale-105 flex items-center justify-center space-x-2" disabled>
+                        <span id="pump-toggle-text">LOADING</span>
+                        <div id="pump-toggle-indicator" class="w-3 h-3 bg-white rounded-full"></div>
                     </button>
                 </div>
             </div>
             {% else %}
-            <div class="flex flex-col items-center space-y-4">
-                <h3 class="text-xl text-gray-800">Monitoring Station</h3>
-                <div class="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center">
-                    <i class="fas fa-eye text-blue-600 text-3xl"></i>
+            <div class="flex flex-col items-center space-y-4 mt-auto pt-6 border-t border-gray-200 w-full max-w-xs">
+                <h3 class="text-xl text-gray-800">Monitoring Only</h3>
+                <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-satellite-dish text-blue-600 text-3xl"></i>
                 </div>
                 <div class="text-center">
                     <div class="text-lg font-medium text-gray-800">Water Level Monitoring</div>
-                    <div class="text-sm text-gray-600">Real-time tank level tracking</div>
+                    <div class="text-sm text-gray-600">Real-time tank level tracking active.</div>
                 </div>
             </div>
             {% endif %}
             
-            <!-- Solenoid Valves Section -->
-            <div id="solenoid-valves-section" class="mt-8 hidden">
-                <h3 class="text-xl mb-4">Solenoid Valves</h3>
+            <div id="solenoid-valves-section" class="mt-8 hidden w-full max-w-md border-t border-gray-200 pt-6">
+                <h3 class="text-xl mb-4 text-center text-gray-800">Solenoid Valves</h3>
                 <div id="solenoid-valves-container" class="grid grid-cols-2 gap-4"></div>
             </div>
         </div>
-    </div>
-    
-    <!-- Third Column: Live Analytics -->
-    <div class="mt-6 max-w-6xl mx-auto">
+    </div> <div class="mt-6 max-w-6xl mx-auto">
         <div class="bg-white p-6 rounded-lg shadow-lg">
             <h2 class="text-2xl font-semibold text-center text-gray-800 mb-6">Live Analytics (24h)</h2>
             
-            <!-- Side-by-side charts -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Water Usage Chart -->
                 <div class="bg-gray-50 p-4 rounded-lg">
                     <h3 class="text-lg font-semibold mb-3 text-center text-gray-700">Water Usage (Liters)</h3>
                     <div style="height: 200px;">
@@ -220,7 +189,6 @@
                 </div>
                 
                 {% if has_pump %}
-                <!-- Pump Usage Chart -->
                 <div class="bg-gray-50 p-4 rounded-lg">
                     <h3 class="text-lg font-semibold mb-3 text-center text-gray-700">Pump Usage (Hours)</h3>
                     <div style="height: 200px;">
@@ -228,7 +196,6 @@
                     </div>
                 </div>
                 {% else %}
-                <!-- Water Level Trends Chart -->
                 <div class="bg-gray-50 p-4 rounded-lg">
                     <h3 class="text-lg font-semibold mb-3 text-center text-gray-700">Water Level Trends (%)</h3>
                     <div style="height: 200px;">
@@ -243,18 +210,13 @@
 
 
 <footer class="site-footer">
-    <p>AquaSavvy Solutions | email: contact:vision072025@gmail.com | WhatsApp: +254 702 715070</p>
+    {# ✅ FIX: Corrected email and made clickable #}
+    <p>AquaSavvy Solutions | email: <a href="mailto:visiontech072025@gmail.com" class="hover:underline">visiontech072025@gmail.com</a> | WhatsApp: <a href="https://wa.me/254702715070" target="_blank" class="hover:underline">+254 702 715070</a></p>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
-<!-- All JavaScript functionality moved to dashboard.js -->
-
-<!-- AquaSavvy AI Chat Widget -->
-
-<!-- Dashboard JavaScript -->
 <script src="{% static 'dashboard.js' %}?v=1.5"></script>
 
-<!-- Push Notifications -->
 <script src="{% static 'push_notifications.js' %}"></script>
 {% endblock content %}

@@ -18,22 +18,32 @@ from django.shortcuts import get_object_or_404
 from django.core.validators import validate_email
 import re
 import time
-from collections import defaultdict
+# from collections import defaultdict # Not needed if using cache
+from django.conf import settings # Import settings for consistency
 
 logger = logging.getLogger(__name__)
 
-# Rate limiting storage (in production, use Redis)
-_rate_limit_storage = defaultdict(list)
+# Rate limiting storage (using Django's cache framework for production)
+# Requires cache backend like Redis configured in settings.py
+from django.core.cache import cache
 
-def rate_limit(max_requests=60, window_seconds=60, key_func=None):
+# Example cache key prefix to avoid conflicts
+CACHE_KEY_PREFIX = "rate_limit"
+
+def rate_limit(max_requests=None, window_seconds=None, key_func=None):
     """
-    Rate limiting decorator with configurable limits.
+    Rate limiting decorator with configurable limits using Django cache.
+    Requires a cache backend like Redis for production.
     
     Args:
-        max_requests: Maximum requests allowed in window
-        window_seconds: Time window in seconds
+        max_requests: Maximum requests allowed in window (defaults from settings)
+        window_seconds: Time window in seconds (defaults from settings)
         key_func: Function to generate rate limit key (defaults to IP)
     """
+    # Use settings defaults if not provided
+    max_requests = max_requests or getattr(settings, 'RATE_LIMIT_REQUESTS_PER_MINUTE', 60)
+    window_seconds = window_seconds or getattr(settings, 'RATE_LIMIT_WINDOW_SECONDS', 60)
+
     def decorator(view_func):
         @wraps(view_func)
         def wrapper(request, *args, **kwargs):
@@ -44,38 +54,50 @@ def rate_limit(max_requests=60, window_seconds=60, key_func=None):
                 key = get_client_ip(request)
             
             current_time = time.time()
-            
-            # Clean old entries
-            _rate_limit_storage[key] = [
-                req_time for req_time in _rate_limit_storage[key]
-                if current_time - req_time < window_seconds
-            ]
-            
-            # Check rate limit
-            if len(_rate_limit_storage[key]) >= max_requests:
-                logger.warning(f"Rate limit exceeded for key: {key}")
-                return JsonResponse({
-                    'error': 'Rate limit exceeded',
-                    'message': f'Maximum {max_requests} requests per {window_seconds} seconds allowed',
-                    'status': 'rate_limited'
-                }, status=429)
-            
-            # Add current request
-            _rate_limit_storage[key].append(current_time)
-            
+            # Create a cache key that includes the time window
+            # Format: "rate_limit:{prefix}:{key}:{window_start_timestamp}"
+            window_start = int(current_time // window_seconds)
+            cache_key = f"{CACHE_KEY_PREFIX}:{key}:{window_start}"
+
+            # Use cache.incr for atomic increment, or cache.get + cache.set with locking
+            # Simple approach: get count, increment, set with TTL
+            try:
+                current_count = cache.get(cache_key, 0)
+                if current_count >= max_requests:
+                    logger.warning(f"Rate limit exceeded for key: {key}")
+                    return JsonResponse({
+                        'error': 'Rate limit exceeded',
+                        'message': f'Maximum {max_requests} requests per {window_seconds} seconds allowed',
+                        'status': 'rate_limited'
+                    }, status=429)
+                
+                # Increment and set with TTL equal to the window
+                cache.set(cache_key, current_count + 1, timeout=window_seconds)
+                
+            except Exception as e:
+                # Handle cache errors gracefully - potentially allow request or log
+                logger.error(f"Cache error in rate_limit for key {key}: {e}")
+                # For now, let the request pass if cache fails, but log it
+                # In a real app, you might want more robust handling
+                pass 
+
             return view_func(request, *args, **kwargs)
         return wrapper
     return decorator
 
-def secure_api_view(require_auth=True, allowed_methods=['POST'], rate_limit_requests=30):
+def secure_api_view(require_auth=True, allowed_methods=['POST'], rate_limit_requests=None):
     """
-    Comprehensive security decorator for API views.
+    Comprehensive security decorator for API views using Django cache.
+    Requires a cache backend like Redis for production.
     
     Args:
         require_auth: Whether authentication is required
         allowed_methods: List of allowed HTTP methods
-        rate_limit_requests: Rate limit per minute
+        rate_limit_requests: Rate limit per minute (defaults from settings)
     """
+    # Use settings default if not provided
+    rate_limit_requests = rate_limit_requests or getattr(settings, 'RATE_LIMIT_API_REQUESTS_PER_MINUTE', 30)
+
     def decorator(view_func):
         @wraps(view_func)
         def wrapper(request, *args, **kwargs):
@@ -93,28 +115,28 @@ def secure_api_view(require_auth=True, allowed_methods=['POST'], rate_limit_requ
                     'status': 'error'
                 }, status=401)
             
-            # Rate limiting
+            # Rate limiting (IP-based for API endpoints is common)
             if rate_limit_requests > 0:
-                current_time = time.time()
                 client_ip = get_client_ip(request)
-                
-                # Clean old entries
-                _rate_limit_storage[client_ip] = [
-                    req_time for req_time in _rate_limit_storage[client_ip]
-                    if current_time - req_time < 60
-                ]
-                
-                # Check rate limit
-                if len(_rate_limit_storage[client_ip]) >= rate_limit_requests:
-                    logger.warning(f"API rate limit exceeded for IP: {client_ip}")
-                    return JsonResponse({
-                        'error': 'Rate limit exceeded',
-                        'status': 'error'
-                    }, status=429)
-                
-                # Add current request
-                _rate_limit_storage[client_ip].append(current_time)
-            
+                current_time = time.time()
+                window_seconds = 60 # Standard 1-minute window for API
+                window_start = int(current_time // window_seconds)
+                cache_key = f"{CACHE_KEY_PREFIX}:{client_ip}:api:{window_start}"
+
+                try:
+                    current_count = cache.get(cache_key, 0)
+                    if current_count >= rate_limit_requests:
+                        logger.warning(f"API rate limit exceeded for IP: {client_ip}")
+                        return JsonResponse({
+                            'error': 'Rate limit exceeded',
+                            'status': 'error'
+                        }, status=429)
+                    
+                    cache.set(cache_key, current_count + 1, timeout=window_seconds)
+                except Exception as e:
+                    logger.error(f"Cache error in secure_api_view for IP {client_ip}: {e}")
+                    # Handle cache failure gracefully
+
             return view_func(request, *args, **kwargs)
         return wrapper
     return decorator
@@ -208,7 +230,7 @@ def device_ownership_required(view_func):
     """
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        device_id = kwargs.get('device_id') or request.validated_data.get('device_id')
+        device_id = kwargs.get('device_id') or getattr(request, 'validated_data', {}).get('device_id')
         
         if not device_id:
             return JsonResponse({
@@ -260,6 +282,7 @@ def get_client_ip(request):
 def sanitize_input(value, max_length=1000):
     """
     Sanitize user input to prevent XSS and other attacks.
+    Note: This is a basic function. For rich text, consider using 'bleach'.
     
     Args:
         value: Input value to sanitize
@@ -285,10 +308,11 @@ def sanitize_input(value, max_length=1000):
 class SecureAPIView(View):
     """
     Base class for secure API views with built-in security features.
+    Requires a cache backend like Redis for rate limiting.
     """
     require_auth = True
     allowed_methods = ['POST']
-    rate_limit_requests = 30
+    rate_limit_requests = None # Use default from settings if None
     required_fields = []
     optional_fields = {}
     
